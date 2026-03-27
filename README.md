@@ -1,31 +1,69 @@
 # SGI-Guard 🛡️
 
-**SGI-Guard** är en backend-tjänst utvecklad som en del av mitt examensarbete. Syftet är att hjälpa användare att skydda sin SGI (Sjukpenninggrundande inkomst) genom att analysera och validera arbetspass och sysselsättningsgrad.
+**SGI-Guard** is a backend service developed as part of my graduation project (degree project). The purpose is to help users protect their **SGI** (*Sjukpenninggrundande inkomst* / Sickness benefit qualifying income) by analyzing and validating work shifts and employment rates.
 
-## 🚀 Om projektet
-Projektet fokuserar på att automatisera beräkningar för SGI-skydd och varna användaren om deras arbetade timmar riskerar att påverka deras ersättningsnivåer negativt.
+## 🚀 About the Project
+This project focuses on automating calculations for SGI protection according to the Swedish Social Insurance Agency's (*Försäkringskassan*) regulations. It warns users if their worked hours or activity levels risk negatively affecting their benefit levels.
 
-### Huvudfunktioner
-- **Registrering av arbetspass:** Logga arbetade timmar och sysselsättningsgrad.
-- **SGI-analys:** Beräkna om nuvarande arbetsmönster uppfyller kraven för SGI-skydd.
-- **REST API:** En backend byggd med Spring Boot för integration med frontend
+### Key Features
+- **Shift Registration:** Log worked hours and employment intensity.
+- **SGI Analysis:** Calculate whether current work patterns meet the legal requirements for SGI protection.
+- **REST API:** A robust backend built with Spring Boot, ready for frontend integration.
 
-## 🛠 Teknologier
+## 🛠 Technologies
 - **Java 21**
 - **Spring Boot 3.x**
-- **Spring Data JPA** (Persistens)
-- **PostgreSQL** (Databas)
-- **Spring Validation** (Indatavalidering)
-- **Lombok** (Boilerplate-reducering)
+- **Spring Data JPA** (Persistence)
+- **PostgreSQL** (Database)
+- **Spring Validation** (Input validation)
+- **Lombok** (Boilerplate reduction)
 
-## 🏁 Kom igång
+## 🏗 Architecture & Data Model
+To ensure SGI protection logic, the system uses a relational model centered around the person and their work-life balance.
 
-### Förutsättningar
-- Java 21 installerat
-- Maven
-- En körande PostgreSQL-instans
+```mermaid
+erDiagram
+    PERSON ||--o{ CHILD : "parent of"
+    PERSON ||--o{ WORK_CONDITIONS : "has"
+    PERSON ||--o{ SHIFT : "performs"
 
-### Installation
-1. Klona repot:
-   ```bash
-   git clone https://github.com
+    PERSON {
+        long id PK
+        string personalNumber UK
+        string firstName
+        string lastName
+    }
+
+    CHILD {
+        long id PK
+        string firstName
+        date birthDate
+        long personId FK
+    }
+
+    WORK_CONDITIONS {
+        long id PK
+        int currentEmploymentRate
+        int originalEmploymentRate
+        date validFrom
+        date validTo
+        long personId FK
+    }
+
+    SHIFT {
+        long id PK
+        datetime startTime
+        datetime endTime
+        long personId FK
+    }
+```
+
+🏁 Getting Started
+
+Prerequisites
+
+* Java 21 SDK
+* Maven
+* A running PostgreSQL instance
+
+
