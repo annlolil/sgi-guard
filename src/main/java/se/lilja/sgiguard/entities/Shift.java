@@ -1,8 +1,11 @@
 package se.lilja.sgiguard.entities;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.format.annotation.DateTimeFormat;
+
 import java.time.LocalDateTime;
 
 @Getter
@@ -14,10 +17,10 @@ public class Shift {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column
+    @Column(nullable = false)
     LocalDateTime shiftStart;
 
-    @Column
+    @Column(nullable = false)
     LocalDateTime shiftEnd;
 
     @ManyToOne
