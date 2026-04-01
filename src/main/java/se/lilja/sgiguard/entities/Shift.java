@@ -1,15 +1,15 @@
 package se.lilja.sgiguard.entities;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.format.annotation.DateTimeFormat;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
-@Getter
-@Setter
+import java.time.LocalDate;
+import java.time.LocalTime;
+// LomBok does not work, remove dependency or try to fix it.
+@NoArgsConstructor //Empty constructor
+@AllArgsConstructor // For testing
 @Entity
 public class Shift {
 
@@ -18,14 +18,67 @@ public class Shift {
     private Long id;
 
     @Column(nullable = false)
-    LocalDateTime shiftStart;
+    private LocalDate shiftStartDate;
 
     @Column(nullable = false)
-    LocalDateTime shiftEnd;
+    private LocalTime shiftStartTime;
+
+    @Column(nullable = false)
+    private LocalDate shiftEndDate;
+
+    @Column(nullable = false)
+    private LocalTime shiftEndTime;
 
     @ManyToOne
-    @JoinColumn(name = "person_id")
+    @JoinColumn(name = "person_id", nullable = false)
+    @JsonIgnoreProperties({"shifts", "children", "workConditions"})
     private Person person;
 
-    public Shift() {}
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public LocalDate getShiftStartDate() {
+        return shiftStartDate;
+    }
+
+    public void setShiftStartDate(LocalDate shiftStartDate) {
+        this.shiftStartDate = shiftStartDate;
+    }
+
+    public LocalTime getShiftStartTime() {
+        return shiftStartTime;
+    }
+
+    public void setShiftStartTime(LocalTime shiftStartTime) {
+        this.shiftStartTime = shiftStartTime;
+    }
+
+    public LocalDate getShiftEndDate() {
+        return shiftEndDate;
+    }
+
+    public void setShiftEndDate(LocalDate shiftEndDate) {
+        this.shiftEndDate = shiftEndDate;
+    }
+
+    public LocalTime getShiftEndTime() {
+        return shiftEndTime;
+    }
+
+    public void setShiftEndTime(LocalTime shiftEndTime) {
+        this.shiftEndTime = shiftEndTime;
+    }
+
+    public Person getPerson() {
+        return person;
+    }
+
+    public void setPerson(Person person) {
+        this.person = person;
+    }
 }
