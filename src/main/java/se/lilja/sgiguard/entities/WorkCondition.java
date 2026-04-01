@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.List;
 
 //@Getter
 //@Setter
@@ -34,6 +35,9 @@ public class WorkCondition {
     @JoinColumn(name = "person_id", nullable = false)
     @JsonIgnoreProperties({"children", "shifts", "workConditions"})
     private Person person;
+
+    @OneToMany(mappedBy = "workCondition")
+    private List<Shift> shifts;
 
     public Long getId() {
         return id;
@@ -81,5 +85,13 @@ public class WorkCondition {
 
     public void setPerson(Person person) {
         this.person = person;
+    }
+
+    public List<Shift> getShifts() {
+        return shifts;
+    }
+
+    public void setShifts(List<Shift> shifts) {
+        this.shifts = shifts;
     }
 }

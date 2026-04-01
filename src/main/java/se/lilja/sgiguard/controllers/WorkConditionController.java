@@ -17,7 +17,7 @@ public class WorkConditionController {
     public WorkConditionController(WorkConditionService workConditionService) {
         this.workConditionService = workConditionService;
     }
-
+    // Is currently returning a workcondition object with shifts which I dont want to have. Remove shifts from the return.
     @PostMapping("/addworkcondition")
     public ResponseEntity<WorkCondition> addWorkCondition(@RequestBody WorkCondition workCondition, @RequestParam Long personId) {
         return new ResponseEntity<>(workConditionService.addWorkCondition(workCondition, personId), HttpStatus.CREATED);

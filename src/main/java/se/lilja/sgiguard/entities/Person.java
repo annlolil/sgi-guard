@@ -2,14 +2,10 @@ package se.lilja.sgiguard.entities;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.util.List;
 
-//@Getter
-//@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
@@ -39,8 +35,6 @@ public class Person {
     // If a person have more than one employment
     @OneToMany(mappedBy = "person")
     private List<WorkCondition> workConditions;
-
-//    public Person(){}
 
     public Long getId() {
         return id;

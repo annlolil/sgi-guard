@@ -25,8 +25,8 @@ public class ShiftController {
 
     // An endpoint where a user adds a shift. The endpoint looks at the current users id and saves it to the shift.
     @PostMapping("/addshift")
-    public ResponseEntity<Shift> addShift(@RequestBody Shift shift, @RequestParam Long personId) {
-        return new ResponseEntity<>(shiftService.addShift(shift, personId), HttpStatus.CREATED);
+    public ResponseEntity<Shift> addShift(@RequestBody Shift shift, @RequestParam Long personId, @RequestParam Long workConditionId) {
+        return new ResponseEntity<>(shiftService.addShift(shift, personId, workConditionId), HttpStatus.CREATED);
     }
 
     // An endpoint that gets a specific persons all saved shifts.

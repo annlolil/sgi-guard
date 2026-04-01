@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface ShiftServiceInterface {
 
-    Shift addShift(Shift shift, Long personId);
+    Shift addShift(Shift shift, Long personId, Long workConditionId);
     Shift updateShift();
     Shift getShift();
     List<Shift> getShifts(Person person);

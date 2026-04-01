@@ -34,6 +34,11 @@ public class Shift {
     @JsonIgnoreProperties({"shifts", "children", "workConditions"})
     private Person person;
 
+    @ManyToOne
+    @JoinColumn(name = "work_condition_id", nullable = false)
+    @JsonIgnoreProperties({"person", "shifts", "children"})
+    private WorkCondition workCondition;
+
     public Long getId() {
         return id;
     }
@@ -80,5 +85,13 @@ public class Shift {
 
     public void setPerson(Person person) {
         this.person = person;
+    }
+
+    public WorkCondition getWorkCondition() {
+        return workCondition;
+    }
+
+    public void setWorkCondition(WorkCondition workCondition) {
+        this.workCondition = workCondition;
     }
 }
