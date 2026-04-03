@@ -10,5 +10,5 @@ import java.util.List;
 @Repository
 public interface ShiftRepository extends JpaRepository<Shift, Long> {
 
-    List<Shift> findShiftByPerson(Person person);
+    List<Shift> findShiftByPersonId(Long personId);
 }

@@ -31,8 +31,8 @@ public class ShiftController {
 
     // An endpoint that gets a specific persons all saved shifts.
     @GetMapping("/getshifts")
-    public ResponseEntity<List<Shift>> getShifts(Person person) {
-        return ResponseEntity.ok(shiftService.getShifts(person));
+    public ResponseEntity<List<Shift>> getShifts(Long personId) {
+        return ResponseEntity.ok(shiftService.getShifts(personId));
     }
 
     // An endpoint that gets all shifts saved in the database.

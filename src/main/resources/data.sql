@@ -3,11 +3,11 @@ INSERT INTO person (personal_number, first_name, last_name)
 VALUES ('19850505-1234', 'Anna', 'Andersson');
 
 -- 2. Lägg till ett barn (Föddes för 10 månader sen - SGI är helt skyddad < 1 år)
-INSERT INTO child (first_name, birth_date, is_sgi_protecting, person_id)
+INSERT INTO child (first_name, birth_date, sgi_protecting, person_id)
 VALUES ('Charlie', DATEADD('MONTH', -10, CURRENT_DATE), True, 1);
 
 -- 3. Lägg till ett äldre barn (Föddes för 3 år sen - Kräver sysselsättning för skydd)
-INSERT INTO child (first_name, birth_date, is_sgi_protecting, person_id)
+INSERT INTO child (first_name, birth_date, sgi_protecting, person_id)
 VALUES ('Alice', DATEADD('YEAR', -3, CURRENT_DATE), False, 1);
 
 -- 4. Arbetets omfattning (Original 100%, jobbar nu 80%)

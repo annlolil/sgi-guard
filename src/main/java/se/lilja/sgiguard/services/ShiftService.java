@@ -56,8 +56,8 @@ public class ShiftService implements ShiftServiceInterface {
     }
 
     @Override
-    public List<Shift> getShifts(Person person) {
-        return shiftRepository.findShiftByPerson(person);
+    public List<Shift> getShifts(Long personId) {
+        return shiftRepository.findShiftByPersonId(personId);
     }
 
     @Override

@@ -23,11 +23,11 @@ public class Child {
     private String firstName;
 
     @Column(nullable = false)
-    private Boolean isSgiProtecting;
+    private Boolean sgiProtecting;
 
     @ManyToOne
     @JoinColumn(name = "person_id", nullable = false)
-    @JsonIgnoreProperties("children")
+    @JsonIgnoreProperties({"children", "shifts", "workConditions"})
     private Person person;
 
     public Long getId() {
@@ -54,12 +54,12 @@ public class Child {
         this.firstName = firstName;
     }
 
-    public Boolean getSgiProtecting() {
-        return isSgiProtecting;
+    public Boolean isSgiProtecting() {
+        return sgiProtecting;
     }
 
     public void setSgiProtecting(Boolean sgiProtecting) {
-        isSgiProtecting = sgiProtecting;
+        this.sgiProtecting = sgiProtecting;
     }
 
     public Person getPerson() {

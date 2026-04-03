@@ -1,5 +1,6 @@
 package se.lilja.sgiguard.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -37,6 +38,7 @@ public class WorkCondition {
     private Person person;
 
     @OneToMany(mappedBy = "workCondition")
+    @JsonIgnore
     private List<Shift> shifts;
 
     public Long getId() {
