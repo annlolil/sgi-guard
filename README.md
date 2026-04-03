@@ -3,7 +3,7 @@
 **SGI-Guard** is a backend service developed as part of my graduation project (degree project). The purpose is to help users protect their **SGI** (*Sjukpenninggrundande inkomst* / Sickness benefit qualifying income) by analyzing and validating work shifts and employment rates.
 
 ## 🚀 About the Project
-This project focuses on automating calculations for SGI protection according to the Swedish Social Insurance Agency's (*Försäkringskassan*) regulations. It warns users if their worked hours or activity levels risk negatively affecting their benefit levels.
+This project focuses on automating calculations for SGI protection according to the Swedish Social Insurance Agency's regulations. It warns users if their worked hours or activity levels risk negatively affecting their benefit levels.
 
 ### Key Features
 - **Shift Registration:** Log worked hours and employment intensity.
@@ -12,9 +12,10 @@ This project focuses on automating calculations for SGI protection according to 
 
 ## 🛠 Technologies
 - **Java 21**
-- **Spring Boot 3.x**
+- **Spring Boot 4.x**
 - **Spring Data JPA** (Persistence)
 - **PostgreSQL** (Database)
+- **H2** (Database for testing)
 - **Spring Validation** (Input validation)
 - **Lombok** (Boilerplate reduction)
 
@@ -38,6 +39,7 @@ erDiagram
         long id PK
         string firstName
         date birthDate
+        boolean sgiProtecting
         long personId FK
     }
 
@@ -52,8 +54,10 @@ erDiagram
 
     SHIFT {
         long id PK
-        datetime startTime
-        datetime endTime
+        date startDate
+        date endDate
+        time startTime
+        time endTime
         long personId FK
     }
 ```
