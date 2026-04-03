@@ -1,13 +1,14 @@
 package se.lilja.sgiguard.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import java.time.LocalDate;
-import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
-@Getter
-@Setter
+import java.time.LocalDate;
+
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 public class Child {
 
@@ -15,18 +16,57 @@ public class Child {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column
-    LocalDate birthDate;
+    @Column(nullable = false)
+    private LocalDate birthDate;
 
-    @Column
-    String firstName;
+    @Column(nullable = false)
+    private String firstName;
 
-    @Column
-    Boolean isSgiProtecting;
+    @Column(nullable = false)
+    private Boolean sgiProtecting;
 
     @ManyToOne
-    @JoinColumn(name = "person_id")
-    Person person;
+    @JoinColumn(name = "person_id", nullable = false)
+    @JsonIgnoreProperties({"children", "shifts", "workConditions"})
+    private Person person;
 
-    public Child() {}
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public LocalDate getBirthDate() {
+        return birthDate;
+    }
+
+    public void setBirthDate(LocalDate birthDate) {
+        this.birthDate = birthDate;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public Boolean isSgiProtecting() {
+        return sgiProtecting;
+    }
+
+    public void setSgiProtecting(Boolean sgiProtecting) {
+        this.sgiProtecting = sgiProtecting;
+    }
+
+    public Person getPerson() {
+        return person;
+    }
+
+    public void setPerson(Person person) {
+        this.person = person;
+    }
 }

@@ -1,13 +1,13 @@
 package se.lilja.sgiguard.entities;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
-@Getter
-@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 public class Person {
 
@@ -17,13 +17,13 @@ public class Person {
 
     // TODO: Implement AES-256 encryption for GDPR compliance
     @Column(unique = true, nullable = false)
-    String personalNumber;
+    private String personalNumber;
 
-    @Column
-    String firstName;
+    @Column(nullable = false)
+    private String firstName;
 
-    @Column
-    String lastName;
+    @Column(nullable = false)
+    private String lastName;
 
     @OneToMany(mappedBy = "person")
     private List<Child> children;
@@ -36,5 +36,59 @@ public class Person {
     @OneToMany(mappedBy = "person")
     private List<WorkCondition> workConditions;
 
-    public Person(){}
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getPersonalNumber() {
+        return personalNumber;
+    }
+
+    public void setPersonalNumber(String personalNumber) {
+        this.personalNumber = personalNumber;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public List<Child> getChildren() {
+        return children;
+    }
+
+    public void setChildren(List<Child> children) {
+        this.children = children;
+    }
+
+    public List<Shift> getShifts() {
+        return shifts;
+    }
+
+    public void setShifts(List<Shift> shifts) {
+        this.shifts = shifts;
+    }
+
+    public List<WorkCondition> getWorkConditions() {
+        return workConditions;
+    }
+
+    public void setWorkConditions(List<WorkCondition> workConditions) {
+        this.workConditions = workConditions;
+    }
 }
