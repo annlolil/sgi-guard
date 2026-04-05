@@ -1,12 +1,14 @@
 package se.lilja.sgiguard.entities;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
-
+import lombok.Setter;
 import java.time.LocalDate;
 
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
@@ -27,46 +29,5 @@ public class Child {
 
     @ManyToOne
     @JoinColumn(name = "person_id", nullable = false)
-    @JsonIgnoreProperties({"children", "shifts", "workConditions"})
     private Person person;
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public LocalDate getBirthDate() {
-        return birthDate;
-    }
-
-    public void setBirthDate(LocalDate birthDate) {
-        this.birthDate = birthDate;
-    }
-
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public Boolean isSgiProtecting() {
-        return sgiProtecting;
-    }
-
-    public void setSgiProtecting(Boolean sgiProtecting) {
-        this.sgiProtecting = sgiProtecting;
-    }
-
-    public Person getPerson() {
-        return person;
-    }
-
-    public void setPerson(Person person) {
-        this.person = person;
-    }
 }

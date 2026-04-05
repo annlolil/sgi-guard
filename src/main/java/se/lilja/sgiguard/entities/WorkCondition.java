@@ -1,16 +1,17 @@
 package se.lilja.sgiguard.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDate;
 import java.util.List;
 
-//@Getter
-//@Setter
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
@@ -34,66 +35,9 @@ public class WorkCondition {
 
     @ManyToOne
     @JoinColumn(name = "person_id", nullable = false)
-    @JsonIgnoreProperties({"children", "shifts", "workConditions"})
     private Person person;
 
     @OneToMany(mappedBy = "workCondition")
     @JsonIgnore
     private List<Shift> shifts;
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Float getCurrentEmploymentRate() {
-        return currentEmploymentRate;
-    }
-
-    public void setCurrentEmploymentRate(Float currentEmploymentRate) {
-        this.currentEmploymentRate = currentEmploymentRate;
-    }
-
-    public Float getOriginalEmploymentRate() {
-        return originalEmploymentRate;
-    }
-
-    public void setOriginalEmploymentRate(Float originalEmploymentRate) {
-        this.originalEmploymentRate = originalEmploymentRate;
-    }
-
-    public LocalDate getValidFrom() {
-        return validFrom;
-    }
-
-    public void setValidFrom(LocalDate validFrom) {
-        this.validFrom = validFrom;
-    }
-
-    public LocalDate getValidTo() {
-        return validTo;
-    }
-
-    public void setValidTo(LocalDate validTo) {
-        this.validTo = validTo;
-    }
-
-    public Person getPerson() {
-        return person;
-    }
-
-    public void setPerson(Person person) {
-        this.person = person;
-    }
-
-    public List<Shift> getShifts() {
-        return shifts;
-    }
-
-    public void setShifts(List<Shift> shifts) {
-        this.shifts = shifts;
-    }
 }
