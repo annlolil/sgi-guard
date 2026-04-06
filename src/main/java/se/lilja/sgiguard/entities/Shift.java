@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 @Getter
@@ -21,16 +22,10 @@ public class Shift {
     private Long id;
 
     @Column(nullable = false)
-    private LocalDate shiftStartDate;
+    private LocalDateTime shiftStart;
 
     @Column(nullable = false)
-    private LocalTime shiftStartTime;
-
-    @Column(nullable = false)
-    private LocalDate shiftEndDate;
-
-    @Column(nullable = false)
-    private LocalTime shiftEndTime;
+    private LocalDateTime shiftEnd;
 
     @ManyToOne
     @JoinColumn(name = "person_id", nullable = false)
