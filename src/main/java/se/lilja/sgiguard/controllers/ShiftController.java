@@ -4,11 +4,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import se.lilja.sgiguard.dtos.ShiftDTO;
 import se.lilja.sgiguard.entities.Person;
 import se.lilja.sgiguard.entities.Shift;
+import se.lilja.sgiguard.entities.WorkCondition;
 import se.lilja.sgiguard.services.ShiftService;
 
 import java.security.Principal;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 // Change to Controller later on
@@ -25,8 +29,10 @@ public class ShiftController {
 
     // An endpoint where a user adds a shift. The endpoint looks at the current users id and saves it to the shift.
     @PostMapping("/addshift")
-    public ResponseEntity<Shift> addShift(@RequestBody Shift shift, @RequestParam Long personId, @RequestParam Long workConditionId) {
-        return new ResponseEntity<>(shiftService.addShift(shift, personId, workConditionId), HttpStatus.CREATED);
+    public ResponseEntity<Shift> addShift(@RequestBody ShiftDTO shiftDTO,
+                                          Long personId, // Change later do @Authentication principal if I have the time
+                                          @RequestParam Long workConditionId) {
+        return new ResponseEntity<>(shiftService.addShift(shiftDTO, personId, workConditionId), HttpStatus.CREATED);
     }
 
     // An endpoint that gets a specific persons all saved shifts.

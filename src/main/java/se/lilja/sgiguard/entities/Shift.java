@@ -4,10 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
+import java.time.LocalDateTime;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
-// LomBok does not work, remove dependency or try to fix it.
 @NoArgsConstructor //Empty constructor
 @AllArgsConstructor // For testing
 @Entity
@@ -18,16 +16,10 @@ public class Shift {
     private Long id;
 
     @Column(nullable = false)
-    private LocalDate shiftStartDate;
+    private LocalDateTime shiftStart;
 
     @Column(nullable = false)
-    private LocalTime shiftStartTime;
-
-    @Column(nullable = false)
-    private LocalDate shiftEndDate;
-
-    @Column(nullable = false)
-    private LocalTime shiftEndTime;
+    private LocalDateTime shiftEnd;
 
     @ManyToOne
     @JoinColumn(name = "person_id", nullable = false)
@@ -47,38 +39,6 @@ public class Shift {
         this.id = id;
     }
 
-    public LocalDate getShiftStartDate() {
-        return shiftStartDate;
-    }
-
-    public void setShiftStartDate(LocalDate shiftStartDate) {
-        this.shiftStartDate = shiftStartDate;
-    }
-
-    public LocalTime getShiftStartTime() {
-        return shiftStartTime;
-    }
-
-    public void setShiftStartTime(LocalTime shiftStartTime) {
-        this.shiftStartTime = shiftStartTime;
-    }
-
-    public LocalDate getShiftEndDate() {
-        return shiftEndDate;
-    }
-
-    public void setShiftEndDate(LocalDate shiftEndDate) {
-        this.shiftEndDate = shiftEndDate;
-    }
-
-    public LocalTime getShiftEndTime() {
-        return shiftEndTime;
-    }
-
-    public void setShiftEndTime(LocalTime shiftEndTime) {
-        this.shiftEndTime = shiftEndTime;
-    }
-
     public Person getPerson() {
         return person;
     }
@@ -93,5 +53,21 @@ public class Shift {
 
     public void setWorkCondition(WorkCondition workCondition) {
         this.workCondition = workCondition;
+    }
+
+    public LocalDateTime getShiftStart() {
+        return shiftStart;
+    }
+
+    public void setShiftStart(LocalDateTime shiftStart) {
+        this.shiftStart = shiftStart;
+    }
+
+    public LocalDateTime getShiftEnd() {
+        return shiftEnd;
+    }
+
+    public void setShiftEnd(LocalDateTime shiftEnd) {
+        this.shiftEnd = shiftEnd;
     }
 }
