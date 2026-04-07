@@ -34,7 +34,6 @@ public class Shift {
 
     @ManyToOne
     @JoinColumn(name = "person_id", nullable = false)
-    @JsonIgnoreProperties({"shifts", "children", "workConditions"})
     private Person person;
 
     @ManyToOne
