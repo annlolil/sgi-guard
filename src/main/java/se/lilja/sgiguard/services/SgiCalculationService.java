@@ -17,19 +17,19 @@ import java.time.LocalTime;
 @Service
 public class SgiCalculationService {
 
-    private final ShiftRepository shiftRepository;
-    private final WorkConditionRepository workConditionRepository;
-    private final PersonRepository personRepository;
-
-    @Autowired
-    public SgiCalculationService(ShiftRepository shiftRepository,
-                                 WorkConditionRepository workConditionRepository,
-                                 PersonRepository personRepository)
-    {
-        this.shiftRepository = shiftRepository;
-        this.workConditionRepository = workConditionRepository;
-        this.personRepository = personRepository;
-    }
+//    private final ShiftRepository shiftRepository;
+//    private final WorkConditionRepository workConditionRepository;
+//    private final PersonRepository personRepository;
+//
+//    @Autowired
+//    public SgiCalculationService(ShiftRepository shiftRepository,
+//                                 WorkConditionRepository workConditionRepository,
+//                                 PersonRepository personRepository)
+//    {
+//        this.shiftRepository = shiftRepository;
+//        this.workConditionRepository = workConditionRepository;
+//        this.personRepository = personRepository;
+//    }
 
     // A method that takes a shift and identifies which day is the main day of working hours
     public LocalDate identifyMainDay(Shift shift) {
