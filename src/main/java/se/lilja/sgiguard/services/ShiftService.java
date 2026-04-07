@@ -28,7 +28,9 @@ public class ShiftService implements ShiftServiceInterface {
     private final WorkConditionRepository workConditionRepository;
 
     @Autowired
-    public ShiftService(ShiftRepository shiftRepository, PersonRepository personRepository, WorkConditionRepository workConditionRepository) {
+    public ShiftService(ShiftRepository shiftRepository,
+                        PersonRepository personRepository,
+                        WorkConditionRepository workConditionRepository) {
         this.shiftRepository = shiftRepository;
         this.personRepository = personRepository;
         this.workConditionRepository = workConditionRepository;
@@ -43,12 +45,11 @@ public class ShiftService implements ShiftServiceInterface {
         WorkCondition workCondition = workConditionRepository.findById(workConditionId).orElseThrow(()->
                 new ResponseStatusException(HttpStatus.NOT_FOUND, "Workcondition not found"));
 
-        Shift shift = getShift(shiftDTO, person, workCondition);
-        shiftRepository.save(shift);
-        return shift;
+        Shift shift = convertToEntity(shiftDTO, person, workCondition);
+        return shiftRepository.save(shift);
     }
 
-    private static Shift getShift(ShiftDTO shiftDTO, Person person, WorkCondition workCondition) {
+    private static Shift convertToEntity(ShiftDTO shiftDTO, Person person, WorkCondition workCondition) {
         LocalDate startDate = shiftDTO.getStartDate();
         LocalDate endDate = shiftDTO.getEndDate();
         LocalTime startTime = shiftDTO.getStartTime();
@@ -88,9 +89,4 @@ public class ShiftService implements ShiftServiceInterface {
     @Override
     public void deleteShift() {
     }
-//
-//    // A method that takes a shift and put localdate and localtime together
-//    private LocalDateTime convertToLocalDateTime(LocalDate localDate, LocalTime localTime) {
-//        return LocalDateTime.of(localDate, localTime);
-//    }
 }
