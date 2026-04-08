@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import se.lilja.sgiguard.entities.Shift;
 import se.lilja.sgiguard.repositories.ShiftRepository;
@@ -12,10 +13,10 @@ import java.time.LocalDate;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-//@ExtendWith(MockitoExtension.class)
 class SgiCalculationServiceTest {
 
-    private final SgiCalculationService sgiCalculationService = new SgiCalculationService();
+    private final ShiftRepository shiftRepository = Mockito.mock(ShiftRepository.class);
+    private final SgiCalculationService sgiCalculationService = new SgiCalculationService(shiftRepository);
     private final Shift shift = new Shift();
 
     @Test

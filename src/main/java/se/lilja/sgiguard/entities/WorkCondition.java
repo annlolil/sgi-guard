@@ -21,6 +21,9 @@ public class WorkCondition {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column
+    private String workPlaceName;
+
     @Column(nullable = false)
     private Float currentEmploymentRate;
 
