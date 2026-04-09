@@ -2,7 +2,6 @@ package se.lilja.sgiguard.utils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 
 /*
  * Creates a DateRange object covering the full 24-hour periods for the given dates.
@@ -15,6 +14,6 @@ import java.time.LocalTime;
  */
 public record DateRange(LocalDateTime start, LocalDateTime end) {
     public static DateRange of(LocalDate from, LocalDate to) {
-        return new DateRange (from.atStartOfDay(), to.atTime(LocalTime.MAX));
+        return new DateRange (from.atStartOfDay(), to.atTime(23, 59, 59));
     }
 }

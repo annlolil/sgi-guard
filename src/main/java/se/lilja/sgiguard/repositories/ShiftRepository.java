@@ -1,6 +1,8 @@
 package se.lilja.sgiguard.repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import se.lilja.sgiguard.entities.Person;
 import se.lilja.sgiguard.entities.Shift;
@@ -12,7 +14,15 @@ import java.util.List;
 @Repository
 public interface ShiftRepository extends JpaRepository<Shift, Long> {
 
-    List<Shift> findShiftByPersonId(Long personId);
+    @Query("SELECT s FROM Shift s WHERE s.person.id = :personId " +
+            "AND s.shiftStart < :rangeEnd " +
+            "AND s.shiftEnd > :rangeStart")
+    List<Shift> findOverlappingShifts(
+            @Param("personId") Long personId,
+            @Param("rangeStart") LocalDateTime rangeStart,
+            @Param("rangeEnd") LocalDateTime rangeEnd
+    );
 
-    List<Shift> findAllByPerson_IdAndShiftStartBetween(Long personId, LocalDateTime from, LocalDateTime to);
+    List<Shift> findShiftByPersonId(Long personId);
+    
 }
