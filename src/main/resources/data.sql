@@ -11,8 +11,8 @@ INSERT INTO child (first_name, birth_date, sgi_protecting, person_id)
 VALUES ('Alice', DATEADD('YEAR', -3, CURRENT_DATE), False, 1);
 
 -- 4. Arbetets omfattning (Original 100%, jobbar nu 80%)
-INSERT INTO work_condition (original_employment_rate, current_employment_rate, valid_from, valid_to, person_id)
-VALUES (100, 80, DATEADD('YEAR', -1, CURRENT_DATE), DATEADD('YEAR', 1, CURRENT_DATE), 1);
+INSERT INTO work_condition (original_employment_rate, current_employment_rate, original_working_hours, valid_from, valid_to, person_id)
+VALUES (100, 80, 34.2,DATEADD('YEAR', -1, CURRENT_DATE), DATEADD('YEAR', 1, CURRENT_DATE), 1);
 
 -- 5. Några arbetspass (Shifts) för den senaste veckan
 -- Pass 1:

@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 @Getter
@@ -21,16 +22,22 @@ public class WorkCondition {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private Float currentEmploymentRate;
+    @Column
+    private String workPlaceName;
 
     @Column(nullable = false)
-    private Float originalEmploymentRate;
+    private Double currentEmploymentRate;
+
+    @Column(nullable = false)
+    private Double originalEmploymentRate;
+
+    @Column(nullable = false)
+    private Double originalWorkingHours;
 
     @Column(nullable = false)
     private LocalDate validFrom;
 
-    @Column(nullable = false)
+    @Column
     private LocalDate validTo;
 
     @ManyToOne
