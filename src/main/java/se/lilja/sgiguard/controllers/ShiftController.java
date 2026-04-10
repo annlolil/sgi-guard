@@ -5,15 +5,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import se.lilja.sgiguard.dtos.ShiftDTO;
-import se.lilja.sgiguard.entities.Person;
 import se.lilja.sgiguard.entities.Shift;
-import se.lilja.sgiguard.entities.WorkCondition;
 import se.lilja.sgiguard.services.SgiCalculationService;
 import se.lilja.sgiguard.services.ShiftService;
 
-import java.security.Principal;
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.List;
 
 // Change to Controller later on

@@ -12,11 +12,10 @@ This project focuses on automating calculations for SGI protection according to 
 
 ## 🛠 Technologies
 - **Java 21**
-- **Spring Boot 4.x**
+- **Spring Boot 3.x**
 - **Spring Data JPA** (Persistence)
 - **PostgreSQL** (Database)
-- **H2** (Database for testing)
-- **Spring Validation** (Input validation)
+- **H2** (Database for testing and development)
 - **Lombok** (Boilerplate reduction)
 
 ## 🏗 Architecture & Data Model
@@ -43,10 +42,12 @@ erDiagram
         long personId FK
     }
 
-    WORK_CONDITIONS {
+    EMPLOYMENT {
         long id PK
-        int currentEmploymentRate
-        int originalEmploymentRate
+        string workPlaceName
+        double currentEmploymentRate
+        double originalEmploymentRate
+        double originalWorkingHours
         date validFrom
         date validTo
         long personId FK
@@ -54,13 +55,23 @@ erDiagram
 
     SHIFT {
         long id PK
-        date startDate
-        date endDate
-        time startTime
-        time endTime
+        dateTime shiftStart
+        dateTime shiftEnd
         long personId FK
     }
 ```
+
+### Structure
+
+src/
+├── main/java
+│   ├── controllers/        
+│   ├── dtos/         
+│   ├── entities/        
+│   ├── repositories/
+│   ├── services/
+│   └── utils
+└──  main/resources
 
 🏁 Getting Started
 
@@ -68,6 +79,6 @@ Prerequisites
 
 * Java 21 SDK
 * Maven
-* A running PostgreSQL instance
+* A running PostgreSQL instance (for production)
 
 

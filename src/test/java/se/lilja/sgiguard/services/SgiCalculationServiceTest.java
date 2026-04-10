@@ -1,20 +1,14 @@
 package se.lilja.sgiguard.services;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.jupiter.MockitoExtension;
-import se.lilja.sgiguard.entities.Person;
 import se.lilja.sgiguard.entities.Shift;
+import se.lilja.sgiguard.entities.Employment;
 import se.lilja.sgiguard.repositories.ShiftRepository;
 
 import java.time.LocalDate;
-import java.util.List;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.mockito.Mockito.when;
 
 class SgiCalculationServiceTest {
 
@@ -72,27 +66,20 @@ class SgiCalculationServiceTest {
         assertThat(result).isEqualTo(startDay);
     }
 
-    // Testing the scenario when a shifts start in a period but ends after the period
-//    @Test
-//    void getShiftsForPersonInPeriod_ShouldReturnShifts_WhenShiftsAreStartingInPeriodAndNotEndingInPeriod() {
-//
-//        // Given
-//        //Period to list shifts from
-//        LocalDate from = LocalDate.of(2024, 10, 1);
-//        LocalDate to = from.plusDays(30);
-//
-//        //Shift start and shift end
-//        LocalDate start = LocalDate.of(2024, 10, 31);
-//        LocalDate end = LocalDate.of(2024, 11, 1);
-//        shift.setShiftStart(start.atTime(21, 0));
-//        shift.setShiftEnd(end.atTime(7, 0));
-//
-//        //Person
-//        Person person = new Person();
-//        person.setId(1L);
-//        shift.setPerson(person);
-//
-//        //When
-//        List<Shift> shifts = sgiCalculationService.getShiftsForPersonInPeriod(1L, from, to);
-//    }
+    @Test
+    void weeklyTargetHours_ShouldReturnWeeklyTargetHours() {
+        // Given
+        Employment employment = new Employment();
+        employment.setId(1L);
+        employment.setOriginalEmploymentRate(100.0);
+        employment.setCurrentEmploymentRate(85.0);
+        employment.setOriginalWorkingHours(34.2);
+        employment.setValidFrom(LocalDate.now());
+
+        // When
+        Double result = sgiCalculationService.calculateCurrentWeeklyHours(employment);
+
+        // Then
+        assertThat(result).isEqualTo(29.07);
+    }
 }

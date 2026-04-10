@@ -3,6 +3,7 @@ package se.lilja.sgiguard.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import se.lilja.sgiguard.entities.Shift;
+import se.lilja.sgiguard.entities.Employment;
 import se.lilja.sgiguard.repositories.ShiftRepository;
 import se.lilja.sgiguard.utils.DateRange;
 import java.time.Duration;
@@ -53,5 +54,14 @@ public class SgiCalculationService {
                 range.start(),
                 range.end()
         );
+    }
+
+    //Method that calculates the hours that a person should work in average per week
+    // considering the persons workconditions
+    public Double calculateCurrentWeeklyHours(Employment employment) {
+
+        double target = employment.getOriginalWorkingHours() * employment.getCurrentEmploymentRate()/100.0;
+
+        return Math.round(target*100.0)/100.0;
     }
 }

@@ -5,30 +5,30 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import se.lilja.sgiguard.entities.Person;
-import se.lilja.sgiguard.entities.WorkCondition;
+import se.lilja.sgiguard.entities.Employment;
 import se.lilja.sgiguard.repositories.PersonRepository;
-import se.lilja.sgiguard.repositories.WorkConditionRepository;
+import se.lilja.sgiguard.repositories.EmploymentRepository;
 
 @Service
-public class WorkConditionService implements WorkConditionInterface {
+public class EmploymentService implements EmploymentInterface {
 
-    private final WorkConditionRepository workConditionRepository;
+    private final EmploymentRepository employmentRepository;
     private final PersonRepository personRepository;
 
     @Autowired
-    public WorkConditionService(WorkConditionRepository workConditionRepository, PersonRepository personRepository) {
-        this.workConditionRepository = workConditionRepository;
+    public EmploymentService(EmploymentRepository employmentRepository, PersonRepository personRepository) {
+        this.employmentRepository = employmentRepository;
         this.personRepository = personRepository;
     }
 
     @Override
-    public WorkCondition addWorkCondition(WorkCondition workCondition, Long personId) {
+    public Employment addEmployment(Employment employment, Long personId) {
         // Get the person that is logged in and connect it to the workconditions that's being saved
         Person person = personRepository.findById(personId).orElseThrow(()->
                 new ResponseStatusException(HttpStatus.NOT_FOUND, "Person not found"));
 
-        workCondition.setPerson(person);
-        workConditionRepository.save(workCondition);
-        return workCondition;
+        employment.setPerson(person);
+        employmentRepository.save(employment);
+        return employment;
     }
 }
