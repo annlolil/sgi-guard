@@ -64,4 +64,21 @@ public class SgiCalculationService {
 
         return Math.round(target*100.0)/100.0;
     }
+
+    // Method that summarizes the hours from all shifts listed in a specific period of time
+    public Double summarizeWorkHoursInPeriod(Long personId, LocalDate from, LocalDate to) {
+
+        List<Shift> shiftsInPeriod = getShiftsForPersonInPeriod(personId, from, to);
+
+        double totalMinutes = 0;
+
+        for (Shift shift : shiftsInPeriod) {
+            Duration duration = Duration.between(shift.getShiftStart(), shift.getShiftEnd());
+            totalMinutes += duration.toMinutes();
+        }
+
+        double totalHours = totalMinutes / 60.0;
+
+        return Math.round(totalHours * 100.0) / 100.0;
+    }
 }
