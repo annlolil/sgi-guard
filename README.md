@@ -24,7 +24,7 @@ To ensure SGI protection logic, the system uses a relational model centered arou
 ```mermaid
 erDiagram
     PERSON ||--o{ CHILD : "parent of"
-    PERSON ||--o{ WORK_CONDITIONS : "has"
+    PERSON ||--o{ EMPLOYMENT : "has"
     PERSON ||--o{ SHIFT : "performs"
 
     PERSON {
@@ -63,15 +63,6 @@ erDiagram
 
 ### Structure
 
-src/
-├── main/java
-│   ├── controllers/        
-│   ├── dtos/         
-│   ├── entities/        
-│   ├── repositories/
-│   ├── services/
-│   └── utils
-└──  main/resources
 
 🏁 Getting Started
 
