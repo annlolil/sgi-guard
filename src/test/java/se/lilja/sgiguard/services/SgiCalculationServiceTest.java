@@ -8,6 +8,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import se.lilja.sgiguard.entities.Person;
 import se.lilja.sgiguard.entities.Shift;
+import se.lilja.sgiguard.entities.WorkCondition;
 import se.lilja.sgiguard.repositories.ShiftRepository;
 
 import java.time.LocalDate;
@@ -72,27 +73,20 @@ class SgiCalculationServiceTest {
         assertThat(result).isEqualTo(startDay);
     }
 
-    // Testing the scenario when a shifts start in a period but ends after the period
-//    @Test
-//    void getShiftsForPersonInPeriod_ShouldReturnShifts_WhenShiftsAreStartingInPeriodAndNotEndingInPeriod() {
-//
-//        // Given
-//        //Period to list shifts from
-//        LocalDate from = LocalDate.of(2024, 10, 1);
-//        LocalDate to = from.plusDays(30);
-//
-//        //Shift start and shift end
-//        LocalDate start = LocalDate.of(2024, 10, 31);
-//        LocalDate end = LocalDate.of(2024, 11, 1);
-//        shift.setShiftStart(start.atTime(21, 0));
-//        shift.setShiftEnd(end.atTime(7, 0));
-//
-//        //Person
-//        Person person = new Person();
-//        person.setId(1L);
-//        shift.setPerson(person);
-//
-//        //When
-//        List<Shift> shifts = sgiCalculationService.getShiftsForPersonInPeriod(1L, from, to);
-//    }
+    @Test
+    void weeklyTargetHours_ShouldReturnWeeklyTargetHours() {
+        // Given
+        WorkCondition workCondition = new WorkCondition();
+        workCondition.setId(1L);
+        workCondition.setOriginalEmploymentRate(100.0);
+        workCondition.setCurrentEmploymentRate(85.0);
+        workCondition.setOriginalWorkingHours(34.2);
+        workCondition.setValidFrom(LocalDate.now());
+
+        // When
+        Double result = sgiCalculationService.weeklyTargetHours(workCondition);
+
+        // Then
+        assertThat(result).isEqualTo(29.07);
+    }
 }

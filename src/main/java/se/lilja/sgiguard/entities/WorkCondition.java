@@ -31,6 +31,7 @@ public class WorkCondition {
     @Column(nullable = false)
     private Double originalEmploymentRate;
 
+    // Per week
     @Column(nullable = false)
     private Double originalWorkingHours;
 
