@@ -7,15 +7,13 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import se.lilja.sgiguard.entities.Person;
 import se.lilja.sgiguard.entities.Shift;
-import se.lilja.sgiguard.entities.WorkCondition;
+import se.lilja.sgiguard.entities.Employment;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
 class ShiftRepositoryTest{
@@ -27,7 +25,7 @@ class ShiftRepositoryTest{
     private TestEntityManager testEntityManager;
 
     private Person testPerson;
-    private WorkCondition testWorkCondition;
+    private Employment testEmployment;
 
     @BeforeEach
     void setUp(){
@@ -37,14 +35,14 @@ class ShiftRepositoryTest{
         testPerson.setLastName("Smith");
         testPerson = testEntityManager.persistFlushFind(testPerson);
 
-        testWorkCondition = new WorkCondition();
-        testWorkCondition.setWorkPlaceName("Hospital");
-        testWorkCondition.setValidFrom(LocalDate.of(2024,1,1));
-        testWorkCondition.setOriginalWorkingHours(34.2);
-        testWorkCondition.setOriginalEmploymentRate(100.0);
-        testWorkCondition.setCurrentEmploymentRate(100.0);
-        testWorkCondition.setPerson(testPerson);
-        testWorkCondition = testEntityManager.persistFlushFind(testWorkCondition);
+        testEmployment = new Employment();
+        testEmployment.setWorkPlaceName("Hospital");
+        testEmployment.setValidFrom(LocalDate.of(2024,1,1));
+        testEmployment.setOriginalWorkingHours(34.2);
+        testEmployment.setOriginalEmploymentRate(100.0);
+        testEmployment.setCurrentEmploymentRate(100.0);
+        testEmployment.setPerson(testPerson);
+        testEmployment = testEntityManager.persistFlushFind(testEmployment);
     }
 
     // Test for shifts going over an end bound of a period.
@@ -54,7 +52,7 @@ class ShiftRepositoryTest{
         // Given
         Shift shift = new Shift();
         shift.setPerson(testPerson);
-        shift.setWorkCondition(testWorkCondition);
+        shift.setEmployment(testEmployment);
         shift.setShiftStart(LocalDateTime.of(2024,2, 29, 21, 0));
         shift.setShiftEnd(LocalDateTime.of(2024, 3, 1, 7, 0));
 
@@ -76,7 +74,7 @@ class ShiftRepositoryTest{
         // Given
         Shift shift = new Shift();
         shift.setPerson(testPerson);
-        shift.setWorkCondition(testWorkCondition);
+        shift.setEmployment(testEmployment);
         shift.setShiftStart(LocalDateTime.of(2024,2, 29, 21, 0));
         shift.setShiftEnd(LocalDateTime.of(2024, 3, 1, 7, 0));
 
@@ -99,7 +97,7 @@ class ShiftRepositoryTest{
         // Given
         Shift shift = new Shift();
         shift.setPerson(testPerson);
-        shift.setWorkCondition(testWorkCondition);
+        shift.setEmployment(testEmployment);
         shift.setShiftStart(LocalDateTime.of(2024,2, 29, 21, 0));
         shift.setShiftEnd(LocalDateTime.of(2024, 3, 1, 7, 0));
 
@@ -120,7 +118,7 @@ class ShiftRepositoryTest{
         // Given
         Shift shift = new Shift();
         shift.setPerson(testPerson);
-        shift.setWorkCondition(testWorkCondition);
+        shift.setEmployment(testEmployment);
         shift.setShiftStart(LocalDateTime.of(2024,3, 1, 0, 0));
         shift.setShiftEnd(LocalDateTime.of(2024, 3, 1, 8, 0));
 
@@ -141,7 +139,7 @@ class ShiftRepositoryTest{
         // Given
         Shift shift = new Shift();
         shift.setPerson(testPerson);
-        shift.setWorkCondition(testWorkCondition);
+        shift.setEmployment(testEmployment);
         shift.setShiftStart(LocalDateTime.of(2024,2, 1, 8, 0));
         shift.setShiftEnd(LocalDateTime.of(2024, 2, 1, 16, 0));
 
@@ -168,14 +166,14 @@ class ShiftRepositoryTest{
 
         Shift shift1 = new Shift();
         shift1.setPerson(testPerson);
-        shift1.setWorkCondition(testWorkCondition);
+        shift1.setEmployment(testEmployment);
         shift1.setShiftStart(LocalDateTime.now());
         shift1.setShiftEnd(LocalDateTime.now().plusHours(8));
         shiftRepository.save(shift1);
 
         Shift shift2 = new Shift();
         shift2.setPerson(anotherPerson);
-        shift2.setWorkCondition(testWorkCondition);
+        shift2.setEmployment(testEmployment);
         shift2.setShiftStart(LocalDateTime.now());
         shift2.setShiftEnd(LocalDateTime.now().plusHours(8));
         shiftRepository.save(shift2);

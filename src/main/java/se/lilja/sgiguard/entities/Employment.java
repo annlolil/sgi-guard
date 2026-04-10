@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.List;
 
 @Getter
@@ -16,7 +15,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-public class WorkCondition {
+public class Employment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -45,7 +44,7 @@ public class WorkCondition {
     @JoinColumn(name = "person_id", nullable = false)
     private Person person;
 
-    @OneToMany(mappedBy = "workCondition")
+    @OneToMany(mappedBy = "employment")
     @JsonIgnore
     private List<Shift> shifts;
 }

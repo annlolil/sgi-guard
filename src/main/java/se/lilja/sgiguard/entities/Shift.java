@@ -6,9 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import java.time.LocalDate;
+
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 
 @Getter
 @Setter
@@ -32,7 +31,7 @@ public class Shift {
     private Person person;
 
     @ManyToOne
-    @JoinColumn(name = "work_condition_id", nullable = false)
+    @JoinColumn(name = "employment_id", nullable = false)
     @JsonIgnoreProperties("person")
-    private WorkCondition workCondition;
+    private Employment employment;
 }

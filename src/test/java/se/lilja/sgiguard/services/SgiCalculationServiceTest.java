@@ -1,21 +1,14 @@
 package se.lilja.sgiguard.services;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.jupiter.MockitoExtension;
-import se.lilja.sgiguard.entities.Person;
 import se.lilja.sgiguard.entities.Shift;
-import se.lilja.sgiguard.entities.WorkCondition;
+import se.lilja.sgiguard.entities.Employment;
 import se.lilja.sgiguard.repositories.ShiftRepository;
 
 import java.time.LocalDate;
-import java.util.List;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.mockito.Mockito.when;
 
 class SgiCalculationServiceTest {
 
@@ -76,15 +69,15 @@ class SgiCalculationServiceTest {
     @Test
     void weeklyTargetHours_ShouldReturnWeeklyTargetHours() {
         // Given
-        WorkCondition workCondition = new WorkCondition();
-        workCondition.setId(1L);
-        workCondition.setOriginalEmploymentRate(100.0);
-        workCondition.setCurrentEmploymentRate(85.0);
-        workCondition.setOriginalWorkingHours(34.2);
-        workCondition.setValidFrom(LocalDate.now());
+        Employment employment = new Employment();
+        employment.setId(1L);
+        employment.setOriginalEmploymentRate(100.0);
+        employment.setCurrentEmploymentRate(85.0);
+        employment.setOriginalWorkingHours(34.2);
+        employment.setValidFrom(LocalDate.now());
 
         // When
-        Double result = sgiCalculationService.calculateCurrentWeeklyHours(workCondition);
+        Double result = sgiCalculationService.calculateCurrentWeeklyHours(employment);
 
         // Then
         assertThat(result).isEqualTo(29.07);
