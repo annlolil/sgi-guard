@@ -73,8 +73,12 @@ public class SgiCalculationService {
         double totalMinutes = 0;
 
         for (Shift shift : shiftsInPeriod) {
-            Duration duration = Duration.between(shift.getShiftStart(), shift.getShiftEnd());
-            totalMinutes += duration.toMinutes();
+            // Only count the hours for a shift if its mainday is in the period
+            LocalDate mainDay = identifyMainDay(shift);
+            if (!mainDay.isBefore(from) && !mainDay.isAfter(to)) {
+                Duration duration = Duration.between(shift.getShiftStart(), shift.getShiftEnd());
+                totalMinutes += duration.toMinutes();
+            }
         }
 
         double totalHours = totalMinutes / 60.0;
