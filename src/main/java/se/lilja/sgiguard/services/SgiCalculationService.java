@@ -57,7 +57,7 @@ public class SgiCalculationService {
     }
 
     //Method that calculates the target hours per week to work, to protect the SGI.
-    public Double weeklyTargetHours(WorkCondition workCondition) {
+    public Double calculateCurrentWeeklyHours(WorkCondition workCondition) {
 
         double target = workCondition.getOriginalWorkingHours() * workCondition.getCurrentEmploymentRate()/100.0;
 

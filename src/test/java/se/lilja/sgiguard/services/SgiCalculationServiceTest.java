@@ -84,7 +84,7 @@ class SgiCalculationServiceTest {
         workCondition.setValidFrom(LocalDate.now());
 
         // When
-        Double result = sgiCalculationService.weeklyTargetHours(workCondition);
+        Double result = sgiCalculationService.calculateCurrentWeeklyHours(workCondition);
 
         // Then
         assertThat(result).isEqualTo(29.07);
