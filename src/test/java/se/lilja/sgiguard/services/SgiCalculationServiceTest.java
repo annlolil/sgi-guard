@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import se.lilja.sgiguard.entities.Person;
 import se.lilja.sgiguard.entities.Shift;
@@ -87,20 +86,21 @@ class SgiCalculationServiceTest {
     }
 
     @Test
-    void calculateCurrentHours_ShouldReturnCurrentHours() {
+    void calculateTotalWeeklyTarget_ShouldReturnTotalWeeklyTarget() {
         // Given
+        LocalDate validFrom = LocalDate.of(2024, 1, 1);
         Employment employment1 = new Employment();
         employment1.setId(1L);
         employment1.setOriginalEmploymentRate(100.0);
         employment1.setCurrentEmploymentRate(85.0);
         employment1.setOriginalWorkingHours(34.2);
-        employment1.setValidFrom(LocalDate.now());
+        employment1.setValidFrom(validFrom);
         Employment employment2 = new Employment();
         employment2.setId(2L);
         employment2.setOriginalEmploymentRate(50.0);
         employment2.setCurrentEmploymentRate(10.0);
         employment2.setOriginalWorkingHours(20.0);
-        employment2.setValidFrom(LocalDate.now());
+        employment2.setValidFrom(validFrom);
         Person person = new Person();
         person.setFirstName("John");
         person.setLastName("Doe");
