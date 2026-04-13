@@ -9,12 +9,12 @@ import se.lilja.sgiguard.services.EmploymentService;
 
 @RestController
 @RequestMapping("/workcondition")
-public class WorkConditionController {
+public class EmploymentController {
 
     private final EmploymentService workConditionService;
 
     @Autowired
-    public WorkConditionController(EmploymentService workConditionService) {
+    public EmploymentController(EmploymentService workConditionService) {
         this.workConditionService = workConditionService;
     }
     // Is currently returning a workcondition object with shifts which I dont want to have. Remove shifts from the return.
