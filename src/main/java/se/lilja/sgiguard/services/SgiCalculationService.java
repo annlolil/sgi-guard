@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import se.lilja.sgiguard.entities.Shift;
 import se.lilja.sgiguard.entities.Employment;
+import se.lilja.sgiguard.repositories.EmploymentRepository;
 import se.lilja.sgiguard.repositories.ShiftRepository;
 import se.lilja.sgiguard.utils.DateRange;
 import java.time.Duration;
@@ -15,10 +16,12 @@ import java.util.List;
 public class SgiCalculationService {
 
     private final ShiftRepository shiftRepository;
+    private final EmploymentRepository employmentRepository;
 
     @Autowired
-    public SgiCalculationService(ShiftRepository shiftRepository) {
+    public SgiCalculationService(ShiftRepository shiftRepository, EmploymentRepository employmentRepository) {
         this.shiftRepository = shiftRepository;
+        this.employmentRepository = employmentRepository;
     }
 
     // A method that takes a shift and identifies which day is the main day of working hours
@@ -56,13 +59,20 @@ public class SgiCalculationService {
         );
     }
 
-    //Method that calculates the hours that a person should work in average per week
-    // considering the persons employments
-    public Double calculateCurrentWeeklyHours(Employment employment) {
+    // Calculates the target hours to work based on ONE employment
+    private double calculateCurrentHours(Employment employment) {
+        return (employment.getOriginalWorkingHours() * employment.getCurrentEmploymentRate()) / 100.0;
+    }
 
-        double target = employment.getOriginalWorkingHours() * employment.getCurrentEmploymentRate()/100.0;
+    // Calculates the target hours to work for all employments if a person has more than one
+    public Double calculateTotalWeeklyTarget(Long personId) {
+        List<Employment> employments = employmentRepository.findByPersonId(personId);
 
-        return Math.round(target*100.0)/100.0;
+        double totalTarget = employments.stream()
+                .mapToDouble(this::calculateCurrentHours)
+                .sum();
+
+        return Math.round(totalTarget * 100.0) / 100.0;
     }
 
     // Method that summarizes the hours from all shifts listed in a specific period of time
