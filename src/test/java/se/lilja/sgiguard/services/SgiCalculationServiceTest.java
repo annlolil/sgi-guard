@@ -95,7 +95,7 @@ class SgiCalculationServiceTest {
         LocalDate from = LocalDate.of(2024, 1, 1);
         LocalDate to = LocalDate.of(2024, 1, 31);
 
-        // An 8 hours shift
+        // An 8-hour shift
         Shift shift = new Shift();
         shift.setShiftStart(LocalDateTime.of(2023, 12, 31, 22, 0));
         shift.setShiftEnd(LocalDateTime.of(2024, 1, 1, 6, 0));
