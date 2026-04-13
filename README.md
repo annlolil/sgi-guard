@@ -6,7 +6,7 @@
 This project focuses on automating calculations for SGI protection according to the Swedish Social Insurance Agency's regulations. It warns users if their worked hours or activity levels risk negatively affecting their benefit levels.
 
 ### Key Features
-- **Shift Registration:** Log worked hours and employment intensity.
+- **Shift Registration:** Log workshifts and employment intensity.
 - **SGI Analysis:** Calculate whether current work patterns meet the legal requirements for SGI protection.
 - **REST API:** A robust backend built with Spring Boot, ready for frontend integration.
 
@@ -61,15 +61,49 @@ erDiagram
     }
 ```
 
-### Structure
+### Project Structure
 
+controllers/
+ChildController
+Employmentcontroller
+PersonController
+ShiftController
+
+dtos/
+ShiftDTO
+
+entities/
+Child
+Employment
+Person
+Shift
+
+repositories/
+ChildRepository
+EmploymentRepository
+PersonRepository
+ShiftRepository
+
+services/
+ChildService
+ChildServiceInterface
+EmploymentService
+EmploymentServiceInterface
+PersonService
+PersonServiceInterface
+SgiCalgulationService
+ShiftService
+ShiftServiceInterface
+
+utils/
+DateRange
 
 🏁 Getting Started
 
 Prerequisites
 
 * Java 21 SDK
-* Maven
-* A running PostgreSQL instance (for production)
+* A running PostgreSQL postgres:16 instance (for production)
+  
 
 
