@@ -14,7 +14,7 @@ public interface ShiftRepository extends JpaRepository<Shift, Long> {
 
     @Query("SELECT s FROM Shift s WHERE s.person.id = :personId " +
             "AND s.shiftStart < :rangeEnd " +
-            "AND s.shiftEnd > :rangeStart")
+            "AND s.shiftEnd >= :rangeStart")
     List<Shift> findOverlappingShifts(
             @Param("personId") Long personId,
             @Param("rangeStart") LocalDateTime rangeStart,

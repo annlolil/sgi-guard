@@ -7,8 +7,13 @@ import se.lilja.sgiguard.entities.Employment;
 import se.lilja.sgiguard.repositories.ShiftRepository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
 
 class SgiCalculationServiceTest {
 
@@ -81,5 +86,48 @@ class SgiCalculationServiceTest {
 
         // Then
         assertThat(result).isEqualTo(29.07);
+    }
+
+    @Test
+    void summarizeWorkHoursInPeriod_ShouldIncludeFullShift_WhenMainDayIsInsidePeriod() {
+        // Given
+        Long personId = 1L;
+        LocalDate from = LocalDate.of(2024, 1, 1);
+        LocalDate to = LocalDate.of(2024, 1, 31);
+
+        // An 8-hour shift
+        Shift shift = new Shift();
+        shift.setShiftStart(LocalDateTime.of(2023, 12, 31, 22, 0));
+        shift.setShiftEnd(LocalDateTime.of(2024, 1, 1, 6, 0));
+
+        // When
+        when(shiftRepository.findOverlappingShifts(eq(personId), any(), any()))
+                .thenReturn(List.of(shift));
+
+        Double result = sgiCalculationService.summarizeWorkHoursInPeriod(personId, from, to);
+
+        // Then
+        assertThat(result).isEqualTo(8.0);
+    }
+
+    @Test
+    void summarizeWorkHoursInPeriod_ShouldExcludeShift_WhenMainDayIsOutsidePeriod() {
+        // Given
+        Long personId = 1L;
+        LocalDate from = LocalDate.of(2024, 1, 1);
+        LocalDate to = LocalDate.of(2024, 1, 31);
+
+        Shift shift = new Shift();
+        shift.setShiftStart(LocalDateTime.of(2024, 1, 31, 22, 0));
+        shift.setShiftEnd(LocalDateTime.of(2024, 2, 1, 6, 0));
+
+        // When
+        when(shiftRepository.findOverlappingShifts(eq(personId), any(), any()))
+                .thenReturn(List.of(shift));
+
+        Double result = sgiCalculationService.summarizeWorkHoursInPeriod(personId, from, to);
+
+        // Then
+        assertThat(result).isEqualTo(0.0);
     }
 }

@@ -57,11 +57,32 @@ public class SgiCalculationService {
     }
 
     //Method that calculates the hours that a person should work in average per week
-    // considering the persons workconditions
+    // considering the persons employments
     public Double calculateCurrentWeeklyHours(Employment employment) {
 
         double target = employment.getOriginalWorkingHours() * employment.getCurrentEmploymentRate()/100.0;
 
         return Math.round(target*100.0)/100.0;
+    }
+
+    // Method that summarizes the hours from all shifts listed in a specific period of time
+    public Double summarizeWorkHoursInPeriod(Long personId, LocalDate from, LocalDate to) {
+
+        List<Shift> shiftsInPeriod = getShiftsForPersonInPeriod(personId, from, to);
+
+        double totalMinutes = 0;
+
+        for (Shift shift : shiftsInPeriod) {
+            // Only count the hours for a shift if its main day is in the period
+            LocalDate mainDay = identifyMainDay(shift);
+            if (!mainDay.isBefore(from) && !mainDay.isAfter(to)) {
+                Duration duration = Duration.between(shift.getShiftStart(), shift.getShiftEnd());
+                totalMinutes += duration.toMinutes();
+            }
+        }
+
+        double totalHours = totalMinutes / 60.0;
+
+        return Math.round(totalHours * 100.0) / 100.0;
     }
 }
