@@ -61,42 +61,46 @@ erDiagram
     }
 ```
 
-### Project Structure
+## Project Structure
+Below is a simplified view of the project layout.
 
-controllers/
-ChildController
-Employmentcontroller
-PersonController
-ShiftController
+```
+src/main/java/.../
+  controllers/
+    ChildController
+    EmploymentController
+    PersonController
+    ShiftController
 
-dtos/
-ShiftDTO
+  dtos/
+    ShiftDTO
 
-entities/
-Child
-Employment
-Person
-Shift
+  entities/
+    Child
+    Employment
+    Person
+    Shift
 
-repositories/
-ChildRepository
-EmploymentRepository
-PersonRepository
-ShiftRepository
+  repositories/
+    ChildRepository
+    EmploymentRepository
+    PersonRepository
+    ShiftRepository
 
-services/
-ChildService
-ChildServiceInterface
-EmploymentService
-EmploymentServiceInterface
-PersonService
-PersonServiceInterface
-SgiCalgulationService
-ShiftService
-ShiftServiceInterface
+  services/
+    ChildService
+    ChildServiceInterface
+    EmploymentService
+    EmploymentServiceInterface
+    PersonService
+    PersonServiceInterface
+    SgiCalculationService
+    ShiftService
+    ShiftServiceInterface
 
-utils/
-DateRange
+  utils/
+    DateRange
+```
 
 🏁 Getting Started
 
