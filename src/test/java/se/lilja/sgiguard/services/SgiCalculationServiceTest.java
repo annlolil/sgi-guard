@@ -1,9 +1,14 @@
 package se.lilja.sgiguard.services;
 
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import se.lilja.sgiguard.entities.Person;
 import se.lilja.sgiguard.entities.Shift;
 import se.lilja.sgiguard.entities.Employment;
+import se.lilja.sgiguard.repositories.EmploymentRepository;
 import se.lilja.sgiguard.repositories.ShiftRepository;
 
 import java.time.LocalDate;
@@ -15,11 +20,20 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 class SgiCalculationServiceTest {
 
-    private final ShiftRepository shiftRepository = Mockito.mock(ShiftRepository.class);
-    private final SgiCalculationService sgiCalculationService = new SgiCalculationService(shiftRepository);
+    @Mock
+    private ShiftRepository shiftRepository;
+
+    @Mock
+    private EmploymentRepository employmentRepository;
+
+    @InjectMocks
+    private SgiCalculationService sgiCalculationService;
+
     private final Shift shift = new Shift();
+
 
     @Test
     void identifyMainDay_ShouldReturnSecondDay_WhenMoreHoursOnSecondDay() {
@@ -72,20 +86,35 @@ class SgiCalculationServiceTest {
     }
 
     @Test
-    void weeklyTargetHours_ShouldReturnWeeklyTargetHours() {
+    void calculateTotalWeeklyTarget_ShouldReturnTotalWeeklyTarget() {
         // Given
-        Employment employment = new Employment();
-        employment.setId(1L);
-        employment.setOriginalEmploymentRate(100.0);
-        employment.setCurrentEmploymentRate(85.0);
-        employment.setOriginalWorkingHours(34.2);
-        employment.setValidFrom(LocalDate.now());
+        LocalDate validFrom = LocalDate.of(2024, 1, 1);
+        Employment employment1 = new Employment();
+        employment1.setId(1L);
+        employment1.setOriginalEmploymentRate(100.0);
+        employment1.setCurrentEmploymentRate(85.0);
+        employment1.setOriginalWorkingHours(34.2);
+        employment1.setValidFrom(validFrom);
+        Employment employment2 = new Employment();
+        employment2.setId(2L);
+        employment2.setOriginalEmploymentRate(50.0);
+        employment2.setCurrentEmploymentRate(10.0);
+        employment2.setOriginalWorkingHours(20.0);
+        employment2.setValidFrom(validFrom);
+        Person person = new Person();
+        person.setFirstName("John");
+        person.setLastName("Doe");
+        person.setPersonalNumber("2000-01-01-1212");
+        person.setId(1L);
+        employment1.setPerson(person);
+        employment2.setPerson(person);
 
         // When
-        Double result = sgiCalculationService.calculateCurrentWeeklyHours(employment);
+        when(employmentRepository.findByPersonId(person.getId())).thenReturn(List.of(employment1, employment2));
+        Double result = sgiCalculationService.calculateTotalWeeklyTarget(person.getId());
 
         // Then
-        assertThat(result).isEqualTo(29.07);
+        assertThat(result).isEqualTo(31.07);
     }
 
     @Test
