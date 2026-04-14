@@ -118,7 +118,7 @@ class SgiCalculationServiceTest {
     }
 
     @Test
-    void summarizeWorkHoursInPeriod_ShouldIncludeFullShift_WhenMainDayIsInsidePeriod() {
+    void summarizePlannedHoursInPeriod_ShouldIncludeFullShift_WhenMainDayIsInsidePeriod() {
         // Given
         Long personId = 1L;
         LocalDate from = LocalDate.of(2024, 1, 1);
@@ -133,14 +133,14 @@ class SgiCalculationServiceTest {
         when(shiftRepository.findOverlappingShifts(eq(personId), any(), any()))
                 .thenReturn(List.of(shift));
 
-        Double result = sgiCalculationService.summarizeWorkHoursInPeriod(personId, from, to);
+        Double result = sgiCalculationService.summarizePlannedHoursInPeriod(personId, from, to);
 
         // Then
         assertThat(result).isEqualTo(8.0);
     }
 
     @Test
-    void summarizeWorkHoursInPeriod_ShouldExcludeShift_WhenMainDayIsOutsidePeriod() {
+    void summarizePlannedHoursInPeriod_ShouldExcludeShift_WhenMainDayIsOutsidePeriod() {
         // Given
         Long personId = 1L;
         LocalDate from = LocalDate.of(2024, 1, 1);
@@ -154,7 +154,7 @@ class SgiCalculationServiceTest {
         when(shiftRepository.findOverlappingShifts(eq(personId), any(), any()))
                 .thenReturn(List.of(shift));
 
-        Double result = sgiCalculationService.summarizeWorkHoursInPeriod(personId, from, to);
+        Double result = sgiCalculationService.summarizePlannedHoursInPeriod(personId, from, to);
 
         // Then
         assertThat(result).isEqualTo(0.0);

@@ -12,7 +12,7 @@ import se.lilja.sgiguard.models.SgiStatus;
 @Setter
 public class SgiStatusResponse {
 
-    private double calculatedHours;
+    private double plannedHours;
     private double targetHours;
     private double gapHours;
     SgiStatus status;
