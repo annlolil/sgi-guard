@@ -15,6 +15,6 @@ public class SgiStatusResponse {
     private double plannedHours;
     private double targetHours;
     private double gapHours;
-    SgiStatus status;
-    String recommendation;
+    private SgiStatus status;
+    private String recommendation;
 }
