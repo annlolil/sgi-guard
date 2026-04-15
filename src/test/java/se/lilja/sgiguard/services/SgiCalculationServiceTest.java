@@ -5,6 +5,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import se.lilja.sgiguard.dtos.SgiStatusResponse;
 import se.lilja.sgiguard.entities.Person;
 import se.lilja.sgiguard.entities.Shift;
 import se.lilja.sgiguard.entities.Employment;
@@ -16,9 +17,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static se.lilja.sgiguard.models.SgiStatus.PROTECTED;
 
 @ExtendWith(MockitoExtension.class)
 class SgiCalculationServiceTest {
@@ -32,7 +35,8 @@ class SgiCalculationServiceTest {
     @InjectMocks
     private SgiCalculationService sgiCalculationService;
 
-    private final Shift shift = new Shift();
+    private final Shift shift1 = new Shift();
+    private final Shift shift2 = new Shift();
 
 
     @Test
@@ -42,11 +46,11 @@ class SgiCalculationServiceTest {
         LocalDate nextDay = startDay.plusDays(1);
 
         // 20:00 to 06:00 (4h on day 1, 6h on day 2)
-        shift.setShiftStart(startDay.atTime(20, 0));
-        shift.setShiftEnd(nextDay.atTime(6, 0));
+        shift1.setShiftStart(startDay.atTime(20, 0));
+        shift1.setShiftEnd(nextDay.atTime(6, 0));
 
         // When
-        LocalDate result = sgiCalculationService.identifyMainDay(shift);
+        LocalDate result = sgiCalculationService.identifyMainDay(shift1);
 
         // Then
         assertThat(result).isEqualTo(nextDay);
@@ -59,11 +63,11 @@ class SgiCalculationServiceTest {
         LocalDate nextDay = startDay.plusDays(1);
 
         // 20:00 to 04:00 (4h on day 1, 4h on day 2)
-        shift.setShiftStart(startDay.atTime(20, 0));
-        shift.setShiftEnd(nextDay.atTime(4, 0));
+        shift1.setShiftStart(startDay.atTime(20, 0));
+        shift1.setShiftEnd(nextDay.atTime(4, 0));
 
         // When
-        LocalDate result = sgiCalculationService.identifyMainDay(shift);
+        LocalDate result = sgiCalculationService.identifyMainDay(shift1);
 
         // Then
         assertThat(result).isEqualTo(startDay);
@@ -76,11 +80,11 @@ class SgiCalculationServiceTest {
         LocalDate nextDay = startDay;
 
         // 08:00 to 17:00 on the same day
-        shift.setShiftStart(startDay.atTime(8, 0));
-        shift.setShiftEnd(nextDay.atTime(17, 0));
+        shift1.setShiftStart(startDay.atTime(8, 0));
+        shift1.setShiftEnd(nextDay.atTime(17, 0));
 
         // When
-        LocalDate result = sgiCalculationService.identifyMainDay(shift);
+        LocalDate result = sgiCalculationService.identifyMainDay(shift1);
 
         assertThat(result).isEqualTo(startDay);
     }
@@ -109,8 +113,9 @@ class SgiCalculationServiceTest {
         employment1.setPerson(person);
         employment2.setPerson(person);
 
-        // When
         when(employmentRepository.findByPersonId(person.getId())).thenReturn(List.of(employment1, employment2));
+
+        // When
         Double result = sgiCalculationService.calculateTotalWeeklyTarget(person.getId());
 
         // Then
@@ -118,45 +123,89 @@ class SgiCalculationServiceTest {
     }
 
     @Test
-    void summarizeWorkHoursInPeriod_ShouldIncludeFullShift_WhenMainDayIsInsidePeriod() {
+    void summarizePlannedHoursInPeriod_ShouldIncludeFullShift_WhenMainDayIsInsidePeriod() {
         // Given
         Long personId = 1L;
         LocalDate from = LocalDate.of(2024, 1, 1);
         LocalDate to = LocalDate.of(2024, 1, 31);
 
         // An 8-hour shift
-        Shift shift = new Shift();
-        shift.setShiftStart(LocalDateTime.of(2023, 12, 31, 22, 0));
-        shift.setShiftEnd(LocalDateTime.of(2024, 1, 1, 6, 0));
+        shift1.setShiftStart(LocalDateTime.of(2023, 12, 31, 22, 0));
+        shift1.setShiftEnd(LocalDateTime.of(2024, 1, 1, 6, 0));
+
+        when(shiftRepository.findOverlappingShifts(eq(personId), any(), any()))
+                .thenReturn(List.of(shift1));
 
         // When
-        when(shiftRepository.findOverlappingShifts(eq(personId), any(), any()))
-                .thenReturn(List.of(shift));
-
-        Double result = sgiCalculationService.summarizeWorkHoursInPeriod(personId, from, to);
+        Double result = sgiCalculationService.summarizePlannedHoursInPeriod(personId, from, to);
 
         // Then
         assertThat(result).isEqualTo(8.0);
     }
 
     @Test
-    void summarizeWorkHoursInPeriod_ShouldExcludeShift_WhenMainDayIsOutsidePeriod() {
+    void summarizePlannedHoursInPeriod_ShouldExcludeShift_WhenMainDayIsOutsidePeriod() {
         // Given
         Long personId = 1L;
         LocalDate from = LocalDate.of(2024, 1, 1);
         LocalDate to = LocalDate.of(2024, 1, 31);
 
-        Shift shift = new Shift();
-        shift.setShiftStart(LocalDateTime.of(2024, 1, 31, 22, 0));
-        shift.setShiftEnd(LocalDateTime.of(2024, 2, 1, 6, 0));
+        shift1.setShiftStart(LocalDateTime.of(2024, 1, 31, 22, 0));
+        shift1.setShiftEnd(LocalDateTime.of(2024, 2, 1, 6, 0));
+
+        when(shiftRepository.findOverlappingShifts(eq(personId), any(), any()))
+                .thenReturn(List.of(shift1));
 
         // When
-        when(shiftRepository.findOverlappingShifts(eq(personId), any(), any()))
-                .thenReturn(List.of(shift));
-
-        Double result = sgiCalculationService.summarizeWorkHoursInPeriod(personId, from, to);
+        Double result = sgiCalculationService.summarizePlannedHoursInPeriod(personId, from, to);
 
         // Then
         assertThat(result).isEqualTo(0.0);
+    }
+
+    @Test
+    void calculateSgiStatus_ShouldReturnIsProtected_WhenPlannedHoursAreMoreThanTargetHours() {
+        // Given
+        Long personId = 1L;
+        LocalDate from = LocalDate.of(2024, 1, 1);
+        LocalDate to = LocalDate.of(2024, 1, 7);
+
+        Employment emp1 = new Employment();
+        emp1.setOriginalWorkingHours(20.0);
+        emp1.setCurrentEmploymentRate(50.0);
+
+        Employment emp2 = new Employment();
+        emp2.setOriginalWorkingHours(20.0);
+        emp2.setCurrentEmploymentRate(50.0);
+
+        when(employmentRepository.findByPersonId(personId)).thenReturn(List.of(emp1, emp2));
+
+        shift1.setShiftStart(LocalDateTime.of(2024, 1, 1, 20, 0));
+        shift1.setShiftEnd(LocalDateTime.of(2024, 1, 2, 6, 0));
+        shift2.setShiftStart(LocalDateTime.of(2024, 1, 2, 20, 0));
+        shift2.setShiftEnd(LocalDateTime.of(2024, 1, 3, 6, 0));
+
+        when(shiftRepository.findOverlappingShifts(eq(personId), any(), any()))
+                .thenReturn(List.of(shift1, shift2));
+
+        // When
+        SgiStatusResponse response = sgiCalculationService.calculateSgiStatus(personId, from, to);
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(PROTECTED);
+        assertThat(response.getPlannedHours()).isEqualTo(20.0);
+    }
+
+    @Test
+    void calculateSgiStatus_ShouldReturnIllegalArgumentException_WhenToIsBeforeFrom() {
+        // Given
+        Long personId = 1L;
+        LocalDate from = LocalDate.of(2024, 2, 1);
+        LocalDate to = LocalDate.of(2024, 1, 31); // 'to' är före 'from'
+
+        // When & Then
+        assertThrows(IllegalArgumentException.class, () ->
+                sgiCalculationService.calculateSgiStatus(personId, from, to)
+        );
     }
 }

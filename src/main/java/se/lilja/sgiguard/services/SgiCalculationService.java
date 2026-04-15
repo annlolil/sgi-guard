@@ -2,14 +2,17 @@ package se.lilja.sgiguard.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import se.lilja.sgiguard.dtos.SgiStatusResponse;
 import se.lilja.sgiguard.entities.Shift;
 import se.lilja.sgiguard.entities.Employment;
+import se.lilja.sgiguard.models.SgiStatus;
 import se.lilja.sgiguard.repositories.EmploymentRepository;
 import se.lilja.sgiguard.repositories.ShiftRepository;
 import se.lilja.sgiguard.utils.DateRange;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @Service
@@ -76,7 +79,8 @@ public class SgiCalculationService {
     }
 
     // Method that summarizes the hours from all shifts listed in a specific period of time
-    public Double summarizeWorkHoursInPeriod(Long personId, LocalDate from, LocalDate to) {
+    // It can be for example a month, 4 weeks or 6 weeks
+    public Double summarizePlannedHoursInPeriod(Long personId, LocalDate from, LocalDate to) {
 
         List<Shift> shiftsInPeriod = getShiftsForPersonInPeriod(personId, from, to);
 
@@ -94,5 +98,47 @@ public class SgiCalculationService {
         double totalHours = totalMinutes / 60.0;
 
         return Math.round(totalHours * 100.0) / 100.0;
+    }
+
+    private double calculateGap(double target, double planned){
+
+        double gap = Math.max(0, target - planned);
+        return Math.round(gap * 100.0) / 100.0;
+    }
+
+    // Main method that compares planned hours to work with the target and gives a recommendation
+    public SgiStatusResponse calculateSgiStatus(Long personId, LocalDate from, LocalDate to) {
+
+        if(from == null) {
+            throw new IllegalArgumentException("From is null");
+        }
+        if(to.isBefore(from)) {
+            throw new IllegalArgumentException("To is before from");
+        }
+
+        long daysInPeriod = ChronoUnit.DAYS.between(from, to) + 1;
+        double weeksInPeriod = daysInPeriod / 7.0;
+
+        double plannedHours = summarizePlannedHoursInPeriod(personId, from, to);
+
+        double weeklyTargetHours = calculateTotalWeeklyTarget(personId);
+        double totalTargetForPeriod = Math.round((weeklyTargetHours * weeksInPeriod) * 100.0) / 100.0;
+        // gapHours are only used to show the user quickly how many hours are missing and need to be filled
+        // with work hours or parental leave.
+        double gapHours = calculateGap(totalTargetForPeriod, plannedHours);
+
+        SgiStatus sgiStatus = (plannedHours >= totalTargetForPeriod) ? SgiStatus.PROTECTED : SgiStatus.AT_RISK;
+
+        String recommendation = sgiStatus == SgiStatus.PROTECTED ?
+                "Protected SGI" : "SGI at risk, you need to fill up with work hours or parental leave";
+
+        SgiStatusResponse sgiStatusResponse = new SgiStatusResponse();
+        sgiStatusResponse.setPlannedHours(plannedHours);
+        sgiStatusResponse.setTargetHours(totalTargetForPeriod);
+        sgiStatusResponse.setGapHours(gapHours);
+        sgiStatusResponse.setStatus(sgiStatus);
+        sgiStatusResponse.setRecommendation(recommendation);
+
+        return sgiStatusResponse;
     }
 }
