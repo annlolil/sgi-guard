@@ -109,6 +109,13 @@ public class SgiCalculationService {
     // Main method that compares planned hours to work with the target and gives a recommendation
     public SgiStatusResponse calculateSgiStatus(Long personId, LocalDate from, LocalDate to) {
 
+        if(from == null) {
+            throw new IllegalArgumentException("From is null");
+        }
+        if(to.isBefore(from)) {
+            throw new IllegalArgumentException("To is before from");
+        }
+
         long daysInPeriod = ChronoUnit.DAYS.between(from, to) + 1;
         double weeksInPeriod = daysInPeriod / 7.0;
 
@@ -116,15 +123,14 @@ public class SgiCalculationService {
 
         double weeklyTargetHours = calculateTotalWeeklyTarget(personId);
         double totalTargetForPeriod = Math.round((weeklyTargetHours * weeksInPeriod) * 100.0) / 100.0;
-        // gapHours are only used to show the user quick how many hours are missing that has to be filled
+        // gapHours are only used to show the user quickly how many hours are missing and need to be filled
         // with work hours or parental leave.
         double gapHours = calculateGap(totalTargetForPeriod, plannedHours);
 
         SgiStatus sgiStatus = (plannedHours >= totalTargetForPeriod) ? SgiStatus.PROTECTED : SgiStatus.AT_RISK;
 
         String recommendation = sgiStatus == SgiStatus.PROTECTED ?
-                "Protected SGI" : "SGI at risk, you are missing " + gapHours + " hours.\n" +
-                "You need to fill up with work hours or parental leave";
+                "Protected SGI" : "SGI at risk, you need to fill up with work hours or parental leave";
 
         SgiStatusResponse sgiStatusResponse = new SgiStatusResponse();
         sgiStatusResponse.setPlannedHours(plannedHours);
