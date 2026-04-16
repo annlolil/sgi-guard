@@ -67,11 +67,27 @@ public class SgiCalculationService {
         return (employment.getOriginalWorkingHours() * employment.getCurrentEmploymentRate()) / 100.0;
     }
 
+    // Checks if employments are valid in the period that sgi calculation is being performed
+    private boolean isEmploymentActiveInPeriod(Employment emp, LocalDate from, LocalDate to) {
+        LocalDate empStart = emp.getValidFrom();
+        LocalDate empEnd = emp.getValidTo();
+
+        //If employment is missing validTo it is active until further notice
+        if(empEnd == null) {
+            return !empStart.isAfter(to);
+        }
+
+        return !empStart.isAfter(to) && !empEnd.isBefore(from);
+    }
+
     // Calculates the target hours to work for all employments if a person has more than one
-    public Double calculateTotalWeeklyTarget(Long personId) {
+    // Filters on employments that are valid in the chosen period.
+    public Double calculateTotalWeeklyTarget(Long personId, LocalDate from, LocalDate to) {
+
         List<Employment> employments = employmentRepository.findByPersonId(personId);
 
         double totalTarget = employments.stream()
+                .filter(emp -> isEmploymentActiveInPeriod(emp, from, to))
                 .mapToDouble(this::calculateCurrentHours)
                 .sum();
 
@@ -121,7 +137,7 @@ public class SgiCalculationService {
 
         double plannedHours = summarizePlannedHoursInPeriod(personId, from, to);
 
-        double weeklyTargetHours = calculateTotalWeeklyTarget(personId);
+        double weeklyTargetHours = calculateTotalWeeklyTarget(personId, from, to);
         double totalTargetForPeriod = Math.round((weeklyTargetHours * weeksInPeriod) * 100.0) / 100.0;
         // gapHours are only used to show the user quickly how many hours are missing and need to be filled
         // with work hours or parental leave.
