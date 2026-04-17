@@ -165,7 +165,7 @@ class SgiCalculationServiceTest {
     }
 
     @Test
-    void calculateSgiStatus_ShouldReturnIsProtected_WhenPlannedHoursAreMoreThanTargetHours() {
+    void calculateSgiStatus_ShouldReturnAtRisk_WhenPlannedHoursAreLessThanTargetHours() {
         // Given
         LocalDate validFrom = LocalDate.of(2023, 1, 1);
         LocalDate validTo = LocalDate.of(2023, 12, 31);

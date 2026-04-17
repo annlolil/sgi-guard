@@ -86,6 +86,13 @@ public class SgiCalculationService {
 
         List<Employment> employments = employmentRepository.findByPersonId(personId);
 
+        if (from == null) {
+            throw new IllegalArgumentException("from not be null");
+        }
+        if (to.isBefore(from)) {
+            throw new IllegalArgumentException("to must not be before from");
+        }
+
         double totalTarget = employments.stream()
                 .filter(emp -> isEmploymentActiveInPeriod(emp, from, to))
                 .mapToDouble(this::calculateCurrentHours)
