@@ -150,6 +150,11 @@ public class SgiCalculationService {
         // with work hours or parental leave.
         double gapHours = calculateGap(totalTargetForPeriod, plannedHours);
 
+        return getResponse(plannedHours, totalTargetForPeriod, gapHours);
+    }
+
+    private static SgiStatusResponse getResponse(double plannedHours, double totalTargetForPeriod, double gapHours) {
+
         SgiStatus sgiStatus = (plannedHours >= totalTargetForPeriod) ? SgiStatus.PROTECTED : SgiStatus.AT_RISK;
 
         String recommendation = sgiStatus == SgiStatus.PROTECTED ?
@@ -161,7 +166,6 @@ public class SgiCalculationService {
         sgiStatusResponse.setGapHours(gapHours);
         sgiStatusResponse.setStatus(sgiStatus);
         sgiStatusResponse.setRecommendation(recommendation);
-
         return sgiStatusResponse;
     }
 }
