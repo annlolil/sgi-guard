@@ -146,19 +146,19 @@ public class SgiCalculationService {
 
         double weeklyTargetHours = calculateTotalWeeklyTarget(personId, from, to);
         double totalTargetForPeriod = Math.round((weeklyTargetHours * weeksInPeriod) * 100.0) / 100.0;
-        // gapHours are only used to show the user quickly how many hours are missing and need to be filled
-        // with work hours or parental leave.
         double gapHours = calculateGap(totalTargetForPeriod, plannedHours);
+        double recommendedDays = calculateRecommendedDaysToClaim(personId, gapHours);
 
-        return getResponse(plannedHours, totalTargetForPeriod, gapHours);
+        return getResponse(plannedHours, totalTargetForPeriod, gapHours, recommendedDays);
     }
 
-    private static SgiStatusResponse getResponse(double plannedHours, double totalTargetForPeriod, double gapHours) {
+    private static SgiStatusResponse getResponse(
+            double plannedHours, double totalTargetForPeriod, double gapHours, double recommendedDays) {
 
         SgiStatus sgiStatus = (plannedHours >= totalTargetForPeriod) ? SgiStatus.PROTECTED : SgiStatus.AT_RISK;
 
         String recommendation = sgiStatus == SgiStatus.PROTECTED ?
-                "Protected SGI" : "SGI at risk, you need to fill up with work hours or parental leave";
+                "Protected SGI" : "You need to fill up with around " + recommendedDays + " of parental leave";
 
         SgiStatusResponse sgiStatusResponse = new SgiStatusResponse();
         sgiStatusResponse.setPlannedHours(plannedHours);
@@ -166,6 +166,27 @@ public class SgiCalculationService {
         sgiStatusResponse.setGapHours(gapHours);
         sgiStatusResponse.setStatus(sgiStatus);
         sgiStatusResponse.setRecommendation(recommendation);
+        sgiStatusResponse.setRecommendedDays(recommendedDays);
         return sgiStatusResponse;
+    }
+
+    private Double calculateRecommendedDaysToClaim(Long personId, double gapHours) {
+
+        if(gapHours <= 0) {
+            return 0.0;
+        }
+        // Get a persons summarized original working hours per week
+        List<Employment> employments = employmentRepository.findByPersonId(personId);
+        double fullTimeWeeklyHours = employments.stream()
+                .mapToDouble(Employment::getOriginalWorkingHours)
+                .sum();
+
+        // Calculate what one day corresponds to
+        double hoursPerDay = fullTimeWeeklyHours / 5.0;
+
+        double daysMissing = gapHours / hoursPerDay;
+
+        return Math.round(daysMissing * 100.0) / 100.0; //Return the nearest parental benefit days later!
+
     }
 }

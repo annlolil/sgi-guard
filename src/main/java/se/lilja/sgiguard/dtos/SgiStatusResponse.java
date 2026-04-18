@@ -17,4 +17,5 @@ public class SgiStatusResponse {
     private double gapHours;
     private SgiStatus status;
     private String recommendation;
+    private double recommendedDays;
 }
