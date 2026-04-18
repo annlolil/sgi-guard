@@ -160,7 +160,7 @@ public class SgiCalculationService {
         SgiStatus sgiStatus = (plannedHours >= totalTargetForPeriod) ? SgiStatus.PROTECTED : SgiStatus.AT_RISK;
 
         String recommendation = sgiStatus == SgiStatus.PROTECTED ?
-                "Protected SGI" : "You need to fill up with around " + recommendedDays + " of parental leave";
+                "Protected SGI" : "Your SGI are at risk, you need to fill up with parental leave or work hours";
 
         SgiStatusResponse sgiStatusResponse = new SgiStatusResponse();
         sgiStatusResponse.setPlannedHours(plannedHours);
