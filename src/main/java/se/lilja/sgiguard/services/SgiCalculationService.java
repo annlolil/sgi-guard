@@ -64,11 +64,13 @@ public class SgiCalculationService {
 
     // Calculates the target hours to work based on ONE employment
     private double calculateCurrentHours(Employment employment) {
+
         return (employment.getOriginalWorkingHours() * employment.getCurrentEmploymentRate()) / 100.0;
     }
 
     // Checks if employments are valid in the period that sgi calculation is being performed
     private boolean isEmploymentActiveInPeriod(Employment emp, LocalDate from, LocalDate to) {
+
         LocalDate empStart = emp.getValidFrom();
         LocalDate empEnd = emp.getValidTo();
 
@@ -170,7 +172,7 @@ public class SgiCalculationService {
         return sgiStatusResponse;
     }
 
-    private Double calculateRecommendedDaysToClaim(Long personId, double gapHours) {
+    public double calculateRecommendedDaysToClaim(Long personId, double gapHours) {
 
         if(gapHours <= 0) {
             return 0.0;
@@ -183,10 +185,21 @@ public class SgiCalculationService {
 
         // Calculate what one day corresponds to
         double hoursPerDay = fullTimeWeeklyHours / 5.0;
-
         double daysMissing = gapHours / hoursPerDay;
 
-        return Math.round(daysMissing * 100.0) / 100.0; //Return the nearest parental benefit days later!
+        double parentalLeave = roundUpToNearest(daysMissing);
 
+        return Math.round(parentalLeave * 1000.0) / 1000.0; //Return the nearest number of parental leave that is required
     }
+
+    public double roundUpToNearest(double days) {
+
+        if(days <= 0) {
+            return 0;
+        }
+        double step = 0.125;
+
+        return Math.ceil(days / step) * step;
+    }
+
 }

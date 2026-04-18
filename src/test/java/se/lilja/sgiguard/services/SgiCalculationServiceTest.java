@@ -232,4 +232,41 @@ class SgiCalculationServiceTest {
                 sgiCalculationService.calculateSgiStatus(personId, from, to)
         );
     }
+
+    @Test
+    void calculateRecommendedDaysToClaim_ShouldReturnRecommendedDaysToClaim() {
+        // Given
+        Long personId = 1L;
+        double gapHours = 5;
+
+        Employment employment = new Employment();
+        employment.setOriginalWorkingHours(34.2);
+
+        // 34,2 / 5 = 6,84 h/day
+        // 5 / 6,84 = 0,73 will be rounded up to 0,75 parental leave days
+
+        when(employmentRepository.findByPersonId(personId)).thenReturn(List.of(employment));
+
+        // When
+        double result = sgiCalculationService.calculateRecommendedDaysToClaim(personId, gapHours);
+
+        // Then
+        assertThat(result).isEqualTo(0.75);
+    }
+
+    @Test
+    void calculateRecommendedDaysToClaim_ShouldReturnZero_WhenGapHoursAreZero() {
+        // Given
+        Long personId = 1L;
+        double gapHours = 0;
+
+        Employment employment = new Employment();
+        employment.setOriginalWorkingHours(34.2);
+
+        // When
+        double result = sgiCalculationService.calculateRecommendedDaysToClaim(personId, gapHours);
+
+        // Then
+        assertThat(result).isEqualTo(0);
+    }
 }
