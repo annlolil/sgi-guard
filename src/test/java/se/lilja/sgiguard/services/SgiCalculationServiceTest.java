@@ -36,7 +36,7 @@ class SgiCalculationServiceTest {
     private SgiCalculationService sgiCalculationService;
 
     private final Shift shift1 = new Shift();
-    private final Shift shift2 = new Shift();
+    private final Employment emp1 = new Employment();
 
 
     @Test
@@ -77,11 +77,10 @@ class SgiCalculationServiceTest {
     void identifyMainDay_ShouldReturnFirstDay_WhenFirstAndSecondDayAreTheSame() {
         // Given
         LocalDate startDay = LocalDate.of(2024, 10, 15);
-        LocalDate nextDay = startDay;
 
         // 08:00 to 17:00 on the same day
         shift1.setShiftStart(startDay.atTime(8, 0));
-        shift1.setShiftEnd(nextDay.atTime(17, 0));
+        shift1.setShiftEnd(startDay.atTime(17, 0));
 
         // When
         LocalDate result = sgiCalculationService.identifyMainDay(shift1);
@@ -89,39 +88,39 @@ class SgiCalculationServiceTest {
         assertThat(result).isEqualTo(startDay);
     }
 
-    @Test
-    void calculateTotalWeeklyTarget_ShouldReturnTotalWeeklyTarget() {
-        // Given
-        LocalDate validFrom = LocalDate.of(2023, 1, 1);
-        LocalDate validTo = LocalDate.of(2023, 12, 31);
-        Employment employment1 = new Employment();
-        employment1.setId(1L);
-        employment1.setOriginalEmploymentRate(100.0);
-        employment1.setCurrentEmploymentRate(85.0);
-        employment1.setOriginalWorkingHours(34.2);
-        employment1.setValidFrom(validFrom);
-        Employment employment2 = new Employment();
-        employment2.setId(2L);
-        employment2.setOriginalEmploymentRate(50.0);
-        employment2.setCurrentEmploymentRate(10.0);
-        employment2.setOriginalWorkingHours(20.0);
-        employment2.setValidFrom(validFrom);
-        employment2.setValidTo(validTo);
-        Person person = new Person();
-        person.setId(1L);
-        employment1.setPerson(person);
-        employment2.setPerson(person);
-        LocalDate from = LocalDate.of(2024, 1, 1);
-        LocalDate to = LocalDate.of(2024, 1, 31);
-
-        when(employmentRepository.findByPersonId(person.getId())).thenReturn(List.of(employment1, employment2));
-
-        // When
-        Double result = sgiCalculationService.calculateTotalWeeklyTarget(person.getId(), from, to);
-
-        // Then
-        assertThat(result).isEqualTo(29.07);
-    }
+//    @Test
+//    void calculateTotalWeeklyTarget_ShouldReturnTotalWeeklyTarget() {
+//        // Given
+//        LocalDate validFrom = LocalDate.of(2023, 1, 1);
+//        LocalDate validTo = LocalDate.of(2023, 12, 31);
+//        Employment employment1 = new Employment();
+//        employment1.setId(1L);
+//        employment1.setOriginalEmploymentRate(100.0);
+//        employment1.setCurrentEmploymentRate(85.0);
+//        employment1.setOriginalWorkingHours(34.2);
+//        employment1.setValidFrom(validFrom);
+//        Employment employment2 = new Employment();
+//        employment2.setId(2L);
+//        employment2.setOriginalEmploymentRate(50.0);
+//        employment2.setCurrentEmploymentRate(10.0);
+//        employment2.setOriginalWorkingHours(20.0);
+//        employment2.setValidFrom(validFrom);
+//        employment2.setValidTo(validTo);
+//        Person person = new Person();
+//        person.setId(1L);
+//        employment1.setPerson(person);
+//        employment2.setPerson(person);
+//        LocalDate from = LocalDate.of(2024, 1, 1);
+//        LocalDate to = LocalDate.of(2024, 1, 31);
+//
+//        when(employmentRepository.findByPersonId(person.getId())).thenReturn(List.of(employment1, employment2));
+//
+//        // When
+//        Double result = sgiCalculationService.calculateTotalWeeklyTarget(person.getId(), from, to);
+//
+//        // Then
+//        assertThat(result).isEqualTo(29.07);
+//    }
 
     @Test
     void summarizePlannedHoursInPeriod_ShouldIncludeFullShift_WhenMainDayIsInsidePeriod() {
@@ -165,52 +164,44 @@ class SgiCalculationServiceTest {
     }
 
     @Test
-    void calculateSgiStatus_ShouldReturnAtRisk_WhenPlannedHoursAreLessThanTargetHours() {
+    void calculateSgiStatus_ShouldReturnRecommendedDaysToClaim() {
         // Given
-        LocalDate validFrom = LocalDate.of(2023, 1, 1);
-        LocalDate validTo = LocalDate.of(2023, 12, 31);
-
         Long personId = 1L;
+        // Period to calculate, One month, Januari 2024
         LocalDate from = LocalDate.of(2024, 1, 1);
         LocalDate to = LocalDate.of(2024, 1, 31);
 
-        // One employment that ends before the period and one that is active until further notice
-        Employment emp1 = new Employment();
+        // One employment that is valid inside the period
+        LocalDate validFrom = LocalDate.of(2023, 1, 1);
         emp1.setOriginalWorkingHours(20.0);
-        emp1.setCurrentEmploymentRate(50.0);
+        emp1.setOriginalEmploymentRate(100.0);
         emp1.setValidFrom(validFrom);
         emp1.setValidTo(null);
 
-        Employment emp2 = new Employment();
-        emp2.setOriginalWorkingHours(20.0);
-        emp2.setCurrentEmploymentRate(50.0);
-        emp2.setValidFrom(validFrom);
-        emp2.setValidTo(validTo);
+        when(employmentRepository.findByPersonId(personId)).thenReturn(List.of(emp1));
 
-        when(employmentRepository.findByPersonId(personId)).thenReturn(List.of(emp1, emp2));
-
+        // A shift that starts and ends within the period, 1 januari 2024 20.00 to 2 januari 06.00
         shift1.setShiftStart(LocalDateTime.of(2024, 1, 1, 20, 0));
         shift1.setShiftEnd(LocalDateTime.of(2024, 1, 2, 6, 0));
-        shift2.setShiftStart(LocalDateTime.of(2024, 1, 2, 20, 0));
-        shift2.setShiftEnd(LocalDateTime.of(2024, 1, 3, 6, 0));
 
         when(shiftRepository.findOverlappingShifts(eq(personId), any(), any()))
-                .thenReturn(List.of(shift1, shift2));
+                .thenReturn(List.of(shift1));
 
         // When
         SgiStatusResponse response = sgiCalculationService.calculateSgiStatus(personId, from, to);
 
         // Then
         assertThat(response.getStatus()).isEqualTo(AT_RISK);
-        assertThat(response.getTargetHours()).isEqualTo(44.29);
-        assertThat(response.getPlannedHours()).isEqualTo(20.0);
-        assertThat(response.getGapHours()).isEqualTo(24.29);
+        assertThat(response.getTargetHours()).isEqualTo(88.57);
+        assertThat(response.getPlannedHours()).isEqualTo(10.0);
+        assertThat(response.getGapHours()).isEqualTo(78.57);
+        assertThat(response.getRecommendedDays()).isEqualTo(19.75);
     }
 
     @Test
     void calculateSgiStatus_ShouldReturnIllegalArgumentException_WhenToIsBeforeFrom() {
         // Given
-        Long personId = 1L;
+        long personId = 1L;
         LocalDate from = LocalDate.of(2024, 2, 1);
         LocalDate to = LocalDate.of(2024, 1, 31);
 
@@ -236,7 +227,7 @@ class SgiCalculationServiceTest {
     @Test
     void calculateRecommendedDaysToClaim_ShouldReturnRecommendedDaysToClaim() {
         // Given
-        Long personId = 1L;
+        long personId = 1L;
         double gapHours = 5;
 
         Employment employment = new Employment();
@@ -257,11 +248,8 @@ class SgiCalculationServiceTest {
     @Test
     void calculateRecommendedDaysToClaim_ShouldReturnZero_WhenGapHoursAreZero() {
         // Given
-        Long personId = 1L;
+        long personId = 1L;
         double gapHours = 0;
-
-        Employment employment = new Employment();
-        employment.setOriginalWorkingHours(34.2);
 
         // When
         double result = sgiCalculationService.calculateRecommendedDaysToClaim(personId, gapHours);

@@ -62,10 +62,10 @@ public class SgiCalculationService {
         );
     }
 
-    // Calculates the target hours to work based on ONE employment
-    private double calculateCurrentHours(Employment employment) {
+    // Calculates the target hours to work (the SGI could be decided on a lower percentage)
+    private double calculateOriginalTarget(Employment employment) {
 
-        return (employment.getOriginalWorkingHours() * employment.getCurrentEmploymentRate()) / 100.0;
+        return (employment.getOriginalWorkingHours() * employment.getOriginalEmploymentRate()) / 100.0;
     }
 
     // Checks if employments are valid in the period that sgi calculation is being performed
@@ -97,7 +97,7 @@ public class SgiCalculationService {
 
         double totalTarget = employments.stream()
                 .filter(emp -> isEmploymentActiveInPeriod(emp, from, to))
-                .mapToDouble(this::calculateCurrentHours)
+                .mapToDouble(this::calculateOriginalTarget)
                 .sum();
 
         return Math.round(totalTarget * 100.0) / 100.0;
@@ -125,7 +125,7 @@ public class SgiCalculationService {
         return Math.round(totalHours * 100.0) / 100.0;
     }
 
-    private double calculateGap(double target, double planned){
+    private static double calculateGap(double target, double planned){
 
         double gap = Math.max(0, target - planned);
         return Math.round(gap * 100.0) / 100.0;
@@ -149,7 +149,7 @@ public class SgiCalculationService {
         double weeklyTargetHours = calculateTotalWeeklyTarget(personId, from, to);
         double totalTargetForPeriod = Math.round((weeklyTargetHours * weeksInPeriod) * 100.0) / 100.0;
         double gapHours = calculateGap(totalTargetForPeriod, plannedHours);
-        double recommendedDays = calculateRecommendedDaysToClaim(personId, gapHours);
+        double recommendedDays = calculateRecommendedDaysToClaim(gapHours, weeklyTargetHours);
 
         return getResponse(plannedHours, totalTargetForPeriod, gapHours, recommendedDays);
     }
@@ -160,7 +160,7 @@ public class SgiCalculationService {
         SgiStatus sgiStatus = (plannedHours >= totalTargetForPeriod) ? SgiStatus.PROTECTED : SgiStatus.AT_RISK;
 
         String recommendation = sgiStatus == SgiStatus.PROTECTED ?
-                "Protected SGI" : "Your SGI are at risk, you need to fill up with parental leave or work hours";
+                "Protected SGI" : "Your SGI is at risk, you need to fill up with parental leave or work hours";
 
         SgiStatusResponse sgiStatusResponse = new SgiStatusResponse();
         sgiStatusResponse.setPlannedHours(plannedHours);
@@ -172,27 +172,21 @@ public class SgiCalculationService {
         return sgiStatusResponse;
     }
 
-    public double calculateRecommendedDaysToClaim(Long personId, double gapHours) {
+    public double calculateRecommendedDaysToClaim(double gapHours, double weeklyTarget) {
 
-        if(gapHours <= 0) {
+        if(gapHours <= 0 || weeklyTarget <= 0) {
             return 0.0;
         }
-        // Get a persons summarized original working hours per week
-        List<Employment> employments = employmentRepository.findByPersonId(personId);
-        double fullTimeWeeklyHours = employments.stream()
-                .mapToDouble(Employment::getOriginalWorkingHours)
-                .sum();
 
-        // Calculate what one day corresponds to
-        double hoursPerDay = fullTimeWeeklyHours / 5.0;
+        // This is based on the assumption that a day of SGI is always 1/5 of the weekly target
+        double hoursPerDay = weeklyTarget / 5.0;
         double daysMissing = gapHours / hoursPerDay;
+        double sgiDaysMissing = roundUpToNearest(daysMissing);
 
-        double parentalLeave = roundUpToNearest(daysMissing);
-
-        return Math.round(parentalLeave * 1000.0) / 1000.0; //Return the nearest number of parental leave that is required
+        return Math.round(sgiDaysMissing * 1000.0) / 1000.0; //Return the nearest number of SGI days that is missing.
     }
 
-    public double roundUpToNearest(double days) {
+    private static double roundUpToNearest(double days) {
 
         if(days <= 0) {
             return 0;
@@ -201,5 +195,4 @@ public class SgiCalculationService {
 
         return Math.ceil(days / step) * step;
     }
-
 }
