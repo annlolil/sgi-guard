@@ -9,11 +9,17 @@ import se.lilja.sgiguard.models.SgiStatus;
 import se.lilja.sgiguard.repositories.EmploymentRepository;
 import se.lilja.sgiguard.repositories.ShiftRepository;
 import se.lilja.sgiguard.utils.DateRange;
+
+import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAdjuster;
+import java.time.temporal.TemporalAdjusters;
+import java.time.temporal.WeekFields;
 import java.util.List;
+import java.util.Locale;
 
 @Service
 public class SgiCalculationService {
@@ -132,44 +138,52 @@ public class SgiCalculationService {
     }
 
     // Main method that compares planned hours to work with the target and gives a recommendation
-    public SgiStatusResponse calculateSgiStatus(Long personId, LocalDate from, LocalDate to) {
+//    public SgiStatusResponse calculateSgiStatus(Long personId, LocalDate from, LocalDate to) {
+//
+//        if(from == null) {
+//            throw new IllegalArgumentException("From is null");
+//        }
+//        if(to.isBefore(from)) {
+//            throw new IllegalArgumentException("To is before from");
+//        }
+//
+//        long daysInPeriod = ChronoUnit.DAYS.between(from, to) + 1;
+//        double weeksInPeriod = daysInPeriod / 7.0;
+//
+//        double plannedHours = summarizePlannedHoursInPeriod(personId, from, to);
+//
+//        double weeklyTargetHours = calculateTotalWeeklyTarget(personId, from, to);
+//        double totalTargetForPeriod = Math.round((weeklyTargetHours * weeksInPeriod) * 100.0) / 100.0;
+//        double gapHours = calculateGap(totalTargetForPeriod, plannedHours);
+//        double recommendedDays = calculateRecommendedDaysToClaim(gapHours, weeklyTargetHours);
+//
+//        return getResponse(plannedHours, totalTargetForPeriod, gapHours, recommendedDays);
+//    }
 
-        if(from == null) {
-            throw new IllegalArgumentException("From is null");
-        }
-        if(to.isBefore(from)) {
-            throw new IllegalArgumentException("To is before from");
-        }
+    // Main method that compares planned hours to work with the target and gives a recommendation
+    public SgiStatusResponse calculateSgiStatus(Long personId, LocalDate dateInWeek) {
 
-        long daysInPeriod = ChronoUnit.DAYS.between(from, to) + 1;
-        double weeksInPeriod = daysInPeriod / 7.0;
+        LocalDate weekStart = dateInWeek.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        LocalDate weekEnd = dateInWeek.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
 
-        double plannedHours = summarizePlannedHoursInPeriod(personId, from, to);
+        double targetHours = calculateTotalWeeklyTarget(personId, weekStart, weekEnd);
 
-        double weeklyTargetHours = calculateTotalWeeklyTarget(personId, from, to);
-        double totalTargetForPeriod = Math.round((weeklyTargetHours * weeksInPeriod) * 100.0) / 100.0;
-        double gapHours = calculateGap(totalTargetForPeriod, plannedHours);
-        double recommendedDays = calculateRecommendedDaysToClaim(gapHours, weeklyTargetHours);
+        double plannedHours = summarizePlannedHoursInPeriod(personId, weekStart, weekEnd);
 
-        return getResponse(plannedHours, totalTargetForPeriod, gapHours, recommendedDays);
+        double gapHours = calculateGap(targetHours, plannedHours);
+        double recommendedDays = calculateRecommendedDaysToClaim(gapHours, targetHours);
+
+        SgiStatus status = (plannedHours >= targetHours) ? SgiStatus.PROTECTED : SgiStatus.AT_RISK;
+
+        String recommendation = (status == SgiStatus.PROTECTED)
+                ? "SGI protected"
+                : "SGI at risk in week " + getWeekNumber(weekStart) + "You are missing " + recommendedDays + " days.";
+
+        return new SgiStatusResponse(plannedHours, targetHours, gapHours, status, recommendation, recommendedDays);
     }
 
-    private static SgiStatusResponse getResponse(
-            double plannedHours, double totalTargetForPeriod, double gapHours, double recommendedDays) {
-
-        SgiStatus sgiStatus = (plannedHours >= totalTargetForPeriod) ? SgiStatus.PROTECTED : SgiStatus.AT_RISK;
-
-        String recommendation = sgiStatus == SgiStatus.PROTECTED ?
-                "Protected SGI" : "Your SGI is at risk, you need to fill up with parental leave or work hours";
-
-        SgiStatusResponse sgiStatusResponse = new SgiStatusResponse();
-        sgiStatusResponse.setPlannedHours(plannedHours);
-        sgiStatusResponse.setTargetHours(totalTargetForPeriod);
-        sgiStatusResponse.setGapHours(gapHours);
-        sgiStatusResponse.setStatus(sgiStatus);
-        sgiStatusResponse.setRecommendation(recommendation);
-        sgiStatusResponse.setRecommendedDays(recommendedDays);
-        return sgiStatusResponse;
+    private int getWeekNumber(LocalDate date) {
+        return date.get(WeekFields.of(Locale.getDefault()).weekOfWeekBasedYear());
     }
 
     public double calculateRecommendedDaysToClaim(double gapHours, double weeklyTarget) {

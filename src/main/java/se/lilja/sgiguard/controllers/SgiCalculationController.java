@@ -25,10 +25,9 @@ public class SgiCalculationController {
     @GetMapping("/status")
     public ResponseEntity<SgiStatusResponse> getSgiStatus(
             @RequestParam Long personId,
-            @RequestParam LocalDate from,
-            @RequestParam LocalDate to) {
+            @RequestParam LocalDate weekStart) {
 
-        SgiStatusResponse response = sgiCalculationService.calculateSgiStatus(personId, from, to);
+        SgiStatusResponse response = sgiCalculationService.calculateSgiStatus(personId, weekStart);
         return ResponseEntity.ok(response);
     }
 }
