@@ -30,8 +30,8 @@ public class ShiftController {
     @PostMapping("/addshift")
     public ResponseEntity<Shift> addShift(@RequestBody ShiftDTO shiftDTO,
                                           @RequestParam Long personId, // Change later do @Authentication principal if I have the time
-                                          @RequestParam Long workConditionId) {
-        return new ResponseEntity<>(shiftService.addShift(shiftDTO, personId, workConditionId), HttpStatus.CREATED);
+                                          @RequestParam Long employmentId) {
+        return new ResponseEntity<>(shiftService.addShift(shiftDTO, personId, employmentId), HttpStatus.CREATED);
     }
 
     // An endpoint that gets a specific persons all saved shifts.

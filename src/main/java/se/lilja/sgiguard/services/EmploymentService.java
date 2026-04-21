@@ -23,7 +23,7 @@ public class EmploymentService implements EmploymentInterface {
 
     @Override
     public Employment addEmployment(Employment employment, Long personId) {
-        // Get the person that is logged in and connect it to the workconditions that's being saved
+        // Get the person that is logged in and connect it to the employment that's being saved
         Person person = personRepository.findById(personId).orElseThrow(()->
                 new ResponseStatusException(HttpStatus.NOT_FOUND, "Person not found"));
 

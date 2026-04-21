@@ -8,18 +8,18 @@ import se.lilja.sgiguard.entities.Employment;
 import se.lilja.sgiguard.services.EmploymentService;
 
 @RestController
-@RequestMapping("/workcondition")
+@RequestMapping("/employment")
 public class EmploymentController {
 
-    private final EmploymentService workConditionService;
+    private final EmploymentService employmentService;
 
     @Autowired
-    public EmploymentController(EmploymentService workConditionService) {
-        this.workConditionService = workConditionService;
+    public EmploymentController(EmploymentService employmentService) {
+        this.employmentService = employmentService;
     }
     // Is currently returning a workcondition object with shifts which I dont want to have. Remove shifts from the return.
-    @PostMapping("/addworkcondition")
-    public ResponseEntity<Employment> addWorkCondition(@RequestBody Employment employment, @RequestParam Long personId) {
-        return new ResponseEntity<>(workConditionService.addEmployment(employment, personId), HttpStatus.CREATED);
+    @PostMapping("/addemployment")
+    public ResponseEntity<Employment> addEmployment(@RequestBody Employment employment, @RequestParam Long personId) {
+        return new ResponseEntity<>(employmentService.addEmployment(employment, personId), HttpStatus.CREATED);
     }
 }
