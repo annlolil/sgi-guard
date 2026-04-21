@@ -2,6 +2,7 @@ package se.lilja.sgiguard.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import se.lilja.sgiguard.dtos.SgiPeriodAnalysisResponse;
 import se.lilja.sgiguard.dtos.SgiStatusResponse;
 import se.lilja.sgiguard.entities.Shift;
 import se.lilja.sgiguard.entities.Employment;
@@ -18,6 +19,7 @@ import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjuster;
 import java.time.temporal.TemporalAdjusters;
 import java.time.temporal.WeekFields;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -138,30 +140,7 @@ public class SgiCalculationService {
     }
 
     // Main method that compares planned hours to work with the target and gives a recommendation
-//    public SgiStatusResponse calculateSgiStatus(Long personId, LocalDate from, LocalDate to) {
-//
-//        if(from == null) {
-//            throw new IllegalArgumentException("From is null");
-//        }
-//        if(to.isBefore(from)) {
-//            throw new IllegalArgumentException("To is before from");
-//        }
-//
-//        long daysInPeriod = ChronoUnit.DAYS.between(from, to) + 1;
-//        double weeksInPeriod = daysInPeriod / 7.0;
-//
-//        double plannedHours = summarizePlannedHoursInPeriod(personId, from, to);
-//
-//        double weeklyTargetHours = calculateTotalWeeklyTarget(personId, from, to);
-//        double totalTargetForPeriod = Math.round((weeklyTargetHours * weeksInPeriod) * 100.0) / 100.0;
-//        double gapHours = calculateGap(totalTargetForPeriod, plannedHours);
-//        double recommendedDays = calculateRecommendedDaysToClaim(gapHours, weeklyTargetHours);
-//
-//        return getResponse(plannedHours, totalTargetForPeriod, gapHours, recommendedDays);
-//    }
-
-    // Main method that compares planned hours to work with the target and gives a recommendation
-    public SgiStatusResponse calculateSgiStatus(Long personId, LocalDate dateInWeek) {
+    public SgiStatusResponse analyzeWeek(Long personId, LocalDate dateInWeek) {
 
         LocalDate weekStart = dateInWeek.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         LocalDate weekEnd = dateInWeek.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
@@ -208,5 +187,34 @@ public class SgiCalculationService {
         double step = 0.125;
 
         return Math.ceil(days / step) * step;
+    }
+
+    public SgiPeriodAnalysisResponse analyzePeriod(Long personId, LocalDate from, LocalDate to) {
+        List<SgiStatusResponse> weeklyResults = new ArrayList<>();
+        LocalDate current = from;
+
+        while(current.isBefore(to)) {
+            weeklyResults.add(analyzeWeek(personId, current));
+            current = current.plusWeeks(1);
+        }
+
+        double totalPlanned = weeklyResults.stream().mapToDouble(SgiStatusResponse::getPlannedHours).sum();
+        double totalTarget = weeklyResults.stream().mapToDouble(SgiStatusResponse::getTargetHours).sum();
+        totalPlanned = Math.round(totalPlanned * 100.0) / 100.0;
+        totalTarget = Math.round(totalTarget * 100.0) / 100.0;
+
+        SgiStatus overallStatus = (totalPlanned >= totalTarget) ? SgiStatus.PROTECTED : SgiStatus.AT_RISK;
+
+        String recommendation = (overallStatus == SgiStatus.PROTECTED) ? "Your total plan looks safe" :
+                "Your total plan is not enough. The red weeks need to be managed";
+
+        SgiPeriodAnalysisResponse response = new SgiPeriodAnalysisResponse();
+        response.setWeeklyStatuses(weeklyResults);
+        response.setTotalPlannedHours(totalPlanned);
+        response.setTotalTargetHours(totalTarget);
+        response.setOverallStatus(overallStatus);
+        response.setPeriodRecommendation(recommendation);
+
+        return response;
     }
 }
