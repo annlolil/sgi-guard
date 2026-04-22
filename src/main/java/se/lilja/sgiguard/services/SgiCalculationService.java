@@ -187,15 +187,13 @@ public class SgiCalculationService {
     public SgiPeriodAnalysisResponse analyzePeriod(Long personId, LocalDate from, LocalDate to) {
         List<SgiWeeklyAnalysisResponse> weeklyResults = new ArrayList<>();
 
-        // Only check weeks that are starting in the period
-        LocalDate currentStart = from.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-        if(currentStart.isBefore(from)) {
-            currentStart = currentStart.plusWeeks(1);
-        }
+        // Ajust from and to so that the calculation is performed on whole weeks within the period
+        LocalDate adjustedFrom = from.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        LocalDate adjustedTo = to.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
 
-        while(!currentStart.isAfter(to.minusDays(3))) {
-            weeklyResults.add(analyzeWeek(personId, currentStart));
-            currentStart = currentStart.plusWeeks(1);
+        while(!adjustedFrom.isAfter(adjustedTo.minusDays(6))) {
+            weeklyResults.add(analyzeWeek(personId, adjustedFrom));
+            adjustedFrom = adjustedFrom.plusWeeks(1);
         }
 
         double totalPlanned = weeklyResults.stream().mapToDouble(SgiWeeklyAnalysisResponse::getTotalPlannedHours).sum();
@@ -206,7 +204,8 @@ public class SgiCalculationService {
         SgiStatus overallStatus = (totalPlanned >= totalTarget) ? SgiStatus.PROTECTED : SgiStatus.AT_RISK;
 
         String recommendation = (overallStatus == SgiStatus.PROTECTED) ? "Your total plan looks safe" :
-                "Your total plan is not enough. The red weeks need to be managed";
+                "The analyze is covering " + weeklyResults.size() + " whole weeks. Total goal for these weeks" +
+                " are " + totalTarget + " hours.";
 
         return new SgiPeriodAnalysisResponse(
                 weeklyResults,
