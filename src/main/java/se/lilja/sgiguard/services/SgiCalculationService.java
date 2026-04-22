@@ -62,30 +62,7 @@ public class SgiCalculationService {
         }
     }
 
-    // Method that can list shifts a certain period of time
-    // It also looks at shifts that can overlap a period by starting before the period but ending inside the period.
-    public List<Shift> getShiftsForPersonInPeriod(Long personId, LocalDate from, LocalDate to) {
-
-        DateRange range = DateRange.of(from, to);
-        return shiftRepository.findOverlappingShifts(
-                personId,
-                range.start(),
-                range.end()
-        );
-    }
-
-    public List<ParentalLeave> getParentalLeaves(Long personId, LocalDate from, LocalDate to) {
-
-        return parentalLeaveRepository.findByPersonIdAndDateBetween(personId, from, to);
-    }
-
-    // Calculates the target hours to work (the SGI could be decided on a lower percentage)
-    private double calculateOriginalTarget(Employment employment) {
-
-        return (employment.getOriginalWorkingHours() * employment.getOriginalEmploymentRate()) / 100.0;
-    }
-
-    // Checks if employments are valid in the period that sgi calculation is being performed
+    // Checks if employments are valid in the actual period
     private boolean isEmploymentActiveInPeriod(Employment emp, LocalDate from, LocalDate to) {
 
         LocalDate empStart = emp.getValidFrom();
@@ -142,7 +119,7 @@ public class SgiCalculationService {
         return Math.round(totalHours * 100.0) / 100.0;
     }
 
-    // Method that summarizes the hours from all shifts listed in a specific period of time
+    // Method that summarizes the hours from all parental leave listed in a specific period of time
     // It can be for example a month, 4 weeks or 6 weeks
     public Double summarizeLeaveHoursInPeriod(Long personId, LocalDate from, LocalDate to) {
 
@@ -156,13 +133,7 @@ public class SgiCalculationService {
         return Math.round(totalParentalLeaveHours * 100.0) / 100.0;
     }
 
-    private static double calculateGap(double target, double planned){
-
-        double gap = Math.max(0, target - planned);
-        return Math.round(gap * 100.0) / 100.0;
-    }
-
-    // Main method that compares planned hours to work with the target and gives a recommendation
+    // Main method that compares planned hours and parental leave with the target on weekly basis
     public SgiWeeklyAnalysisResponse analyzeWeek(Long personId, LocalDate dateInWeek) {
 
         LocalDate weekStart = dateInWeek.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
@@ -187,10 +158,6 @@ public class SgiCalculationService {
         return new SgiWeeklyAnalysisResponse(workHours, leaveHours, totalPlanned, targetHours, gapHours, recommendedDays, status, recommendation);
     }
 
-    private int getWeekNumber(LocalDate date) {
-        return date.get(WeekFields.of(Locale.getDefault()).weekOfWeekBasedYear());
-    }
-
     public double calculateRecommendedDaysToClaim(double gapHours, double weeklyTarget) {
 
         if(gapHours <= 0 || weeklyTarget <= 0) {
@@ -205,18 +172,9 @@ public class SgiCalculationService {
         return Math.round(sgiDaysMissing * 1000.0) / 1000.0; //Return the nearest number of SGI days that is missing.
     }
 
-    private static double roundUpToNearest(double days) {
-
-        if(days <= 0) {
-            return 0;
-        }
-        double step = 0.125;
-
-        return Math.ceil(days / step) * step;
-    }
-
     public SgiPeriodAnalysisResponse analyzePeriod(Long personId, LocalDate from, LocalDate to) {
         List<SgiWeeklyAnalysisResponse> weeklyResults = new ArrayList<>();
+
         LocalDate current = from;
 
         while(current.isBefore(to)) {
@@ -242,5 +200,46 @@ public class SgiCalculationService {
         response.setPeriodRecommendation(recommendation);
 
         return response;
+    }
+
+    // Helpers
+    private static double roundUpToNearest(double days) {
+        if(days <= 0) {
+            return 0;
+        }
+        double step = 0.125;
+        return Math.ceil(days / step) * step;
+    }
+
+    private static int getWeekNumber(LocalDate date) {
+        return date.get(WeekFields.of(Locale.getDefault()).weekOfWeekBasedYear());
+    }
+
+    private static double calculateGap(double target, double planned){
+        double gap = Math.max(0, target - planned);
+        return Math.round(gap * 100.0) / 100.0;
+    }
+
+    public List<ParentalLeave> getParentalLeaves(Long personId, LocalDate from, LocalDate to) {
+
+        return parentalLeaveRepository.findByPersonIdAndDateBetween(personId, from, to);
+    }
+
+    // Method that can list shifts a certain period of time
+    // It also looks at shifts that can overlap a period by starting before the period but ending inside the period.
+    public List<Shift> getShiftsForPersonInPeriod(Long personId, LocalDate from, LocalDate to) {
+
+        DateRange range = DateRange.of(from, to);
+        return shiftRepository.findOverlappingShifts(
+                personId,
+                range.start(),
+                range.end()
+        );
+    }
+
+    // Calculates the target hours to work (the SGI could be decided on a lower percentage)
+    private double calculateOriginalTarget(Employment employment) {
+
+        return (employment.getOriginalWorkingHours() * employment.getOriginalEmploymentRate()) / 100.0;
     }
 }
