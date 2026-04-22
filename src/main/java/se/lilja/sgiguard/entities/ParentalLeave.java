@@ -24,4 +24,8 @@ public class ParentalLeave {
 
     @Column(nullable = false)
     private Double extent;
+
+    @ManyToOne
+    @JoinColumn(name = "person_id")
+    private Person person;
 }

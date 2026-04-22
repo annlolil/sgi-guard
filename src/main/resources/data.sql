@@ -38,3 +38,8 @@ VALUES ('2024-04-07 20:50:00','2024-04-08 07:10:00', 1, 1);
 -- 10 h, 20 minutes shift, starts at sunday and ends at monday, mainday monday
 INSERT INTO shift (shift_start, shift_end, person_id, employment_id)
 VALUES ('2024-03-31 20:50:00','2024-04-01 07:10:00', 1, 1);
+
+-- 11. Parental leave
+-- One whole day
+INSERT INTO parental_leave (date, extent, person_id)
+VALUES ('2024-04-06', 1, 1)

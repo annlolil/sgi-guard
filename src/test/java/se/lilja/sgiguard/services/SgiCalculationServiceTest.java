@@ -5,8 +5,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import se.lilja.sgiguard.dtos.SgiStatusResponse;
-import se.lilja.sgiguard.entities.Person;
+import se.lilja.sgiguard.dtos.SgiWeeklyAnalysisResponse;
 import se.lilja.sgiguard.entities.Shift;
 import se.lilja.sgiguard.entities.Employment;
 import se.lilja.sgiguard.repositories.EmploymentRepository;
@@ -188,7 +187,7 @@ class SgiCalculationServiceTest {
                 .thenReturn(List.of(shift1));
 
         // When
-        SgiStatusResponse response = sgiCalculationService.calculateSgiStatus(personId, from, to);
+        SgiWeeklyAnalysisResponse response = sgiCalculationService.(personId, from, to);
 
         // Then
         assertThat(response.getStatus()).isEqualTo(AT_RISK);

@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import se.lilja.sgiguard.dtos.SgiPeriodAnalysisResponse;
-import se.lilja.sgiguard.dtos.SgiStatusResponse;
+import se.lilja.sgiguard.dtos.SgiWeeklyAnalysisResponse;
 import se.lilja.sgiguard.services.SgiCalculationService;
 
 import java.time.LocalDate;
@@ -24,11 +24,11 @@ public class SgiCalculationController {
     }
 
     @GetMapping("/analyzeweek")
-    public ResponseEntity<SgiStatusResponse> analyzeWeek(
+    public ResponseEntity<SgiWeeklyAnalysisResponse> analyzeWeek(
             @RequestParam Long personId,
             @RequestParam LocalDate weekStart) {
 
-        SgiStatusResponse response = sgiCalculationService.calculateSgiStatus(personId, weekStart);
+        SgiWeeklyAnalysisResponse response = sgiCalculationService.analyzeWeek(personId, weekStart);
         return ResponseEntity.ok(response);
     }
 
