@@ -136,6 +136,8 @@ public class SgiCalculationService {
     // Main method that compares planned hours and parental leave with the target on weekly basis
     public SgiWeeklyAnalysisResponse analyzeWeek(Long personId, LocalDate dateInWeek) {
 
+        int weeklyNumber = getWeekNumber(dateInWeek);
+
         LocalDate weekStart = dateInWeek.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         LocalDate weekEnd = dateInWeek.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
 
@@ -155,7 +157,17 @@ public class SgiCalculationService {
                 ? "SGI protected"
                 : "SGI at risk in week " + getWeekNumber(weekStart) + ". You are missing " + recommendedDays + " days.";
 
-        return new SgiWeeklyAnalysisResponse(workHours, leaveHours, totalPlanned, targetHours, gapHours, recommendedDays, status, recommendation);
+        return new SgiWeeklyAnalysisResponse(
+                weeklyNumber,
+                workHours,
+                leaveHours,
+                totalPlanned,
+                targetHours,
+                gapHours,
+                recommendedDays,
+                status,
+                recommendation
+        );
     }
 
     public double calculateRecommendedDaysToClaim(double gapHours, double weeklyTarget) {
@@ -175,11 +187,15 @@ public class SgiCalculationService {
     public SgiPeriodAnalysisResponse analyzePeriod(Long personId, LocalDate from, LocalDate to) {
         List<SgiWeeklyAnalysisResponse> weeklyResults = new ArrayList<>();
 
-        LocalDate current = from;
+        // Only check weeks that are starting in the period
+        LocalDate currentStart = from.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        if(currentStart.isBefore(from)) {
+            currentStart = currentStart.plusWeeks(1);
+        }
 
-        while(current.isBefore(to)) {
-            weeklyResults.add(analyzeWeek(personId, current));
-            current = current.plusWeeks(1);
+        while(!currentStart.isAfter(to.minusDays(3))) {
+            weeklyResults.add(analyzeWeek(personId, currentStart));
+            currentStart = currentStart.plusWeeks(1);
         }
 
         double totalPlanned = weeklyResults.stream().mapToDouble(SgiWeeklyAnalysisResponse::getTotalPlannedHours).sum();
@@ -192,14 +208,13 @@ public class SgiCalculationService {
         String recommendation = (overallStatus == SgiStatus.PROTECTED) ? "Your total plan looks safe" :
                 "Your total plan is not enough. The red weeks need to be managed";
 
-        SgiPeriodAnalysisResponse response = new SgiPeriodAnalysisResponse();
-        response.setWeeklyStatuses(weeklyResults);
-        response.setTotalPlannedHours(totalPlanned);
-        response.setTotalTargetHours(totalTarget);
-        response.setOverallStatus(overallStatus);
-        response.setPeriodRecommendation(recommendation);
-
-        return response;
+        return new SgiPeriodAnalysisResponse(
+                weeklyResults,
+                totalPlanned,
+                totalTarget,
+                overallStatus,
+                recommendation
+        );
     }
 
     // Helpers

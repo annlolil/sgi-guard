@@ -13,6 +13,8 @@ import se.lilja.sgiguard.models.SgiStatus;
 @Setter
 public class SgiWeeklyAnalysisResponse {
 
+    private int week;
+
     private double plannedWorkHours;
     private double plannedParentalLeaveHours;
     private double totalPlannedHours;
