@@ -34,12 +34,12 @@ public class ShiftService implements ShiftServiceInterface {
     }
 
     @Override
-    public Shift addShift(ShiftDTO shiftDTO, Long personId, Long workConditionId) {
+    public Shift addShift(ShiftDTO shiftDTO, Long personId, Long employmentId) {
         // Get the person that is logged in and connect it to the shift that's being saved
         Person person = personRepository.findById(personId).orElseThrow(()->
                 new ResponseStatusException(HttpStatus.NOT_FOUND, "Person not found"));
 
-        Employment employment = employmentRepository.findById(workConditionId).orElseThrow(()->
+        Employment employment = employmentRepository.findById(employmentId).orElseThrow(()->
                 new ResponseStatusException(HttpStatus.NOT_FOUND, "Workcondition not found"));
 
         Shift shift = convertToEntity(shiftDTO, person, employment);

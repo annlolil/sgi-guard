@@ -14,7 +14,7 @@ import java.util.List;
 @Setter
 public class SgiPeriodAnalysisResponse {
 
-    private List<SgiStatusResponse> weeklyStatuses;
+    private List<SgiWeeklyAnalysisResponse> weeklyStatuses;
     private double totalPlannedHours;
     private double totalTargetHours;
     private SgiStatus overallStatus;
