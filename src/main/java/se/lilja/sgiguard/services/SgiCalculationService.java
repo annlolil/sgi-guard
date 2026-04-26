@@ -1,6 +1,8 @@
 package se.lilja.sgiguard.services;
 
+import org.hibernate.annotations.Parent;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
 import se.lilja.sgiguard.dtos.SgiPeriodAnalysisResponse;
 import se.lilja.sgiguard.dtos.SgiWeeklyAnalysisResponse;
@@ -31,35 +33,16 @@ public class SgiCalculationService {
     private final ShiftRepository shiftRepository;
     private final EmploymentRepository employmentRepository;
     private final ParentalLeaveRepository parentalLeaveRepository;
+    private final SgiRuleService sgiRuleService;
+    private final ParentalLeaveService parentalLeaveService;
 
     @Autowired
-    public SgiCalculationService(ShiftRepository shiftRepository, EmploymentRepository employmentRepository, ParentalLeaveRepository parentalLeaveRepository) {
+    public SgiCalculationService(ShiftRepository shiftRepository, EmploymentRepository employmentRepository, ParentalLeaveRepository parentalLeaveRepository, SgiRuleService sgiRuleService, ParentalLeaveService parentalLeaveService) {
         this.shiftRepository = shiftRepository;
         this.employmentRepository = employmentRepository;
         this.parentalLeaveRepository = parentalLeaveRepository;
-    }
-
-    // A method that takes a shift and identifies which day is the main day of working hours
-    public LocalDate identifyMainDay(Shift shift) {
-
-        LocalDateTime start = shift.getShiftStart();
-        LocalDateTime end = shift.getShiftEnd();
-
-        if (start.toLocalDate().isEqual(end.toLocalDate())) {
-            return start.toLocalDate();
-        }
-
-        LocalDateTime midnight = start.toLocalDate().plusDays(1).atStartOfDay();
-
-        long minutesFirstDay = Duration.between(start, midnight).toMinutes();
-        long minutesSecondDay = Duration.between(midnight, end).toMinutes();
-
-        if (minutesFirstDay >= minutesSecondDay) {
-            return start.toLocalDate();
-        }
-        else {
-            return end.toLocalDate();
-        }
+        this.sgiRuleService = sgiRuleService;
+        this.parentalLeaveService = parentalLeaveService;
     }
 
     // Checks if employments are valid in the actual period
@@ -99,15 +82,13 @@ public class SgiCalculationService {
 
     // Method that summarizes the hours from all shifts listed in a specific period of time
     // It can be for example a month, 4 weeks or 6 weeks
-    public Double summarizePlannedHoursInPeriod(Long personId, LocalDate from, LocalDate to) {
-
-        List<Shift> shiftsInPeriod = getShiftsForPersonInPeriod(personId, from, to);
+    public Double summarizeWorkHoursInPeriod(List<Shift> shifts, LocalDate from, LocalDate to) {
 
         double totalMinutes = 0;
 
-        for (Shift shift : shiftsInPeriod) {
+        for (Shift shift : shifts) {
             // Only count the hours for a shift if its main day is in the period
-            LocalDate mainDay = identifyMainDay(shift);
+            LocalDate mainDay = sgiRuleService.identifyMainDay(shift);
             if (!mainDay.isBefore(from) && !mainDay.isAfter(to)) {
                 Duration duration = Duration.between(shift.getShiftStart(), shift.getShiftEnd());
                 totalMinutes += duration.toMinutes();
@@ -121,11 +102,9 @@ public class SgiCalculationService {
 
     // Method that summarizes the hours from all parental leave listed in a specific period of time
     // It can be for example a month, 4 weeks or 6 weeks
-    public Double summarizeLeaveHoursInPeriod(Long personId, LocalDate from, LocalDate to) {
+    public Double summarizeLeaveHoursInPeriod(List<ParentalLeave> parentalLeaves, Double weeklyTarget) {
 
-        List<ParentalLeave> parentalLeaves = getParentalLeaves(personId, from, to);
-
-        double hoursPerDay = calculateTotalWeeklyTarget(personId, from, to) / 5.0;
+        double hoursPerDay = weeklyTarget / 5.0;
 
         double totalParentalLeaveHours = parentalLeaves.stream()
                 .mapToDouble(leave -> leave.getExtent() * hoursPerDay).sum();
@@ -138,13 +117,17 @@ public class SgiCalculationService {
 
         int weeklyNumber = getWeekNumber(dateInWeek);
 
+        // Create a week from the input dateInWeek
         LocalDate weekStart = dateInWeek.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         LocalDate weekEnd = dateInWeek.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
 
         double targetHours = calculateTotalWeeklyTarget(personId, weekStart, weekEnd);
 
-        double workHours = summarizePlannedHoursInPeriod(personId, weekStart, weekEnd);
-        double leaveHours = summarizeLeaveHoursInPeriod(personId, weekStart, weekEnd);
+        List<Shift> weeklyShifts = getShiftsForPersonInPeriod(personId, weekStart, weekEnd);
+        double workHours = summarizeWorkHoursInPeriod(weeklyShifts, weekStart, weekEnd);
+
+        List<ParentalLeave> weeklyLeaves = getParentalLeaves(personId, weekStart, weekEnd);
+        double leaveHours = summarizeLeaveHoursInPeriod(weeklyLeaves, targetHours);
 
         double totalPlanned = workHours + leaveHours;
 
@@ -152,6 +135,37 @@ public class SgiCalculationService {
         double recommendedDays = calculateRecommendedDaysToClaim(gapHours, targetHours);
 
         SgiStatus status = (totalPlanned >= targetHours) ? SgiStatus.PROTECTED : SgiStatus.AT_RISK;
+
+        StringBuilder warning = new StringBuilder();
+
+        LocalDate friday = weekStart.with(DayOfWeek.FRIDAY);
+        LocalDate monday = weekEnd.plusDays(1);
+
+        double fridayLeaveExtent = parentalLeaveService.getLeaveExtentOnDay(personId, friday);
+        double mondayLeaveExtent = parentalLeaveService.getLeaveExtentOnDay(personId, monday);
+
+        for(ParentalLeave parentalLeave : weeklyLeaves) {
+
+            // Check if a person is off work for at least 5 days
+            boolean isLongLeave = sgiRuleService.is5DayFree(parentalLeave.getDate(),weeklyShifts);
+            boolean validParentalLeave;
+            if(isLongLeave) {
+                validParentalLeave = true;
+                // Else check if parental leave is valid according to weekend rules
+            } else {
+                validParentalLeave = sgiRuleService.isWeekendClaimValid(
+                        parentalLeave.getDate(),
+                        fridayLeaveExtent,
+                        mondayLeaveExtent,
+                        parentalLeave.getExtent());
+            }
+            if(!validParentalLeave) {
+                warning.append("Warning: Claim on ")
+                        .append(parentalLeave.getDate())
+                        .append(" requires at least the same extent ")
+                        .append("on connecting weekday");
+            }
+        }
 
         String recommendation = (status == SgiStatus.PROTECTED)
                 ? "SGI protected"
@@ -166,7 +180,8 @@ public class SgiCalculationService {
                 gapHours,
                 recommendedDays,
                 status,
-                recommendation
+                recommendation,
+                warning
         );
     }
 
@@ -187,7 +202,7 @@ public class SgiCalculationService {
     public SgiPeriodAnalysisResponse analyzePeriod(Long personId, LocalDate from, LocalDate to) {
         List<SgiWeeklyAnalysisResponse> weeklyResults = new ArrayList<>();
 
-        // Ajust from and to so that the calculation is performed on whole weeks within the period
+        // Adjust from and to so that the calculation is performed on whole weeks within the period
         LocalDate adjustedFrom = from.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         LocalDate adjustedTo = to.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
 

@@ -21,8 +21,8 @@ VALUES ('2024-04-04 20:50:00','2024-04-05 07:10:00', 1, 1);
 
 -- 6. A workshift
 -- 10 h, 20 minutes shift, starts at friday and ends at saturday, mainday saturday
-INSERT INTO shift (shift_start, shift_end, person_id, employment_id)
-VALUES ('2024-04-05 20:50:00','2024-04-06 07:10:00', 1, 1);
+-- INSERT INTO shift (shift_start, shift_end, person_id, employment_id)
+-- VALUES ('2024-04-05 20:50:00','2024-04-06 07:10:00', 1, 1);
 
 -- 7. A workshift
 -- 10 h, 20 minutes shift, starts at saturday and ends at sunday, mainday sunday

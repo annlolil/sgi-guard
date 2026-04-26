@@ -12,4 +12,6 @@ import java.util.List;
 public interface ParentalLeaveRepository extends JpaRepository<ParentalLeave, Long> {
 
     List<ParentalLeave> findByPersonIdAndDateBetween(Long personId, LocalDate from, LocalDate to);
+
+    List<ParentalLeave> findByPersonIdAndDate(Long personId, LocalDate date);
 }
