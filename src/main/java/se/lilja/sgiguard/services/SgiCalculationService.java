@@ -1,8 +1,6 @@
 package se.lilja.sgiguard.services;
 
-import org.hibernate.annotations.Parent;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
 import se.lilja.sgiguard.dtos.SgiPeriodAnalysisResponse;
 import se.lilja.sgiguard.dtos.SgiWeeklyAnalysisResponse;
@@ -13,7 +11,6 @@ import se.lilja.sgiguard.models.SgiStatus;
 import se.lilja.sgiguard.repositories.EmploymentRepository;
 import se.lilja.sgiguard.repositories.ParentalLeaveRepository;
 import se.lilja.sgiguard.repositories.ShiftRepository;
-import se.lilja.sgiguard.utils.DateRange;
 
 import java.time.DayOfWeek;
 import java.time.Duration;
@@ -25,24 +22,22 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import static java.util.Arrays.stream;
-
 @Service
 public class SgiCalculationService {
 
-    private final ShiftRepository shiftRepository;
     private final EmploymentRepository employmentRepository;
     private final ParentalLeaveRepository parentalLeaveRepository;
     private final SgiRuleService sgiRuleService;
     private final ParentalLeaveService parentalLeaveService;
+    private final ShiftService shiftService;
 
     @Autowired
-    public SgiCalculationService(ShiftRepository shiftRepository, EmploymentRepository employmentRepository, ParentalLeaveRepository parentalLeaveRepository, SgiRuleService sgiRuleService, ParentalLeaveService parentalLeaveService) {
-        this.shiftRepository = shiftRepository;
+    public SgiCalculationService(EmploymentRepository employmentRepository, ParentalLeaveRepository parentalLeaveRepository, SgiRuleService sgiRuleService, ParentalLeaveService parentalLeaveService, ShiftService shiftService) {
         this.employmentRepository = employmentRepository;
         this.parentalLeaveRepository = parentalLeaveRepository;
         this.sgiRuleService = sgiRuleService;
         this.parentalLeaveService = parentalLeaveService;
+        this.shiftService = shiftService;
     }
 
     // Checks if employments are valid in the actual period
@@ -124,7 +119,7 @@ public class SgiCalculationService {
         double targetHours = calculateTotalWeeklyTarget(personId, weekStart, weekEnd);
 
         // Fetch the actual shifts that a person is planned to work and summarize the hours
-        List<Shift> weeklyShifts = getShiftsForPersonInPeriod(personId, weekStart, weekEnd);
+        List<Shift> weeklyShifts = shiftService.getShiftsForPersonInPeriod(personId, weekStart, weekEnd);
         double workHours = summarizeWorkHoursInPeriod(weeklyShifts, weekStart, weekEnd);
         // Fetch the actual Parental leaves that a person has planned to apply for and summarize the hours
         List<ParentalLeave> weeklyLeaves = getParentalLeaves(personId, weekStart, weekEnd);
@@ -234,18 +229,6 @@ public class SgiCalculationService {
         return parentalLeaveRepository.findByPersonIdAndDateBetween(personId, from, to);
     }
 
-    // Method that can list shifts a certain period of time
-    // It also looks at shifts that can overlap a period by starting before the period but ending inside the period.
-    public List<Shift> getShiftsForPersonInPeriod(Long personId, LocalDate from, LocalDate to) {
-
-        DateRange range = DateRange.of(from, to);
-        return shiftRepository.findOverlappingShifts(
-                personId,
-                range.start(),
-                range.end()
-        );
-    }
-
     // Calculates the target hours to work (the SGI could be decided on a lower percentage)
     private double calculateOriginalTarget(Employment employment) {
 
@@ -259,16 +242,26 @@ public class SgiCalculationService {
         for(ParentalLeave parentalLeave : parentalLeaves) {
             LocalDate date = parentalLeave.getDate();
 
-            // Check if there is a shift that belongs to the current day (Main day)
-            boolean hasShiftOnSameDay = shifts.stream()
-                    .anyMatch(s -> sgiRuleService.identifyMainDay(s).equals(date));
-
-            // If there is a shift on the same day, calculate how many hours that should be removed from that shift
-            if(hasShiftOnSameDay) {
-                hoursToReduce += (parentalLeave.getExtent() * hoursPerDay);
+            // Sum the actual hours for shifts whose main day matches the leave date
+            double shiftHoursOnSameDay = shifts.stream()
+                    .filter(s -> sgiRuleService.identifyMainDay(s).equals(date))
+                    .mapToDouble(s -> calculateShiftHours(s, hoursPerDay))
+                    .sum();
+            // If there are shifts on the same day, reduce by the leave extent of that day's shift hours
+            if (shiftHoursOnSameDay > 0) {
+                hoursToReduce += parentalLeave.getExtent() * shiftHoursOnSameDay;
             }
         }
         return Math.round(hoursToReduce * 100.0) / 100.0;
+    }
+
+    private double calculateShiftHours(Shift shift, double fallbackHoursPerDay) {
+        LocalDateTime startTime = shift.getShiftStart();
+        LocalDateTime endTime = shift.getShiftEnd();
+        if (startTime == null || endTime == null) {
+            return fallbackHoursPerDay;
+        }
+        return Duration.between(startTime, endTime).toMinutes() / 60.0;
     }
 
     private String collectWeeklyWarnings(Long personId,

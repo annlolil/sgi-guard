@@ -11,6 +11,7 @@ import se.lilja.sgiguard.entities.Employment;
 import se.lilja.sgiguard.repositories.PersonRepository;
 import se.lilja.sgiguard.repositories.ShiftRepository;
 import se.lilja.sgiguard.repositories.EmploymentRepository;
+import se.lilja.sgiguard.utils.DateRange;
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -81,6 +82,18 @@ public class ShiftService implements ShiftServiceInterface {
     @Override
     public List<Shift> getShifts(Long personId) {
         return shiftRepository.findShiftByPersonId(personId);
+    }
+
+    // Method that can list shifts a certain period of time
+    // It also looks at shifts that can overlap a period by starting before the period but ending inside the period.
+    public List<Shift> getShiftsForPersonInPeriod(Long personId, LocalDate from, LocalDate to) {
+
+        DateRange range = DateRange.of(from, to);
+        return shiftRepository.findOverlappingShifts(
+                personId,
+                range.start(),
+                range.end()
+        );
     }
 
     @Override

@@ -1,17 +1,11 @@
 package se.lilja.sgiguard.services;
 
-import org.hibernate.annotations.Parent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.springframework.cglib.core.Local;
 import se.lilja.sgiguard.entities.ParentalLeave;
 import se.lilja.sgiguard.entities.Person;
 import se.lilja.sgiguard.entities.Shift;
-import se.lilja.sgiguard.repositories.ShiftRepository;
 
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -19,9 +13,6 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 
 class SgiRuleServiceTest {
 
@@ -242,12 +233,12 @@ class SgiRuleServiceTest {
 
         // Given
         ParentalLeave parentalLeave = new ParentalLeave();
-        parentalLeave.setDate(LocalDate.of(2024, 1, 7));
+        parentalLeave.setDate(LocalDate.of(2024, 1, 8));
 
         // When
         String result = sgiRuleService.validateParentalLeaveDay(
                 parentalLeave,
-                List.of(shift1, shift2),
+                Collections.emptyList(),
                 0,
                 0);
 
