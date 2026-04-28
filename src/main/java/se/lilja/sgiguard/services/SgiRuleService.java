@@ -3,8 +3,6 @@ package se.lilja.sgiguard.services;
 import org.springframework.stereotype.Service;
 import se.lilja.sgiguard.entities.ParentalLeave;
 import se.lilja.sgiguard.entities.Shift;
-import se.lilja.sgiguard.repositories.ParentalLeaveRepository;
-import se.lilja.sgiguard.repositories.ShiftRepository;
 
 import java.time.DayOfWeek;
 import java.time.Duration;
@@ -14,14 +12,6 @@ import java.util.List;
 
 @Service
 public class SgiRuleService {
-
-    private final ShiftRepository shiftRepository;
-    private final ParentalLeaveRepository parentalLeaveRepository;
-
-    public SgiRuleService(ShiftRepository shiftRepository, ParentalLeaveRepository parentalLeaveRepository) {
-        this.shiftRepository = shiftRepository;
-        this.parentalLeaveRepository = parentalLeaveRepository;
-    }
 
     // A method that takes a shift and identifies which day is the main day of working hours
     public LocalDate identifyMainDay(Shift shift) {
@@ -95,5 +85,28 @@ public class SgiRuleService {
             current = current.plusDays(1);
         }
         return true;
+    }
+
+    public String validateParentalLeaveDay(ParentalLeave parentalLeave,
+                                           List<Shift> weeklyShifts,
+                                           double fridayExtent,
+                                           double mondayExtent) {
+
+        if (!isWeekend(parentalLeave.getDate())) {
+            return null;
+        }
+
+        if (is5DayFree(parentalLeave.getDate(), weeklyShifts)) {
+            return null;
+        }
+
+        boolean valid = isWeekendClaimValid(parentalLeave.getDate(), fridayExtent, mondayExtent, parentalLeave.getExtent());
+
+        if (!valid) {
+            return "Warning: Claim on " + parentalLeave.getDate() +
+                    " requires at least " + parentalLeave.getExtent() + " extent on connecting weekday.";
+        }
+
+        return null;
     }
 }

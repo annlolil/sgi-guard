@@ -1,9 +1,11 @@
 package se.lilja.sgiguard.services;
 
+import org.hibernate.annotations.Parent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.springframework.cglib.core.Local;
 import se.lilja.sgiguard.entities.ParentalLeave;
 import se.lilja.sgiguard.entities.Person;
 import se.lilja.sgiguard.entities.Shift;
@@ -18,6 +20,7 @@ import java.util.List;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 class SgiRuleServiceTest {
@@ -25,6 +28,7 @@ class SgiRuleServiceTest {
     private SgiRuleService sgiRuleService;
     private Shift shift1;
     private Shift shift2;
+
 
     @BeforeEach
     void setUp() {
@@ -80,10 +84,6 @@ class SgiRuleServiceTest {
         LocalDate result = sgiRuleService.identifyMainDay(shift1);
 
         assertThat(result).isEqualTo(startDay);
-    }
-
-    @Test
-    void isWeekendClaimValid() {
     }
 
     @Test
@@ -171,17 +171,86 @@ class SgiRuleServiceTest {
     void isWeekendClaimValid_ShouldReturnTrue_WhenConnectingDayIsClaimed() {
 
         // Given
-        double extent = 0.5; // days of parental leave
         // A saturday
         LocalDate dayOfWeek = LocalDate.of(2024, 1, 6);
-        // Parentalleave on a friday
-        ParentalLeave parentalLeave = new ParentalLeave();
-        parentalLeave.setDate(dayOfWeek.minusDays(1));
 
         // When
-        boolean result = sgiRuleService.isWeekendClaimValid(dayOfWeek, List<Shift> shifts);
+        boolean result = sgiRuleService.isWeekendClaimValid(dayOfWeek, 1.0, 0, 1.0);
 
+        // Then
         assertThat(result).isTrue();
     }
 
+    @Test
+    void isWeekendClaimValid_ShouldReturnTrue_WhenDateIsNotAWeekendDay() {
+
+        // Given
+        // A monday
+        LocalDate dayOfWeek = LocalDate.of(2024, 1, 1);
+
+        // When
+        boolean result = sgiRuleService.isWeekendClaimValid(dayOfWeek, 0, 0, 1);
+
+        // Then
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    void isWeekendClaimValid_ShouldReturnTrue_WhenExtentOnMondayIsMoreThanCurrentDay() {
+
+        // Given
+        // A sunday
+        LocalDate dayOfWeek = LocalDate.of(2024, 1, 7);
+
+        // When
+        boolean result = sgiRuleService.isWeekendClaimValid(dayOfWeek, 0, 1, 0.5);
+
+        // Then
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    void isWeekendClaimValid_ShouldReturnFalse_WhenExtentIsLessThanCurrentDay() {
+
+        // Given
+        // A sunday
+        LocalDate dayOfWeek = LocalDate.of(2024, 1, 7);
+
+        // When
+        boolean result = sgiRuleService.isWeekendClaimValid(dayOfWeek, 0, 0.5, 1);
+
+        // Then
+        assertThat(result).isFalse();
+    }
+
+    @Test
+    void isWeekendClaimValid_ShouldReturnFalse_WhenExtentOnFridayIsLessThanCurrentDay() {
+
+        // Given
+        // A sunday
+        LocalDate dayOfWeek = LocalDate.of(2024, 1, 7);
+
+        // When
+        boolean result = sgiRuleService.isWeekendClaimValid(dayOfWeek, 0.5, 0, 1);
+
+        // Then
+        assertThat(result).isFalse();
+    }
+
+    @Test
+    void validateParentalLeaveDay_ShouldReturnNull_WhenDateIsNotWeekendDay() {
+
+        // Given
+        ParentalLeave parentalLeave = new ParentalLeave();
+        parentalLeave.setDate(LocalDate.of(2024, 1, 7));
+
+        // When
+        String result = sgiRuleService.validateParentalLeaveDay(
+                parentalLeave,
+                List.of(shift1, shift2),
+                0,
+                0);
+
+        assertThat(result).isNull();
+    }
 }
