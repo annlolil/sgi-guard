@@ -5,7 +5,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import se.lilja.sgiguard.entities.Shift;
+import se.lilja.sgiguard.utils.DateRange;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -22,5 +24,17 @@ public interface ShiftRepository extends JpaRepository<Shift, Long> {
     );
 
     List<Shift> findShiftByPersonId(Long personId);
+
+    // Method that can list shifts a certain period of time
+    // It also looks at shifts that can overlap a period by starting before the period but ending inside the period.
+    default List<Shift> getShiftsForPersonInPeriod(Long personId, LocalDate from, LocalDate to) {
+
+        DateRange range = DateRange.of(from, to);
+        return findOverlappingShifts(
+                personId,
+                range.start(),
+                range.end()
+        );
+    }
 
 }

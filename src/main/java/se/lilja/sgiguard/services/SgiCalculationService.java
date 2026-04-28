@@ -11,6 +11,7 @@ import se.lilja.sgiguard.models.SgiStatus;
 import se.lilja.sgiguard.repositories.EmploymentRepository;
 import se.lilja.sgiguard.repositories.ParentalLeaveRepository;
 import se.lilja.sgiguard.repositories.ShiftRepository;
+import se.lilja.sgiguard.utils.DateRange;
 
 import java.time.DayOfWeek;
 import java.time.Duration;
@@ -27,17 +28,15 @@ public class SgiCalculationService {
 
     private final EmploymentRepository employmentRepository;
     private final ParentalLeaveRepository parentalLeaveRepository;
+    private final ShiftRepository shiftRepository;
     private final SgiRuleService sgiRuleService;
-    private final ParentalLeaveService parentalLeaveService;
-    private final ShiftService shiftService;
 
     @Autowired
-    public SgiCalculationService(EmploymentRepository employmentRepository, ParentalLeaveRepository parentalLeaveRepository, SgiRuleService sgiRuleService, ParentalLeaveService parentalLeaveService, ShiftService shiftService) {
+    public SgiCalculationService(EmploymentRepository employmentRepository, ParentalLeaveRepository parentalLeaveRepository, ShiftRepository shiftRepository, SgiRuleService sgiRuleService) {
         this.employmentRepository = employmentRepository;
         this.parentalLeaveRepository = parentalLeaveRepository;
+        this.shiftRepository = shiftRepository;
         this.sgiRuleService = sgiRuleService;
-        this.parentalLeaveService = parentalLeaveService;
-        this.shiftService = shiftService;
     }
 
     // Checks if employments are valid in the actual period
@@ -119,7 +118,7 @@ public class SgiCalculationService {
         double targetHours = calculateTotalWeeklyTarget(personId, weekStart, weekEnd);
 
         // Fetch the actual shifts that a person is planned to work and summarize the hours
-        List<Shift> weeklyShifts = shiftService.getShiftsForPersonInPeriod(personId, weekStart, weekEnd);
+        List<Shift> weeklyShifts = shiftRepository.getShiftsForPersonInPeriod(personId, weekStart, weekEnd);
         double workHours = summarizeWorkHoursInPeriod(weeklyShifts, weekStart, weekEnd);
         // Fetch the actual Parental leaves that a person has planned to apply for and summarize the hours
         List<ParentalLeave> weeklyLeaves = getParentalLeaves(personId, weekStart, weekEnd);
@@ -273,13 +272,20 @@ public class SgiCalculationService {
         StringBuilder warnings = new StringBuilder();
 
         // Fetch parental leave extent for surrounding days
-        double fridayExtent = parentalLeaveService.getLeaveExtentOnDay(personId, weekStart.with(DayOfWeek.FRIDAY));
-        double mondayExtent = parentalLeaveService.getLeaveExtentOnDay(personId, weekEnd.plusDays(1));
+        double fridayExtent = parentalLeaveRepository.getLeaveExtentOnDay(personId, weekStart.with(DayOfWeek.FRIDAY));
+        double mondayExtent = parentalLeaveRepository.getLeaveExtentOnDay(personId, weekEnd.plusDays(1));
+
+        // Extend the list of shifts so that validateParentalLeaveDay looks at a wider period than a week
+        // Otherwise it might miss shifts in the week before and assume it is free days
+        List<Shift> extendedListOfShifts = shiftRepository.getShiftsForPersonInPeriod(
+                personId,
+                weekStart.minusDays(4),
+                weekEnd.plusDays(4));
 
         for (ParentalLeave parentalLeave : weeklyLeaves) {
             String dayWarning = sgiRuleService.validateParentalLeaveDay(
                     parentalLeave,
-                    weeklyShifts,
+                    extendedListOfShifts,
                     fridayExtent,
                     mondayExtent);
 
@@ -297,4 +303,5 @@ public class SgiCalculationService {
     private static LocalDate getWeekEnd(LocalDate dateInWeek) {
         return dateInWeek.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
     }
+
 }

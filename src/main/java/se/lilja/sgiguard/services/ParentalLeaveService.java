@@ -1,7 +1,6 @@
 package se.lilja.sgiguard.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cglib.core.Local;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -13,7 +12,6 @@ import se.lilja.sgiguard.repositories.ParentalLeaveRepository;
 import se.lilja.sgiguard.repositories.PersonRepository;
 import se.lilja.sgiguard.repositories.ShiftRepository;
 
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -24,15 +22,13 @@ public class ParentalLeaveService implements ParentalLeaveInterface {
     private final PersonRepository personRepository;
     private final SgiRuleService sgiRuleService;
     private final ShiftRepository shiftRepository;
-    private final ShiftService shiftService;
 
     @Autowired
-    public ParentalLeaveService(ParentalLeaveRepository parentalLeaveRepository, PersonRepository personRepository, SgiRuleService sgiRuleService, ShiftRepository shiftRepository, ShiftService shiftService) {
+    public ParentalLeaveService(ParentalLeaveRepository parentalLeaveRepository, PersonRepository personRepository, SgiRuleService sgiRuleService, ShiftRepository shiftRepository) {
         this.parentalLeaveRepository = parentalLeaveRepository;
         this.personRepository = personRepository;
         this.sgiRuleService = sgiRuleService;
         this.shiftRepository = shiftRepository;
-        this.shiftService = shiftService;
     }
 
     public ParentalLeave addParentalLeave(ParentalLeaveRequest request) {
@@ -44,7 +40,10 @@ public class ParentalLeaveService implements ParentalLeaveInterface {
         LocalDate startDate = request.getDate().minusDays(4);
         LocalDate endDate = request.getDate().plusDays(4);
 
-        List<Shift> shifts = shiftService.getShiftsForPersonInPeriod(request.getPersonId(), startDate, endDate);
+        List<Shift> shifts = shiftRepository.getShiftsForPersonInPeriod(
+                request.getPersonId(),
+                startDate.minusDays(4),
+                endDate.plusDays(4));
 
         // Check if a person is free from work for 5 days in a row.
         boolean isLongLeave = sgiRuleService.is5DayFree(request.getDate(), shifts);
@@ -59,8 +58,8 @@ public class ParentalLeaveService implements ParentalLeaveInterface {
                     ? requestDate.plusDays(2)
                     : requestDate.plusDays(1);
 
-            double fridayExtent = getLeaveExtentOnDay(request.getPersonId(), friday);
-            double mondayExtent = getLeaveExtentOnDay(request.getPersonId(),monday);
+            double fridayExtent = parentalLeaveRepository.getLeaveExtentOnDay(request.getPersonId(), friday);
+            double mondayExtent = parentalLeaveRepository.getLeaveExtentOnDay(request.getPersonId(), monday);
 
             boolean valid = sgiRuleService.isWeekendClaimValid(request.getDate(), fridayExtent, mondayExtent, request.getExtent());
 
@@ -87,10 +86,4 @@ public class ParentalLeaveService implements ParentalLeaveInterface {
         return "Parental leave deleted on " + parentalLeave.getDate() + ".";
     }
 
-    public double getLeaveExtentOnDay(Long personId, LocalDate date) {
-        return parentalLeaveRepository.findByPersonIdAndDate(personId, date)
-                .stream()
-                .mapToDouble(ParentalLeave::getExtent)
-                .sum();
-    }
 }

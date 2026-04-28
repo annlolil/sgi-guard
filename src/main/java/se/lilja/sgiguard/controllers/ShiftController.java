@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import se.lilja.sgiguard.dtos.ShiftDTO;
 import se.lilja.sgiguard.entities.Shift;
-import se.lilja.sgiguard.services.SgiCalculationService;
+import se.lilja.sgiguard.repositories.ShiftRepository;
 import se.lilja.sgiguard.services.ShiftService;
 
 import java.time.LocalDate;
@@ -18,12 +18,12 @@ import java.util.List;
 public class ShiftController {
 
     private final ShiftService shiftService;
-    private final SgiCalculationService sgiCalculationService;
+    private final ShiftRepository shiftRepository;
 
     @Autowired
-    public ShiftController(ShiftService shiftService, SgiCalculationService sgiCalculationService) {
+    public ShiftController(ShiftService shiftService, ShiftRepository shiftRepository) {
         this.shiftService = shiftService;
-        this.sgiCalculationService = sgiCalculationService;
+        this.shiftRepository = shiftRepository;
     }
 
     // An endpoint where a user adds a shift. The endpoint looks at the current users id and saves it to the shift.
@@ -45,6 +45,6 @@ public class ShiftController {
     public ResponseEntity<List<Shift>> getShiftsForPeriod(@RequestParam  Long personId,
                                                           @RequestParam LocalDate from,
                                                           @RequestParam LocalDate to) {
-        return ResponseEntity.ok(sgiCalculationService.getShiftsForPersonInPeriod(personId, from, to));
+        return ResponseEntity.ok(shiftRepository.getShiftsForPersonInPeriod(personId, from, to));
     }
 }
