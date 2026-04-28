@@ -25,4 +25,5 @@ public class SgiWeeklyAnalysisResponse {
 
     private SgiStatus status;
     private String recommendation;
+    private String warning;
 }

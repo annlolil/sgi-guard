@@ -23,4 +23,9 @@ public class ParentalLeaveController {
     public ResponseEntity<ParentalLeave> addParentalLeave(@RequestBody ParentalLeaveRequest request) {
         return new ResponseEntity<>(parentalLeaveService.addParentalLeave(request), HttpStatus.CREATED);
     }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<String> deleteParentalLeave(@PathVariable Long id) {
+        return ResponseEntity.ok(parentalLeaveService.deleteParentalLeave(id));
+    }
 }

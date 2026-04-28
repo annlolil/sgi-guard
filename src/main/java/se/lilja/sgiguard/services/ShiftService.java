@@ -11,7 +11,9 @@ import se.lilja.sgiguard.entities.Employment;
 import se.lilja.sgiguard.repositories.PersonRepository;
 import se.lilja.sgiguard.repositories.ShiftRepository;
 import se.lilja.sgiguard.repositories.EmploymentRepository;
+import se.lilja.sgiguard.utils.DateRange;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -27,7 +29,7 @@ public class ShiftService implements ShiftServiceInterface {
     @Autowired
     public ShiftService(ShiftRepository shiftRepository,
                         PersonRepository personRepository,
-                        EmploymentRepository employmentRepository) {
+                        EmploymentRepository employmentRepository, SgiCalculationService sgiCalculationService, SgiRuleService sgiRuleService) {
         this.shiftRepository = shiftRepository;
         this.personRepository = personRepository;
         this.employmentRepository = employmentRepository;
@@ -64,23 +66,8 @@ public class ShiftService implements ShiftServiceInterface {
     }
 
     @Override
-    public Shift updateShift() {
-        return null;
-    }
-
-    @Override
-    public Shift getShift() {
-        return null;
-    }
-
-    @Override
     public List<Shift> getShifts(Long personId) {
         return shiftRepository.findShiftByPersonId(personId);
-    }
-
-    @Override
-    public List<Shift> getAllShifts() {
-        return shiftRepository.findAll();
     }
 
     @Override
