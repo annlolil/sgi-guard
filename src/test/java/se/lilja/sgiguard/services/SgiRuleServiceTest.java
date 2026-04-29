@@ -232,6 +232,7 @@ class SgiRuleServiceTest {
     void validateParentalLeaveDay_ShouldReturnNull_WhenDateIsNotWeekendDay() {
 
         // Given
+        // Parental leave on a monday will return null since that is not a weekend
         ParentalLeave parentalLeave = new ParentalLeave();
         parentalLeave.setDate(LocalDate.of(2024, 1, 8));
 
@@ -242,6 +243,85 @@ class SgiRuleServiceTest {
                 0,
                 0);
 
+        assertThat(result).isNull();
+    }
+
+    @Test
+    void validateParentalLeaveDay_ShouldReturnNull_WhenIs5DayFreeIsTrue() {
+
+        // Given
+        // Parental leave on a saturday
+        ParentalLeave parentalLeave = new ParentalLeave();
+        parentalLeave.setDate(LocalDate.of(2024, 1, 6));
+
+        // When
+        // No shifts will make is5DayFree true and return null
+        String result = sgiRuleService.validateParentalLeaveDay(
+                parentalLeave,
+                Collections.emptyList(),
+                0,
+                0);
+
+        assertThat(result).isNull();
+    }
+
+    @Test
+    void validateParentalLeaveDay_ShouldReturnWarning_WhenParentalLeaveIsNotValid() {
+
+        // Given
+        // Parental leave on a saturday
+        ParentalLeave parentalLeave = new ParentalLeave();
+        parentalLeave.setDate(LocalDate.of(2024, 1, 6));
+        parentalLeave.setExtent(1.0);
+
+
+        // Needs two shift with some space between because of the check of is5DayFree
+        // Shift that has main day on a friday
+        shift1.setShiftStart(LocalDateTime.of(2024, 1, 4, 20, 0));
+        shift1.setShiftEnd(LocalDateTime.of(2024, 1, 5, 6, 0));
+
+        // Shift that has main day on tuesday
+        shift2.setShiftStart(LocalDateTime.of(2024, 1, 8, 20, 0));
+        shift2.setShiftEnd(LocalDateTime.of(2024, 1, 9, 6, 0));
+
+        // When
+        String result = sgiRuleService.validateParentalLeaveDay(
+                parentalLeave,
+                List.of(shift1, shift2),
+                0,
+                0
+                );
+
+        // Then
+        assertThat(result).contains(parentalLeave.getDate().toString());
+        assertThat(result).contains(parentalLeave.getExtent().toString());
+    }
+
+    @Test
+    void validateParentalLeaveDay_ShouldReturnWarning_WhenParentalLeaveIsValid() {
+
+        // Given
+        ParentalLeave parentalLeave = new ParentalLeave();
+        parentalLeave.setDate(LocalDate.of(2024, 1, 6));
+        parentalLeave.setExtent(1.0);
+
+        shift1.setShiftStart(LocalDateTime.of(2024, 1, 4, 20, 0));
+        shift1.setShiftEnd(LocalDateTime.of(2024, 1, 5, 6, 0));
+
+        shift2.setShiftStart(LocalDateTime.of(2024, 1, 8, 20, 0));
+        shift2.setShiftEnd(LocalDateTime.of(2024, 1, 9, 6, 0));
+
+        // When
+        // Looking at the friday that has 1 day extent parental leave which also current day has
+        // Makes the isWeekendClaimValid to true inside validateParentalLeave
+        String result = sgiRuleService.validateParentalLeaveDay(
+                parentalLeave,
+                List.of(shift1, shift2),
+                1,
+                0
+        );
+
+        // That is why the assertion should be isNull
         assertThat(result).isNull();
     }
 }
