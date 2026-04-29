@@ -27,11 +27,10 @@ public class ShiftController {
     }
 
     // An endpoint where a user adds a shift. The endpoint looks at the current users id and saves it to the shift.
-    @PostMapping("/addshift")
+    @PostMapping("/addshift/{personId}")
     public ResponseEntity<Shift> addShift(@RequestBody ShiftDTO shiftDTO,
-                                          @RequestParam Long personId, // Change later do @Authentication principal if I have the time
-                                          @RequestParam Long employmentId) {
-        return new ResponseEntity<>(shiftService.addShift(shiftDTO, personId, employmentId), HttpStatus.CREATED);
+                                          @PathVariable Long personId) { // Change later do @Authentication principal if I have the time)
+        return new ResponseEntity<>(shiftService.addShift(shiftDTO, personId), HttpStatus.CREATED);
     }
 
     // An endpoint that gets a specific persons all saved shifts.
@@ -46,5 +45,11 @@ public class ShiftController {
                                                           @RequestParam LocalDate from,
                                                           @RequestParam LocalDate to) {
         return ResponseEntity.ok(shiftRepository.getShiftsForPersonInPeriod(personId, from, to));
+    }
+
+    @DeleteMapping("/deleteshift/{id}")
+    public ResponseEntity<String> deleteShift(@PathVariable Long id) {
+        shiftService.deleteShift(id);
+        return ResponseEntity.ok(shiftRepository.deleteById(id));
     }
 }

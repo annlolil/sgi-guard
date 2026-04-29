@@ -1,5 +1,6 @@
 package se.lilja.sgiguard.utils;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -13,7 +14,20 @@ import java.time.LocalDateTime;
  * @return A DateRange with precise timestamps for the beginning and end of the period
  */
 public record DateRange(LocalDateTime start, LocalDateTime end) {
-    public static DateRange of(LocalDate from, LocalDate to) {
-        return new DateRange (from.atStartOfDay(), to.plusDays(1).atStartOfDay());
+    public DateRange {
+        if (Duration.between(start, end).isNegative()) {
+            throw new IllegalArgumentException("Invalid date range");
+        }
     }
+
+    public static DateRange of(LocalDate from, LocalDate to) {
+        return new DateRange(from.atStartOfDay(), to.plusDays(1).atStartOfDay());
+    }
+
+    public void validateAsShift() {
+        if (Duration.between(start, end).toHours() > 24) {
+            throw new IllegalArgumentException("Shift is too long");
+        }
+    }
+
 }
