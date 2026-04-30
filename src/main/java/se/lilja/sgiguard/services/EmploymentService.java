@@ -27,6 +27,12 @@ public class EmploymentService implements EmploymentInterface {
         Person person = personRepository.findById(personId).orElseThrow(()->
                 new ResponseStatusException(HttpStatus.NOT_FOUND, "Person not found"));
 
+        if (employment.getValidTo() != null) {
+            if (employment.getValidTo().isBefore(employment.getValidFrom())) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid date");
+            }
+        }
+
         employment.setPerson(person);
         employmentRepository.save(employment);
         return employment;

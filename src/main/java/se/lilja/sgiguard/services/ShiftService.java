@@ -18,6 +18,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ShiftService implements ShiftServiceInterface {
@@ -29,33 +30,38 @@ public class ShiftService implements ShiftServiceInterface {
     @Autowired
     public ShiftService(ShiftRepository shiftRepository,
                         PersonRepository personRepository,
-                        EmploymentRepository employmentRepository, SgiCalculationService sgiCalculationService, SgiRuleService sgiRuleService) {
+                        EmploymentRepository employmentRepository) {
         this.shiftRepository = shiftRepository;
         this.personRepository = personRepository;
         this.employmentRepository = employmentRepository;
     }
 
     @Override
-    public Shift addShift(ShiftDTO shiftDTO, Long personId, Long employmentId) {
+    public Shift addShift(ShiftDTO shiftDTO, Long personId) {
         // Get the person that is logged in and connect it to the shift that's being saved
-        Person person = personRepository.findById(personId).orElseThrow(()->
+        Person person = personRepository.findById(personId).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND, "Person not found"));
 
-        Employment employment = employmentRepository.findById(employmentId).orElseThrow(()->
-                new ResponseStatusException(HttpStatus.NOT_FOUND, "Workcondition not found"));
+        Employment employment = employmentRepository.findById(shiftDTO.getEmploymentId()).orElseThrow(()->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "Employment not found"));
 
-        Shift shift = convertToEntity(shiftDTO, person, employment);
+        // Fetch start and end time for the shift and validate that
+        // shifts start date and time is before end date and time
+        // shift is not more than 24 hours long
+        LocalDateTime startDateTime = LocalDateTime.of(shiftDTO.getStartDate(), shiftDTO.getStartTime());
+        LocalDateTime endDateTime = LocalDateTime.of(shiftDTO.getEndDate(), shiftDTO.getEndTime());
+        DateRange dateRange = new DateRange(startDateTime, endDateTime);
+        dateRange.validateAsShift();
+
+        Shift shift = convertToEntity(startDateTime, endDateTime, person, employment);
         return shiftRepository.save(shift);
     }
 
-    private static Shift convertToEntity(ShiftDTO shiftDTO, Person person, Employment employment) {
-        LocalDate startDate = shiftDTO.getStartDate();
-        LocalDate endDate = shiftDTO.getEndDate();
-        LocalTime startTime = shiftDTO.getStartTime();
-        LocalTime endTime = shiftDTO.getEndTime();
-
-        LocalDateTime startDateTime = LocalDateTime.of(startDate, startTime);
-        LocalDateTime endDateTime = LocalDateTime.of(endDate, endTime);
+    private static Shift convertToEntity(
+            LocalDateTime startDateTime,
+            LocalDateTime endDateTime,
+            Person person,
+            Employment employment) {
 
         Shift shift = new Shift();
         shift.setPerson(person);
@@ -67,10 +73,33 @@ public class ShiftService implements ShiftServiceInterface {
 
     @Override
     public List<Shift> getShifts(Long personId) {
+
+        personRepository.findById(personId).orElseThrow(()->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "Person not found"));
+
         return shiftRepository.findShiftByPersonId(personId);
     }
 
     @Override
-    public void deleteShift() {
+    public String deleteShift(Long shiftId) {
+
+        shiftRepository.findById(shiftId).orElseThrow(()->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "Shift not found"));
+
+        shiftRepository.deleteById(shiftId);
+        return "Shift deleted";
+    }
+
+    private void validateShiftDuration(LocalDateTime start, LocalDateTime end) {
+        Duration duration = Duration.between(start, end);
+
+        if (duration.isNegative()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Skiftet kan inte sluta innan det börjar.");
+        }
+
+        if (duration.toHours() > 24) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Ett skift kan inte vara längre än 24 timmar. Kontrollera datum och tid.");
+        }
     }
 }

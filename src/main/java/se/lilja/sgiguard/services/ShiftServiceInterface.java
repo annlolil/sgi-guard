@@ -9,7 +9,7 @@ import java.util.List;
 
 public interface ShiftServiceInterface {
 
-    Shift addShift(ShiftDTO shiftDTO, Long personId, Long workConditionId);
+    Shift addShift(ShiftDTO shiftDTO, Long personId);
     List<Shift> getShifts(Long personId);
-    void deleteShift();
+    String deleteShift(Long shiftId);
 }

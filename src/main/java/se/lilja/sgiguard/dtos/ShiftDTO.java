@@ -14,7 +14,7 @@ import java.time.LocalTime;
 @Setter
 public class ShiftDTO {
 
-    private Long personId;
+    private Long employmentId;
     private LocalDate startDate;
     private LocalDate endDate;
     private LocalTime startTime;
