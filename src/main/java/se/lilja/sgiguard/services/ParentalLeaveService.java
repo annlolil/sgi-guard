@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import se.lilja.sgiguard.dtos.ParentalLeaveRequest;
+import se.lilja.sgiguard.dtos.ParentalLeaveResponse;
 import se.lilja.sgiguard.entities.ParentalLeave;
 import se.lilja.sgiguard.entities.Person;
 import se.lilja.sgiguard.entities.Shift;
@@ -21,17 +22,17 @@ public class ParentalLeaveService implements ParentalLeaveInterface {
     private final ParentalLeaveRepository parentalLeaveRepository;
     private final PersonRepository personRepository;
     private final SgiRuleService sgiRuleService;
-    private final ShiftRepository shiftRepository;
+    private final SgiCalculationService sgiCalculationService;
 
     @Autowired
-    public ParentalLeaveService(ParentalLeaveRepository parentalLeaveRepository, PersonRepository personRepository, SgiRuleService sgiRuleService, ShiftRepository shiftRepository) {
+    public ParentalLeaveService(ParentalLeaveRepository parentalLeaveRepository, PersonRepository personRepository, SgiRuleService sgiRuleService, SgiCalculationService sgiCalculationService) {
         this.parentalLeaveRepository = parentalLeaveRepository;
         this.personRepository = personRepository;
         this.sgiRuleService = sgiRuleService;
-        this.shiftRepository = shiftRepository;
+        this.sgiCalculationService = sgiCalculationService;
     }
 
-    public ParentalLeave addParentalLeave(ParentalLeaveRequest request) {
+    public ParentalLeaveResponse addParentalLeave(ParentalLeaveRequest request) {
 
         Person person = personRepository.findById(request.getPersonId()).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Person not found")
@@ -40,7 +41,7 @@ public class ParentalLeaveService implements ParentalLeaveInterface {
         LocalDate startDate = request.getDate().minusDays(4);
         LocalDate endDate = request.getDate().plusDays(4);
 
-        List<Shift> shifts = shiftRepository.getShiftsForPersonInPeriod(
+        List<Shift> shifts = sgiCalculationService.getShiftsForPersonInPeriod(
                 request.getPersonId(),
                 startDate.minusDays(4),
                 endDate.plusDays(4));
@@ -69,11 +70,14 @@ public class ParentalLeaveService implements ParentalLeaveInterface {
                                 + request.getExtent());
             }
         }
-        ParentalLeave parentalLeave = new ParentalLeave();
-        parentalLeave.setPerson(person);
-        parentalLeave.setDate(request.getDate());
-        parentalLeave.setExtent(request.getExtent());
-        return parentalLeaveRepository.save(parentalLeave);
+        ParentalLeave parentalLeave = ParentalLeave.builder()
+                        .person(person)
+                        .date(request.getDate())
+                        .extent(request.getExtent()).build();
+
+        ParentalLeave savedLeave = parentalLeaveRepository.save(parentalLeave);
+
+        return new ParentalLeaveResponse(savedLeave.getDate(), savedLeave.getExtent());
     }
 
     public String deleteParentalLeave(Long id) {

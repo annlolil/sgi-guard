@@ -24,165 +24,135 @@ class ShiftRepositoryTest{
     @Autowired
     private TestEntityManager testEntityManager;
 
-    private Person testPerson;
-    private Employment testEmployment;
+    private Person person;
+    private Employment employment;
 
     @BeforeEach
-    void setUp(){
-        testPerson = new Person();
-        testPerson.setPersonalNumber("2000-01-01-1212");
-        testPerson.setFirstName("John");
-        testPerson.setLastName("Smith");
-        testPerson = testEntityManager.persistFlushFind(testPerson);
+    void setUp() {
+        person = testEntityManager.persistFlushFind(Person.builder()
+                .personalNumber("2000-01-01-1212").firstName("John").lastName("Smith").build());
 
-        testEmployment = new Employment();
-        testEmployment.setWorkPlaceName("Hospital");
-        testEmployment.setValidFrom(LocalDate.of(2024,1,1));
-        testEmployment.setOriginalWorkingHours(34.2);
-        testEmployment.setOriginalEmploymentRate(100.0);
-        testEmployment.setCurrentEmploymentRate(100.0);
-        testEmployment.setPerson(testPerson);
-        testEmployment = testEntityManager.persistFlushFind(testEmployment);
+        employment = testEntityManager.persistFlushFind(Employment.builder()
+                .workPlaceName("Hospital").validFrom(LocalDate.of(2024, 1, 1))
+                .originalWorkingHours(34.2).originalEmploymentRate(100.0)
+                .currentEmploymentRate(100.0).person(person).build());
     }
 
-    // Test for shifts going over an end bound of a period.
-    // Not taking notice of the fact that the workconditions valid to is not set
+    // Creates a shift to use in testing
+    private void createShift(LocalDateTime start, LocalDateTime end, Person p) {
+        testEntityManager.persist(Shift.builder()
+                .person(p).employment(employment)
+                .shiftStart(start).shiftEnd(end).build());
+    }
+
     @Test
-    void findOverlappingShifts_ShouldFindShift_WhenItSpansOverEndBound() {
+    void findOverlappingShifts_ShouldFindShift_WhenItStartsInsidePeriodButEndsAfter() {
+
         // Given
-        Shift shift = new Shift();
-        shift.setPerson(testPerson);
-        shift.setEmployment(testEmployment);
-        shift.setShiftStart(LocalDateTime.of(2024,2, 29, 21, 0));
-        shift.setShiftEnd(LocalDateTime.of(2024, 3, 1, 7, 0));
+        createShift(
+                LocalDateTime.of(2024, 2, 29, 21, 0),
+                LocalDateTime.of(2024, 3, 1, 7, 0), person);
+        testEntityManager.flush();
 
-        shiftRepository.save(shift);
-
-        // When:
-        LocalDateTime rangeStart = LocalDateTime.of(2024, 2, 1, 0, 0, 0);
-        LocalDateTime rangeEnd = LocalDateTime.of(2024, 2, 29, 23, 59, 59);
-
-        List<Shift> result = shiftRepository.findOverlappingShifts(testPerson.getId(), rangeStart, rangeEnd);
+        // When
+        var result = shiftRepository.findOverlappingShifts(person.getId(),
+                LocalDateTime.of(2024, 2, 1, 0, 0),
+                LocalDateTime.of(2024, 2, 29, 23, 59));
 
         // Then
         assertThat(result).hasSize(1);
-        assertThat(result.getFirst().getShiftStart().getDayOfMonth()).isEqualTo(29);
     }
 
     @Test
     void findOverlappingShifts_ShouldFindShift_WhenItStartsBeforePeriodButEndsInside() {
-        // Given
-        Shift shift = new Shift();
-        shift.setPerson(testPerson);
-        shift.setEmployment(testEmployment);
-        shift.setShiftStart(LocalDateTime.of(2024,2, 29, 21, 0));
-        shift.setShiftEnd(LocalDateTime.of(2024, 3, 1, 7, 0));
 
-        shiftRepository.save(shift);
+        // Given
+        createShift(
+                LocalDateTime.of(2024, 1, 29, 23, 59),
+                LocalDateTime.of(2024, 2, 1, 7, 0), person);
+        testEntityManager.flush();
 
         // When
-        LocalDateTime rangeStart = LocalDateTime.of(2024, 3, 1, 0, 0, 0);
-        LocalDateTime rangeEnd = LocalDateTime.of(2024, 4, 30, 23, 59, 59);
-
-        List<Shift> result = shiftRepository.findOverlappingShifts(testPerson.getId(), rangeStart, rangeEnd);
+        var result = shiftRepository.findOverlappingShifts(person.getId(),
+                LocalDateTime.of(2024, 2, 1, 0, 0),
+                LocalDateTime.of(2024, 2, 29, 23, 59));
 
         // Then
         assertThat(result).hasSize(1);
-        assertThat(result.getFirst().getShiftEnd().getMonthValue()).isEqualTo(3);
+        assertThat(result.getFirst().getShiftEnd().getMonthValue()).isEqualTo(2);
         assertThat(result.getFirst().getShiftEnd().getDayOfMonth()).isEqualTo(1);
     }
 
     @Test
-    void findOverlappingShifts_ShouldReturnZero_WhenItStartsBeforePeriodAndEndsBeforePeriod() {
-        // Given
-        Shift shift = new Shift();
-        shift.setPerson(testPerson);
-        shift.setEmployment(testEmployment);
-        shift.setShiftStart(LocalDateTime.of(2024,2, 29, 21, 0));
-        shift.setShiftEnd(LocalDateTime.of(2024, 3, 1, 7, 0));
+    void findOverlappingShifts_ShouldFindShift_WhenItStartsAndEndsInAPeriod() {
 
-        shiftRepository.save(shift);
+        // Given
+        createShift(
+                LocalDateTime.of(2024, 1, 29, 0, 0),
+                LocalDateTime.of(2024, 2, 1, 7, 0), person);
+        testEntityManager.flush();
 
         // When
-        LocalDateTime rangeStart = LocalDateTime.of(2024, 3, 1, 8, 0, 0);
-        LocalDateTime rangeEnd = LocalDateTime.of(2024, 4, 30, 23, 59, 59);
-
-        List<Shift> result = shiftRepository.findOverlappingShifts(testPerson.getId(), rangeStart, rangeEnd);
+        var result = shiftRepository.findOverlappingShifts(person.getId(),
+                LocalDateTime.of(2024, 1, 29, 0, 0),
+                LocalDateTime.of(2024, 2, 29, 23, 59));
 
         // Then
-        assertThat(result).hasSize(0);
+        assertThat(result).hasSize(1);
     }
 
     @Test
     void findOverlappingShifts_ShouldReturnZero_WhenItStartsAfterPeriod() {
-        // Given
-        Shift shift = new Shift();
-        shift.setPerson(testPerson);
-        shift.setEmployment(testEmployment);
-        shift.setShiftStart(LocalDateTime.of(2024,3, 1, 0, 0));
-        shift.setShiftEnd(LocalDateTime.of(2024, 3, 1, 8, 0));
 
-        shiftRepository.save(shift);
+        // Given
+        createShift(
+                LocalDateTime.of(2024,3, 1, 0, 0),
+                LocalDateTime.of(2024, 3, 1, 8, 0), person);
+        testEntityManager.flush();
 
         // When
-        LocalDateTime rangeStart = LocalDateTime.of(2024, 2, 1, 0, 0, 0);
-        LocalDateTime rangeEnd = LocalDateTime.of(2024, 2, 29, 23, 59, 59);
+        var result = shiftRepository.findOverlappingShifts(person.getId(),
+                LocalDateTime.of(2024, 2, 1, 0, 0),
+                LocalDateTime.of(2024, 2, 29, 23, 59));
 
-        List<Shift> result = shiftRepository.findOverlappingShifts(testPerson.getId(), rangeStart, rangeEnd);
+        // Then
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void findOverlappingShifts_ShouldReturnZero_WhenItEndsBeforePeriod() {
+
+        // Given
+        createShift(
+                LocalDateTime.of(2024,1, 29, 13, 0),
+                LocalDateTime.of(2024, 1, 29, 23, 59), person);
+        testEntityManager.flush();
+
+        // When
+        var result = shiftRepository.findOverlappingShifts(person.getId(),
+                LocalDateTime.of(2024, 2, 1, 0, 0),
+                LocalDateTime.of(2024, 2, 1, 23, 59));
 
         // Then
         assertThat(result).hasSize(0);
     }
 
     @Test
-    void findOverlappingShifts_ShouldReturnOne_WhenItStartsAndEndsInAPeriod() {
-        // Given
-        Shift shift = new Shift();
-        shift.setPerson(testPerson);
-        shift.setEmployment(testEmployment);
-        shift.setShiftStart(LocalDateTime.of(2024,2, 1, 8, 0));
-        shift.setShiftEnd(LocalDateTime.of(2024, 2, 1, 16, 0));
+    void findShiftByPersonId_ShouldReturnOnlyShiftsBelongingToSpecificPerson() {
 
-        shiftRepository.save(shift);
+        // Given
+        Person another = testEntityManager.persistFlushFind(Person.builder()
+                .personalNumber("1990-05-05-5555").firstName("Jane").lastName("Doe").build());
+
+        createShift(LocalDateTime.now(), LocalDateTime.now().plusHours(8), person);
+        createShift(LocalDateTime.now(), LocalDateTime.now().plusHours(8), another);
+        testEntityManager.flush();
 
         // When
-        LocalDateTime rangeStart = LocalDateTime.of(2024, 2, 1, 0, 0, 0);
-        LocalDateTime rangeEnd = LocalDateTime.of(2024, 2, 29, 23, 59, 59);
-
-        List<Shift> result = shiftRepository.findOverlappingShifts(testPerson.getId(), rangeStart, rangeEnd);
+        List<Shift> result = shiftRepository.findShiftByPersonId(person.getId());
 
         // Then
         assertThat(result).hasSize(1);
-    }
-
-    @Test
-    void findShiftByPersonId_ShouldReturnOnlyShiftsBelongingToSpecificPerson() {
-        // Given
-        Person anotherPerson = new Person();
-        anotherPerson.setPersonalNumber("1990-05-05-5555");
-        anotherPerson.setFirstName("Jane");
-        anotherPerson.setLastName("Doe");
-        anotherPerson = testEntityManager.persistFlushFind(anotherPerson);
-
-        Shift shift1 = new Shift();
-        shift1.setPerson(testPerson);
-        shift1.setEmployment(testEmployment);
-        shift1.setShiftStart(LocalDateTime.now());
-        shift1.setShiftEnd(LocalDateTime.now().plusHours(8));
-        shiftRepository.save(shift1);
-
-        Shift shift2 = new Shift();
-        shift2.setPerson(anotherPerson);
-        shift2.setEmployment(testEmployment);
-        shift2.setShiftStart(LocalDateTime.now());
-        shift2.setShiftEnd(LocalDateTime.now().plusHours(8));
-        shiftRepository.save(shift2);
-
-        // When
-        List<Shift> result = shiftRepository.findShiftByPersonId(testPerson.getId());
-
-        // THen
-        assertThat(result).hasSize(1);
-        assertThat(result.getFirst().getPerson().getId()).isEqualTo(testPerson.getId());
+        assertThat(result.getFirst().getPerson().getId()).isEqualTo(person.getId());
     }
 }

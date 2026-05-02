@@ -1,10 +1,12 @@
 package se.lilja.sgiguard.controllers;
 
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import se.lilja.sgiguard.dtos.ParentalLeaveRequest;
+import se.lilja.sgiguard.dtos.ParentalLeaveResponse;
 import se.lilja.sgiguard.entities.ParentalLeave;
 import se.lilja.sgiguard.services.ParentalLeaveService;
 
@@ -20,7 +22,7 @@ public class ParentalLeaveController {
     }
 
     @PostMapping("/add")
-    public ResponseEntity<ParentalLeave> addParentalLeave(@RequestBody ParentalLeaveRequest request) {
+    public ResponseEntity<ParentalLeaveResponse> addParentalLeave(@Valid @RequestBody ParentalLeaveRequest request) {
         return new ResponseEntity<>(parentalLeaveService.addParentalLeave(request), HttpStatus.CREATED);
     }
 
