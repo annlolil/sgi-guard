@@ -6,4 +6,6 @@ import se.lilja.sgiguard.entities.Person;
 
 @Repository
 public interface PersonRepository extends JpaRepository<Person, Long> {
+
+    boolean existsPersonByPersonalNumber(String personalNumber);
 }

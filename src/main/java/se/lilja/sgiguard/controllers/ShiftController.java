@@ -39,17 +39,9 @@ public class ShiftController {
         return ResponseEntity.ok(shiftService.getShifts(personId));
     }
 
-    // An endpoint that gets a list of shifts for a specific person in a certain period
-    @GetMapping("/getshiftsforperiod")
-    public ResponseEntity<List<Shift>> getShiftsForPeriod(@RequestParam  Long personId,
-                                                          @RequestParam LocalDate from,
-                                                          @RequestParam LocalDate to) {
-        return ResponseEntity.ok(shiftRepository.getShiftsForPersonInPeriod(personId, from, to));
-    }
-
     @DeleteMapping("/deleteshift/{id}")
     public ResponseEntity<String> deleteShift(@PathVariable Long id) {
-        shiftService.deleteShift(id);
-        return ResponseEntity.ok(shiftRepository.deleteById(id));
+        shiftRepository.deleteById(id);
+        return ResponseEntity.ok("Shift deleted");
     }
 }

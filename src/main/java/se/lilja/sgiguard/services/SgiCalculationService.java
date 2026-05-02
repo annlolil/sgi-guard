@@ -118,7 +118,7 @@ public class SgiCalculationService {
         double targetHours = calculateTotalWeeklyTarget(personId, weekStart, weekEnd);
 
         // Fetch the actual shifts that a person is planned to work and summarize the hours
-        List<Shift> weeklyShifts = shiftRepository.getShiftsForPersonInPeriod(personId, weekStart, weekEnd);
+        List<Shift> weeklyShifts = getShiftsForPersonInPeriod(personId, weekStart, weekEnd);
         double workHours = summarizeWorkHoursInPeriod(weeklyShifts, weekStart, weekEnd);
         // Fetch the actual Parental leaves that a person has planned to apply for and summarize the hours
         List<ParentalLeave> weeklyLeaves = getParentalLeaves(personId, weekStart, weekEnd);
@@ -277,7 +277,7 @@ public class SgiCalculationService {
 
         // Extend the list of shifts so that validateParentalLeaveDay looks at a wider period than a week
         // Otherwise it might miss shifts in the week before and assume it is free days
-        List<Shift> extendedListOfShifts = shiftRepository.getShiftsForPersonInPeriod(
+        List<Shift> extendedListOfShifts = getShiftsForPersonInPeriod(
                 personId,
                 weekStart.minusDays(4),
                 weekEnd.plusDays(4));
@@ -302,6 +302,18 @@ public class SgiCalculationService {
 
     private static LocalDate getWeekEnd(LocalDate dateInWeek) {
         return dateInWeek.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
+    }
+
+    // Method that can list shifts a certain period of time
+    // It also looks at shifts that can overlap a period by starting before the period but ending inside the period.
+    public List<Shift> getShiftsForPersonInPeriod(Long personId, LocalDate from, LocalDate to) {
+
+        DateRange range = DateRange.of(from, to);
+        return shiftRepository.findOverlappingShifts(
+                personId,
+                range.start(),
+                range.end()
+        );
     }
 
 }

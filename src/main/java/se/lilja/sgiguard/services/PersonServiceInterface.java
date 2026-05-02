@@ -1,11 +1,9 @@
 package se.lilja.sgiguard.services;
 
-import se.lilja.sgiguard.entities.Person;
+import se.lilja.sgiguard.dtos.PersonRequest;
+import se.lilja.sgiguard.dtos.PersonResponse;
 
 public interface PersonServiceInterface {
 
-    Person addPerson(Person person);
-    Person updatePerson();
-    Person getPerson();
-    void deletePerson(); // IS THIS NECESSARY?
+    PersonResponse addPerson(PersonRequest request);
 }
