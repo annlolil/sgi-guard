@@ -109,4 +109,12 @@ public class SgiRuleService {
 
         return null;
     }
+
+    public LocalDate getFriday(LocalDate date) {
+        return (date.getDayOfWeek() == DayOfWeek.SATURDAY) ? date.minusDays(1) : date.minusDays(2);
+    }
+
+    public LocalDate getMonday(LocalDate date) {
+        return (date.getDayOfWeek() == DayOfWeek.SATURDAY) ? date.plusDays(2) : date.plusDays(1);
+    }
 }

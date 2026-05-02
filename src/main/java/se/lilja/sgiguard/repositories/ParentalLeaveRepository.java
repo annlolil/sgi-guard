@@ -1,6 +1,7 @@
 package se.lilja.sgiguard.repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import se.lilja.sgiguard.entities.ParentalLeave;
 import se.lilja.sgiguard.entities.Person;
@@ -15,10 +16,6 @@ public interface ParentalLeaveRepository extends JpaRepository<ParentalLeave, Lo
 
     List<ParentalLeave> findByPersonIdAndDate(Long personId, LocalDate date);
 
-    default double getLeaveExtentOnDay(Long personId, LocalDate date) {
-        return findByPersonIdAndDate(personId, date)
-                .stream()
-                .mapToDouble(ParentalLeave::getExtent)
-                .sum();
-    }
+    @Query("SELECT SUM(p.extent) FROM ParentalLeave p WHERE p.person.id = :personId AND p.date = :date")
+    Double sumExtentByPersonIdAndDate(Long personId, LocalDate date);
 }
