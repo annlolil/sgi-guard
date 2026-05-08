@@ -3,5 +3,6 @@ package se.lilja.sgiguard.models;
 public enum SgiStatus {
 
     PROTECTED,
-    AT_RISK;
+    AT_RISK,
+    OVER_COMPENSATED
 }

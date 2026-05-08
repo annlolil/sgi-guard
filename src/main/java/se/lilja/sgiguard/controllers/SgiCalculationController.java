@@ -32,13 +32,13 @@ public class SgiCalculationController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/analyzeperiod")
-    public ResponseEntity<SgiPeriodAnalysisResponse> analyzePeriod(
-            @RequestParam Long personId,
-            @RequestParam LocalDate from,
-            @RequestParam LocalDate to) {
-
-        SgiPeriodAnalysisResponse response = sgiCalculationService.analyzePeriod(personId, from, to);
-        return ResponseEntity.ok(response);
-    }
+//    @GetMapping("/analyzeperiod")
+//    public ResponseEntity<SgiPeriodAnalysisResponse> analyzePeriod(
+//            @RequestParam Long personId,
+//            @RequestParam LocalDate from,
+//            @RequestParam LocalDate to) {
+//
+//        SgiPeriodAnalysisResponse response = sgiCalculationService.analyzePeriod(personId, from, to);
+//        return ResponseEntity.ok(response);
+//    }
 }

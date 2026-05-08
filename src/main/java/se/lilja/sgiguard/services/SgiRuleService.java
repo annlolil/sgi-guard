@@ -1,13 +1,16 @@
 package se.lilja.sgiguard.services;
 
 import org.springframework.stereotype.Service;
+import se.lilja.sgiguard.dtos.ParentalLeaveRequest;
 import se.lilja.sgiguard.entities.ParentalLeave;
 import se.lilja.sgiguard.entities.Shift;
+import se.lilja.sgiguard.repositories.ParentalLeaveRepository;
 
 import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -41,16 +44,9 @@ public class SgiRuleService {
         return day == DayOfWeek.SATURDAY || day == DayOfWeek.SUNDAY;
     }
 
-    public boolean isWeekendClaimValid(LocalDate weekendDate, double fridayExtent, double mondayExtent, double currentExtent) {
-        // Not a weekend so the rule do not apply
-        if(!isWeekend(weekendDate)) return true;
+    public boolean isWeekendClaimValid(double fridayExtent, double mondayExtent, double currentExtent) {
 
-        if(weekendDate.getDayOfWeek() == DayOfWeek.SATURDAY) {
-            return fridayExtent >= currentExtent;
-        }
-        else {
-            return mondayExtent >= currentExtent;
-        }
+        return fridayExtent >= currentExtent || mondayExtent >= currentExtent;
     }
 
     // Checks if a person has 5 free days of work
@@ -88,25 +84,69 @@ public class SgiRuleService {
     }
 
     public String validateParentalLeaveDay(ParentalLeave parentalLeave,
-                                           List<Shift> weeklyShifts,
+                                           List<Shift> shifts,
+                                           List<ParentalLeave> existingLeaves,
                                            double fridayExtent,
                                            double mondayExtent) {
 
-        if (!isWeekend(parentalLeave.getDate())) {
-            return null;
+        // Extent > 0
+        if(validateExtent(parentalLeave, existingLeaves)) {
+            return "Total parental leave extent can not exceed 100 % on one day";
         }
 
-        if (is5DayFree(parentalLeave.getDate(), weeklyShifts)) {
-            return null;
+        // Weekend rule
+        if (isWeekend(parentalLeave.getDate()) && !is5DayFree(parentalLeave.getDate(), shifts)) {
+
+            boolean valid = isWeekendClaimValid(
+                    fridayExtent, mondayExtent, parentalLeave.getExtent());
+
+            if(!valid) {
+                return "Warning weekend rule violation";
+            }
+
         }
-
-        boolean valid = isWeekendClaimValid(parentalLeave.getDate(), fridayExtent, mondayExtent, parentalLeave.getExtent());
-
-        if (!valid) {
-            return "Warning: Claim on " + parentalLeave.getDate() +
-                    " requires at least " + parentalLeave.getExtent() + " extent on connecting weekday.";
-        }
-
         return null;
+    }
+
+    public boolean validateExtent(ParentalLeave newLeave, List<ParentalLeave> existingLeaves) {
+
+        double existingExtent = existingLeaves.stream()
+                .filter(leave -> leave.getDate().equals(newLeave.getDate()))
+                .mapToDouble(ParentalLeave::getExtent)
+                .sum();
+
+        double totalExtent = existingExtent + newLeave.getExtent();
+
+        return !(totalExtent > 1.0);
+    }
+
+    public List<String> getParentalLeaveWarnings(
+            ParentalLeave parentalLeave,
+            List<Shift> shifts,
+            List<ParentalLeave> sameDayLeaves,
+            double fridayExtent,
+            double mondayExtent) {
+
+        List<String> warnings = new ArrayList<>();
+
+        if(validateExtent(parentalLeave, sameDayLeaves)) {
+            warnings.add("Parental leave exceeds 100% on one day");
+        }
+
+        if(isWeekend(parentalLeave.getDate())
+                && !is5DayFree(parentalLeave.getDate(), shifts)) {
+
+            boolean valid = isWeekendClaimValid(
+                    fridayExtent,
+                    mondayExtent,
+                    parentalLeave.getExtent()
+            );
+
+            if(!valid) {
+                warnings.add("Weekend rule may not be fulfilled");
+            }
+        }
+
+        return warnings;
     }
 }

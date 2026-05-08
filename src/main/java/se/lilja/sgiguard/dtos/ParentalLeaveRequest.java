@@ -18,7 +18,7 @@ public class ParentalLeaveRequest {
     Long personId;
 
     @NotNull
-    @FutureOrPresent(message="Date can not be in the past")
+//    @FutureOrPresent(message="Date can not be in the past") // outcommented for testing
     LocalDate date;
 
     @NotNull

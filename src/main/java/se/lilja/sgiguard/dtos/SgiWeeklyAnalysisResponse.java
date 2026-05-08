@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import se.lilja.sgiguard.entities.ParentalLeave;
 import se.lilja.sgiguard.models.SgiStatus;
 
 @NoArgsConstructor
@@ -13,13 +12,12 @@ import se.lilja.sgiguard.models.SgiStatus;
 @Setter
 public class SgiWeeklyAnalysisResponse {
 
-    private int week;
+    private int weeklyNumber;
 
-    private double plannedWorkHours;
-    private double plannedParentalLeaveHours;
-    private double totalPlannedHours;
+    private double actualWorkHours;
+    private double leaveHours;
+    private double totalPlanned;
 
-    private double targetHours;
     private double gapHours;
     private double recommendedDays;
 
@@ -27,3 +25,5 @@ public class SgiWeeklyAnalysisResponse {
     private String recommendation;
     private String warning;
 }
+
+

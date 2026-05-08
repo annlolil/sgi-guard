@@ -1,5 +1,6 @@
 package se.lilja.sgiguard.services;
 
+import org.hibernate.annotations.Parent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -13,6 +14,7 @@ import se.lilja.sgiguard.repositories.ParentalLeaveRepository;
 import se.lilja.sgiguard.repositories.PersonRepository;
 import se.lilja.sgiguard.repositories.ShiftRepository;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -32,49 +34,61 @@ public class ParentalLeaveService implements ParentalLeaveInterface {
         this.sgiCalculationService = sgiCalculationService;
     }
 
+    /* When adding new parental leave
+    1. Get weeks baseline workhours
+    2. Get weeks actual workhours
+    3. Get already registered parental leave
+    4. Simulate new leave
+    5. Check total to validate it is okay
+     */
+
     public ParentalLeaveResponse addParentalLeave(ParentalLeaveRequest request) {
 
         Person person = personRepository.findById(request.getPersonId()).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Person not found")
         );
 
-        LocalDate startDate = request.getDate().minusDays(4);
-        LocalDate endDate = request.getDate().plusDays(4);
+        ParentalLeave parentalLeave = ParentalLeave.builder()
+                .person(person)
+                .date(request.getDate())
+                .extent(request.getExtent()).build();
+
+        LocalDate requestDate = request.getDate();
 
         List<Shift> shifts = sgiCalculationService.getShiftsForPersonInPeriod(
                 request.getPersonId(),
-                startDate.minusDays(4),
-                endDate.plusDays(4));
+                requestDate.minusDays(4),
+                requestDate.plusDays(4));
 
-        // Check if a person is free from work for 5 days in a row.
-        boolean isLongLeave = sgiRuleService.is5DayFree(request.getDate(), shifts);
+        List<ParentalLeave> existingLeaves = parentalLeaveRepository.findByPersonIdAndDate(
+                request.getPersonId(), request.getDate());
 
-        LocalDate requestDate = request.getDate();
-        if (sgiRuleService.isWeekend(request.getDate()) && !isLongLeave) {
-            LocalDate friday = requestDate.getDayOfWeek().getValue() == 6
+        if (sgiRuleService.isWeekend(request.getDate())) {
+
+            double fridayExtent;
+            double mondayExtent;
+
+            LocalDate friday = requestDate.getDayOfWeek() == DayOfWeek.SATURDAY
                     ? requestDate.minusDays(1)
                     : requestDate.minusDays(2);
 
-            LocalDate monday = requestDate.getDayOfWeek().getValue() == 6
-                    ? requestDate.plusDays(2)
-                    : requestDate.plusDays(1);
+            LocalDate monday = requestDate.getDayOfWeek() == DayOfWeek.SUNDAY
+                    ? requestDate.plusDays(1)
+                    : requestDate.plusDays(2);
 
-            double fridayExtent = parentalLeaveRepository.getLeaveExtentOnDay(request.getPersonId(), friday);
-            double mondayExtent = parentalLeaveRepository.getLeaveExtentOnDay(request.getPersonId(), monday);
+            fridayExtent = parentalLeaveRepository.getLeaveExtentOnDay(
+                    request.getPersonId(), friday);
 
-            boolean valid = sgiRuleService.isWeekendClaimValid(request.getDate(), fridayExtent, mondayExtent, request.getExtent());
+            mondayExtent = parentalLeaveRepository.getLeaveExtentOnDay(
+                    request.getPersonId(), monday);
 
-            if (!valid) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                        "Weekend rule violation: Weekend claims require connecting weekday leave of at least "
-                                + request.getExtent());
+            String validationError = sgiRuleService.validateParentalLeaveDay(
+                    parentalLeave, shifts, existingLeaves, fridayExtent, mondayExtent);
+
+            if (validationError != null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, validationError);
             }
         }
-        ParentalLeave parentalLeave = ParentalLeave.builder()
-                        .person(person)
-                        .date(request.getDate())
-                        .extent(request.getExtent()).build();
-
         ParentalLeave savedLeave = parentalLeaveRepository.save(parentalLeave);
 
         return new ParentalLeaveResponse(savedLeave.getDate(), savedLeave.getExtent());
