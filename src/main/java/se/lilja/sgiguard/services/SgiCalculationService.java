@@ -151,7 +151,9 @@ public class SgiCalculationService {
 
                 // Check if shift is a night shift and if not subtract break minutes
                 if(!overnightShift) {
-                    totalMinutes -= shift.getBreakMinutes();
+                    if(shift.getBreakMinutes() != null) {
+                        totalMinutes -= shift.getBreakMinutes();
+                    }
                 }
             }
         }
@@ -340,41 +342,6 @@ public class SgiCalculationService {
 
         return parentalLeaveRepository.findByPersonIdAndDateBetween(personId, from, to);
     }
-
-//    // Calculates the target hours to work (the SGI could be decided on a lower percentage)
-//    private double calculateOriginalTarget(Employment employment) {
-//
-//        return (employment.getOriginalWorkingHours() * employment.getOriginalEmploymentRate()) / 100.0;
-//    }
-
-//    private double calculateWorkTimeReduction(List<Shift> shifts, List<ParentalLeave> parentalLeaves, double hoursPerDay) {
-//        double hoursToReduce = 0;
-//
-//        // Go through each day that has parental leave registered
-//        for(ParentalLeave parentalLeave : parentalLeaves) {
-//            LocalDate date = parentalLeave.getDate();
-//
-//            // Sum the actual hours for shifts whose main day matches the leave date
-//            double shiftHoursOnSameDay = shifts.stream()
-//                    .filter(s -> sgiRuleService.identifyMainDay(s).equals(date))
-//                    .mapToDouble(s -> calculateShiftHours(s, hoursPerDay))
-//                    .sum();
-//            // If there are shifts on the same day, reduce by the leave extent of that day's shift hours
-//            if (shiftHoursOnSameDay > 0) {
-//                hoursToReduce += parentalLeave.getExtent() * shiftHoursOnSameDay;
-//            }
-//        }
-//        return Math.round(hoursToReduce * 100.0) / 100.0;
-//    }
-
-//    private double calculateShiftHours(Shift shift, double fallbackHoursPerDay) {
-//        LocalDateTime startTime = shift.getShiftStart();
-//        LocalDateTime endTime = shift.getShiftEnd();
-//        if (startTime == null || endTime == null) {
-//            return fallbackHoursPerDay;
-//        }
-//        return Duration.between(startTime, endTime).toMinutes() / 60.0;
-//    }
 
     private String collectWeeklyWarnings(Long personId,
                                          List<ParentalLeave> weeklyLeaves,
