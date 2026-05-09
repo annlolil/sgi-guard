@@ -24,4 +24,7 @@ public interface ShiftRepository extends JpaRepository<Shift, Long> {
     );
 
     List<Shift> findShiftByPersonId(Long personId);
+
+//    List<Shift> findShiftsByPersonIdAndShiftStartDate(Long personId, LocalDate shiftStartDate);
+
 }

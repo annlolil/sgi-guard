@@ -4,5 +4,5 @@ public enum SgiStatus {
 
     PROTECTED,
     AT_RISK,
-    OVER_COMPENSATED
+    OVERCOMPENSATED
 }

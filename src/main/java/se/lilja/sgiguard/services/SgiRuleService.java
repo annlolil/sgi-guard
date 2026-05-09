@@ -83,7 +83,7 @@ public class SgiRuleService {
         return true;
     }
 
-    public String validateParentalLeaveDay(ParentalLeave parentalLeave,
+    public String validateParentalLeave(ParentalLeave parentalLeave,
                                            List<Shift> shifts,
                                            List<ParentalLeave> existingLeaves,
                                            double fridayExtent,
@@ -108,6 +108,22 @@ public class SgiRuleService {
         return null;
     }
 
+    public boolean validateWeekendRule(ParentalLeave parentalLeave, List<Shift> shifts, double fridayExtent, double mondayExtent) {
+
+        // Weekend rule
+        if (isWeekend(parentalLeave.getDate()) && !is5DayFree(parentalLeave.getDate(), shifts)) {
+
+            boolean valid = isWeekendClaimValid(
+                    fridayExtent, mondayExtent, parentalLeave.getExtent());
+
+            if(!valid) {
+                return false;
+            }
+
+        }
+        return true;
+    }
+
     public boolean validateExtent(ParentalLeave newLeave, List<ParentalLeave> existingLeaves) {
 
         double existingExtent = existingLeaves.stream()
@@ -129,24 +145,44 @@ public class SgiRuleService {
 
         List<String> warnings = new ArrayList<>();
 
-        if(validateExtent(parentalLeave, sameDayLeaves)) {
+        if(!validateExtent(parentalLeave, sameDayLeaves)) {
             warnings.add("Parental leave exceeds 100% on one day");
         }
 
-        if(isWeekend(parentalLeave.getDate())
-                && !is5DayFree(parentalLeave.getDate(), shifts)) {
+        if(!validateWeekendRule(parentalLeave, shifts, fridayExtent, mondayExtent)) {
 
-            boolean valid = isWeekendClaimValid(
-                    fridayExtent,
-                    mondayExtent,
-                    parentalLeave.getExtent()
-            );
-
-            if(!valid) {
                 warnings.add("Weekend rule may not be fulfilled");
             }
-        }
-
         return warnings;
     }
+
+//    public List<String> getParentalLeaveWarnings(
+//            ParentalLeave parentalLeave,
+//            List<Shift> shifts,
+//            List<ParentalLeave> sameDayLeaves,
+//            double fridayExtent,
+//            double mondayExtent) {
+//
+//        List<String> warnings = new ArrayList<>();
+//
+//        if(validateExtent(parentalLeave, sameDayLeaves)) {
+//            warnings.add("Parental leave exceeds 100% on one day");
+//        }
+//
+//        if(isWeekend(parentalLeave.getDate())
+//                && !is5DayFree(parentalLeave.getDate(), shifts)) {
+//
+//            boolean valid = isWeekendClaimValid(
+//                    fridayExtent,
+//                    mondayExtent,
+//                    parentalLeave.getExtent()
+//            );
+//
+//            if(!valid) {
+//                warnings.add("Weekend rule may not be fulfilled");
+//            }
+//        }
+//
+//        return warnings;
+//    }
 }

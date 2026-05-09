@@ -82,10 +82,11 @@ public class ParentalLeaveService implements ParentalLeaveInterface {
             mondayExtent = parentalLeaveRepository.getLeaveExtentOnDay(
                     request.getPersonId(), monday);
 
-            String validationError = sgiRuleService.validateParentalLeaveDay(
+            // Göra om till boolean?
+            String validationError = sgiRuleService.validateParentalLeave(
                     parentalLeave, shifts, existingLeaves, fridayExtent, mondayExtent);
 
-            if (validationError != null) {
+            if (validationError != null) { // skicka "This is not a valid day to apply for parental leave"
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, validationError);
             }
         }

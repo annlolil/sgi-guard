@@ -1,7 +1,9 @@
 package se.lilja.sgiguard.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
+import se.lilja.sgiguard.dtos.SgiDailyAnalysisResponse;
 import se.lilja.sgiguard.dtos.SgiPeriodAnalysisResponse;
 import se.lilja.sgiguard.dtos.SgiWeeklyAnalysisResponse;
 import se.lilja.sgiguard.entities.ParentalLeave;
@@ -23,6 +25,7 @@ import java.time.temporal.WeekFields;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 @Service
 public class SgiCalculationService {
@@ -101,84 +104,193 @@ public class SgiCalculationService {
     }
 
     // Method that summarizes the hours from parental leave
-    public Double summarizeLeaveHoursInPeriod(List<ParentalLeave> parentalLeaves, Double baselineHours, long baselineDays) {
+//    public Double summarizeLeaveHoursInPeriod(List<ParentalLeave> parentalLeaves, Double baselineHours, long baselineDays) {
+//
+//        double hoursPerDay = baselineHours / baselineDays;
+//
+//        double totalLeaveDays = parentalLeaves.stream()
+//                .mapToDouble(ParentalLeave::getExtent).sum();
+//
+//        double totalLeaveHours = totalLeaveDays * hoursPerDay;
+//
+//        return Math.round(totalLeaveHours * 100.0) / 100.0;
+//    }
 
-        double hoursPerDay = baselineHours / baselineDays;
+    public double summarizeWorkHoursForDay(List<Shift> shifts, LocalDate date) {
 
-        double totalLeaveDays = parentalLeaves.stream()
-                .mapToDouble(ParentalLeave::getExtent).sum();
+        double totalMinutes = 0;
 
-        double totalLeaveHours = totalLeaveDays * hoursPerDay;
+        LocalDateTime dayStart = date.atStartOfDay();
+        LocalDateTime dayEnd = date.plusDays(1).atStartOfDay();
 
-        return Math.round(totalLeaveHours * 100.0) / 100.0;
+        for (Shift shift : shifts) {
+
+            LocalDateTime shiftStart = shift.getShiftStart();
+            LocalDateTime shiftEnd = shift.getShiftEnd();
+
+            LocalDateTime overlapStart =
+                    shiftStart.isAfter(dayStart)
+                            ? shiftStart
+                            : dayStart;
+
+            LocalDateTime overlapEnd =
+                    shiftEnd.isBefore(dayEnd)
+                            ? shiftEnd
+                            : dayEnd;
+
+            if (overlapStart.isBefore(overlapEnd)) {
+
+                Duration duration =
+                        Duration.between(overlapStart, overlapEnd);
+
+                totalMinutes += duration.toMinutes();
+
+                boolean overnightShift =
+                        !shift.getShiftStart().toLocalDate()
+                                .equals(shift.getShiftEnd().toLocalDate());
+
+                // Check if shift is a night shift and if not subtract break minutes
+                if(!overnightShift) {
+                    totalMinutes -= shift.getBreakMinutes();
+                }
+            }
+        }
+
+        return Math.round((totalMinutes / 60.0) * 100.0) / 100.0;
     }
 
-    // Main method that compares planned hours and parental leave with the target on weekly basis
-    public SgiWeeklyAnalysisResponse analyzeWeek(Long personId, LocalDate dateInWeek) {
+    public SgiDailyAnalysisResponse analyzeDay(Long personId, LocalDate date) {
 
-        // Fetch actual week number and date for Monday and Sunday that week
-        int weeklyNumber = getWeekNumber(dateInWeek);
-        LocalDate weekStart = getWeekStart(dateInWeek);
-        LocalDate weekEnd = getWeekEnd(dateInWeek);
+        DayOfWeek dayOfWeek = date.getDayOfWeek(); // Get the week day to analyze
 
-        // Fetch all shifts that a person has saved in db
-        List<Shift> weeklyShifts = getShiftsForPersonInPeriod(personId, weekStart, weekEnd);
+        // Get the shifts for that day, it can be shifts starting and/or ending upon that day
+        LocalDateTime dayStart = date.atStartOfDay();
+        LocalDateTime dayEnd = date.plusDays(1).atStartOfDay();
+        List<Shift> dailyShifts = shiftRepository.findOverlappingShifts(personId, dayStart, dayEnd);
 
-        List<Shift> actualShifts = weeklyShifts.stream().filter(s ->
+        List<Shift> actualShifts = dailyShifts.stream().filter(s ->
                 s.getType().equals(ShiftType.ACTUAL)).toList();
 
-        List<Shift> baselineShifts = weeklyShifts.stream().filter(s ->
+        List<Shift> baselineShifts = dailyShifts.stream().filter(s ->
                 s.getType().equals(ShiftType.BASELINE)).toList();
 
-        double actualWorkHours = summarizeWorkHoursInPeriod(actualShifts, weekStart, weekEnd);
-        double baselineWorkHours = summarizeWorkHoursInPeriod(baselineShifts, weekStart, weekEnd);
-        long baselineDays = baselineShifts.stream()
-                .map(sgiRuleService::identifyMainDay)
-                .distinct()
-                .count();
+        double actualWorkHours = summarizeWorkHoursForDay(actualShifts, date);
+        double baselineWorkHours = summarizeWorkHoursForDay(baselineShifts, date);
 
-        // Fetch the actual Parental leaves that a person has planned to apply for and summarize the hours
-        List<ParentalLeave> parentalLeaves = getParentalLeaves(personId, weekStart, weekEnd);
-        double leaveHours = summarizeLeaveHoursInPeriod(parentalLeaves, baselineWorkHours, baselineDays);
+        // Get existing parentalleaves for this day // rework to one object instead of a list?
+        List<ParentalLeave> parentalLeaves = parentalLeaveRepository.findByPersonIdAndDate(personId, date);
+        double totalExtent = parentalLeaves.stream().mapToDouble(ParentalLeave::getExtent).sum();
+        double leaveHours = baselineWorkHours > 0 ?
+                totalExtent * baselineWorkHours
+                : 0;
 
+        // Calculate how many hours that are missing including existing parental leave
         double totalPlanned = actualWorkHours + leaveHours;
         double gapHours = Math.max(0, baselineWorkHours - totalPlanned);
 
-        SgiStatus status = (gapHours <= 0)
-                ? SgiStatus.PROTECTED
-                : SgiStatus.AT_RISK;
-
-        double hoursPerDay = baselineDays > 0
-                ? baselineWorkHours / baselineDays
+        // Calculate how many hours that are missing without any parental leave
+        // To use for calculating recommended total extent of parental leave to apply for
+        double workHoursGap = Math.max(0, baselineWorkHours - actualWorkHours);
+        double rawRecommendedExtent = baselineWorkHours > 0 ?
+                workHoursGap / baselineWorkHours
                 : 0;
 
-        double rawRecommendedDays = hoursPerDay > 0
-                ? gapHours / hoursPerDay
-                : 0;
+        double recommendedExtent = roundUpToNearest(rawRecommendedExtent);
 
-        double recommendedDays = roundUpToNearest(rawRecommendedDays);
+        SgiStatus status;
+        if (totalExtent > recommendedExtent) {
+            status = SgiStatus.OVERCOMPENSATED;
+        }
+        else if (totalExtent < recommendedExtent) {
+            status = SgiStatus.AT_RISK;
+        }
+        else {
+            status = SgiStatus.PROTECTED;
+        }
 
-        // Create warnings to return for the user that is based on planned parental leave
-        // the weekend rule
-        // the exception rule for minimum 5 days free
-        String warning = collectWeeklyWarnings(personId, parentalLeaves, weeklyShifts, weekStart, weekEnd);
-
-        String recommendation = (status == SgiStatus.PROTECTED)
-                ? "SGI protected"
-                : "SGI at risk. You need approximately " + recommendedDays + " parental leave days.";
-
-        return new SgiWeeklyAnalysisResponse(
-                weeklyNumber,
+        return new SgiDailyAnalysisResponse(
+                date,
+                dayOfWeek,
+                baselineWorkHours,
                 actualWorkHours,
-                leaveHours,
-                totalPlanned,
+                totalExtent,
                 gapHours,
-                recommendedDays,
-                status,
-                recommendation,
-                warning
-        );
+                recommendedExtent,
+                status);
     }
+
+    // Main method that compares planned hours and parental leave with the target on weekly basis
+//    public SgiWeeklyAnalysisResponse analyzeWeek(Long personId, LocalDate dateInWeek) {
+//
+//        // Fetch actual week number and date for Monday and Sunday that week
+//        int weeklyNumber = getWeekNumber(dateInWeek);
+//        LocalDate weekStart = getWeekStart(dateInWeek);
+//        LocalDate weekEnd = getWeekEnd(dateInWeek);
+//
+//        // Fetch all shifts that a person has saved in db
+//        List<Shift> weeklyShifts = getShiftsForPersonInPeriod(personId, weekStart, weekEnd);
+//
+//        List<Shift> actualShifts = weeklyShifts.stream().filter(s ->
+//                s.getType().equals(ShiftType.ACTUAL)).toList();
+//
+//        List<Shift> baselineShifts = weeklyShifts.stream().filter(s ->
+//                s.getType().equals(ShiftType.BASELINE)).toList();
+//
+//        double actualWorkHours = summarizeWorkHoursInPeriod(actualShifts, weekStart, weekEnd);
+//        double baselineWorkHours = summarizeWorkHoursInPeriod(baselineShifts, weekStart, weekEnd);
+////        long baselineDays = baselineShifts.stream()
+////                .map(sgiRuleService::identifyMainDay)
+////                .distinct()
+////                .count();
+//        long baselineDays = baselineShifts.size();
+//
+//        // Fetch the actual Parental leaves that a person has planned to apply for and summarize the hours
+//        List<ParentalLeave> parentalLeaves = getParentalLeaves(personId, weekStart, weekEnd);
+//        double leaveHours = summarizeLeaveHoursInPeriod(parentalLeaves, baselineWorkHours, baselineDays);
+//
+//        double totalPlanned = actualWorkHours + leaveHours;
+//        double gapHours = Math.max(0, baselineWorkHours - totalPlanned);
+//
+//        SgiStatus status = (gapHours <= 0)
+//                ? SgiStatus.PROTECTED
+//                : SgiStatus.AT_RISK;
+//
+//        double hoursPerDay = baselineDays > 0
+//                ? baselineWorkHours / baselineDays
+//                : 0;
+//
+//        double rawRecommendedDays = hoursPerDay > 0
+//                ? gapHours / hoursPerDay
+//                : 0;
+//
+//        double recommendedDays = roundUpToNearest(rawRecommendedDays);
+//
+//        // Create warnings to return for the user that is based on planned parental leave
+//        // the weekend rule
+//        // the exception rule for minimum 5 days free
+//        String warning = collectWeeklyWarnings(personId, parentalLeaves, weeklyShifts, weekStart, weekEnd);
+//
+//
+//        String recommendation = (status == SgiStatus.PROTECTED)
+//                ? "SGI protected"
+//                : "SGI at risk. You need approximately " + recommendedDays + " parental leave days.";
+//
+//        return new SgiWeeklyAnalysisResponse(
+//                weeklyNumber,
+//                actualWorkHours,
+//                leaveHours,
+//                totalPlanned,
+//                gapHours,
+//                recommendedDays,
+//                status,
+//                recommendation,
+//                warning
+//        );
+//    }
+
+//    private int weeklyNumber;
+//    private Map<DayOfWeek, SgiStatus> dailyStatus; // Showing weekday and if that day is protected, at_risk or overcompensated
+//    private Map<DayOfWeek, Double> dailyRecommendation;
 
 //    public SgiPeriodAnalysisResponse analyzePeriod(Long personId, LocalDate from, LocalDate to) {
 //        List<SgiWeeklyAnalysisResponse> weeklyResults = new ArrayList<>();
@@ -223,11 +335,6 @@ public class SgiCalculationService {
     private static int getWeekNumber(LocalDate date) {
         return date.get(WeekFields.of(Locale.getDefault()).weekOfWeekBasedYear());
     }
-
-//    private static double calculateGap(double target, double planned){
-//        double gap = Math.max(0, target - planned);
-//        return Math.round(gap * 100.0) / 100.0;
-//    }
 
     public List<ParentalLeave> getParentalLeaves(Long personId, LocalDate from, LocalDate to) {
 
@@ -294,7 +401,7 @@ public class SgiCalculationService {
             double mondayExtent = parentalLeaveRepository.getLeaveExtentOnDay(personId, weekEnd.plusDays(1));
 
 
-            String dayWarning = sgiRuleService.validateParentalLeaveDay(
+            String dayWarning = sgiRuleService.validateParentalLeave(
                     parentalLeave,
                     extendedListOfShifts,
                     sameDayLeaves,
