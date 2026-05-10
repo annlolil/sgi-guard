@@ -79,29 +79,29 @@ public class SgiCalculationService {
 //    }
 
     // Summarizes the hours from all shifts listed in a specific period of time
-    public Double summarizeWorkHoursInPeriod(List<Shift> shifts, LocalDate from, LocalDate to) {
-
-        double totalMinutes = 0;
-
-        for (Shift shift : shifts) {
-            // Only count the hours for a shift if its main day is in the period
-            LocalDate mainDay = sgiRuleService.identifyMainDay(shift);
-            if (!mainDay.isBefore(from) && !mainDay.isAfter(to)) {
-                Duration duration = Duration.between(shift.getShiftStart(), shift.getShiftEnd());
-
-                long breakMinutes = shift.getBreakMinutes() != null ?
-                        shift.getBreakMinutes() : 0;
-
-                long workedMinutes = duration.toMinutes() - breakMinutes;
-
-                totalMinutes += workedMinutes;
-            }
-        }
-
-        double totalHours = totalMinutes / 60.0;
-
-        return Math.round(totalHours * 100.0) / 100.0;
-    }
+//    public Double summarizeWorkHoursInPeriod(List<Shift> shifts, LocalDate from, LocalDate to) {
+//
+//        double totalMinutes = 0;
+//
+//        for (Shift shift : shifts) {
+//            // Only count the hours for a shift if its main day is in the period
+//            LocalDate mainDay = sgiRuleService.identifyMainDay(shift);
+//            if (!mainDay.isBefore(from) && !mainDay.isAfter(to)) {
+//                Duration duration = Duration.between(shift.getShiftStart(), shift.getShiftEnd());
+//
+//                long breakMinutes = shift.getBreakMinutes() != null ?
+//                        shift.getBreakMinutes() : 0;
+//
+//                long workedMinutes = duration.toMinutes() - breakMinutes;
+//
+//                totalMinutes += workedMinutes;
+//            }
+//        }
+//
+//        double totalHours = totalMinutes / 60.0;
+//
+//        return Math.round(totalHours * 100.0) / 100.0;
+//    }
 
     // Method that summarizes the hours from parental leave
 //    public Double summarizeLeaveHoursInPeriod(List<ParentalLeave> parentalLeaves, Double baselineHours, long baselineDays) {
@@ -157,7 +157,6 @@ public class SgiCalculationService {
                 }
             }
         }
-
         return Math.round((totalMinutes / 60.0) * 100.0) / 100.0;
     }
 
@@ -290,6 +289,7 @@ public class SgiCalculationService {
 //        );
 //    }
 
+// This is what analyzeweek should return
 //    private int weeklyNumber;
 //    private Map<DayOfWeek, SgiStatus> dailyStatus; // Showing weekday and if that day is protected, at_risk or overcompensated
 //    private Map<DayOfWeek, Double> dailyRecommendation;

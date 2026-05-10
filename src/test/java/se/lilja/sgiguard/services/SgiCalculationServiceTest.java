@@ -8,6 +8,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import se.lilja.sgiguard.dtos.SgiDailyAnalysisResponse;
 import se.lilja.sgiguard.dtos.SgiWeeklyAnalysisResponse;
 import se.lilja.sgiguard.entities.ParentalLeave;
+import se.lilja.sgiguard.entities.Person;
 import se.lilja.sgiguard.entities.Shift;
 import se.lilja.sgiguard.entities.Employment;
 import se.lilja.sgiguard.models.SgiStatus;
@@ -16,9 +17,12 @@ import se.lilja.sgiguard.repositories.EmploymentRepository;
 import se.lilja.sgiguard.repositories.ParentalLeaveRepository;
 import se.lilja.sgiguard.repositories.ShiftRepository;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.WeekFields;
 import java.util.List;
+import java.util.Locale;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -181,6 +185,76 @@ class SgiCalculationServiceTest {
 //        // Then
 //        assertThat(result).isEqualTo(0);
 //    }
+
+    @Test
+    void summarizeWorkHoursForDay_ShouldCalculateOverlap_ForNightShift() {
+
+        // Given
+        // Looking at 1 April 2024
+        LocalDate date = LocalDate.of(2024, 4, 1);
+
+        // A night shift between 30 March 21.00 to 1 April 07.00
+        Shift shift = Shift.builder()
+                .shiftStart(LocalDateTime.of(2024,3,30,21,0))
+                .shiftEnd(LocalDateTime.of(2024,4,1,7,0))
+                .type(ShiftType.BASELINE)
+                .build();
+
+        List<Shift> shifts = List.of(shift);
+
+        // When
+        double workHours = sgiCalculationService.summarizeWorkHoursForDay(shifts, date);
+
+        // Then
+        assertThat(workHours).isEqualTo(7.0);
+    }
+
+    @Test
+    void summarizeWorkHoursForDay_ShouldReturnZero_WhenShiftDoNotBelongToDay() {
+
+        // Given
+        // Looking at 1 April 2024
+        LocalDate date = LocalDate.of(2024, 4, 1);
+
+        // A day shift on 2 April 2024
+        Shift shift = Shift.builder()
+                .shiftStart(LocalDateTime.of(2024,4,2,8,0))
+                .shiftEnd(LocalDateTime.of(2024,4,2,17,0))
+                .type(ShiftType.BASELINE)
+                .breakMinutes(60)
+                .build();
+
+        List<Shift> shifts = List.of(shift);
+
+        // When
+        double workHours = sgiCalculationService.summarizeWorkHoursForDay(shifts, date);
+
+        // Then
+        assertThat(workHours).isEqualTo(0.0);
+    }
+
+    @Test
+    void summarizeWorkHoursForDay_ShouldSubtractBreakMinutes_WhenNotNightShift() {
+
+        // Given
+        LocalDate date = LocalDate.of(2024, 4, 1);
+
+        // A day shift between 08:00-17:00 and 60 minutes break -> workhours = 8 h
+        Shift shift = Shift.builder()
+                .shiftStart(LocalDateTime.of(2024,4,1,8,0))
+                .shiftEnd(LocalDateTime.of(2024,4,1,17,0))
+                .type(ShiftType.BASELINE)
+                .breakMinutes(60)
+                .build();
+
+        List<Shift> shifts = List.of(shift);
+
+        // When
+        double workHours = sgiCalculationService.summarizeWorkHoursForDay(shifts, date);
+
+        // Then
+        assertThat(workHours).isEqualTo(8.0);
+    }
 
     @Test
     void analyzeDay_ShouldReturnProtected_WhenParentalLeaveCoversGap() {
