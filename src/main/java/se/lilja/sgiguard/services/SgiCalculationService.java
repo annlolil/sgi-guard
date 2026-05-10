@@ -79,29 +79,29 @@ public class SgiCalculationService {
 //    }
 
     // Summarizes the hours from all shifts listed in a specific period of time
-    public Double summarizeWorkHoursInPeriod(List<Shift> shifts, LocalDate from, LocalDate to) {
-
-        double totalMinutes = 0;
-
-        for (Shift shift : shifts) {
-            // Only count the hours for a shift if its main day is in the period
-            LocalDate mainDay = sgiRuleService.identifyMainDay(shift);
-            if (!mainDay.isBefore(from) && !mainDay.isAfter(to)) {
-                Duration duration = Duration.between(shift.getShiftStart(), shift.getShiftEnd());
-
-                long breakMinutes = shift.getBreakMinutes() != null ?
-                        shift.getBreakMinutes() : 0;
-
-                long workedMinutes = duration.toMinutes() - breakMinutes;
-
-                totalMinutes += workedMinutes;
-            }
-        }
-
-        double totalHours = totalMinutes / 60.0;
-
-        return Math.round(totalHours * 100.0) / 100.0;
-    }
+//    public Double summarizeWorkHoursInPeriod(List<Shift> shifts, LocalDate from, LocalDate to) {
+//
+//        double totalMinutes = 0;
+//
+//        for (Shift shift : shifts) {
+//            // Only count the hours for a shift if its main day is in the period
+//            LocalDate mainDay = sgiRuleService.identifyMainDay(shift);
+//            if (!mainDay.isBefore(from) && !mainDay.isAfter(to)) {
+//                Duration duration = Duration.between(shift.getShiftStart(), shift.getShiftEnd());
+//
+//                long breakMinutes = shift.getBreakMinutes() != null ?
+//                        shift.getBreakMinutes() : 0;
+//
+//                long workedMinutes = duration.toMinutes() - breakMinutes;
+//
+//                totalMinutes += workedMinutes;
+//            }
+//        }
+//
+//        double totalHours = totalMinutes / 60.0;
+//
+//        return Math.round(totalHours * 100.0) / 100.0;
+//    }
 
     // Method that summarizes the hours from parental leave
 //    public Double summarizeLeaveHoursInPeriod(List<ParentalLeave> parentalLeaves, Double baselineHours, long baselineDays) {
@@ -151,11 +151,12 @@ public class SgiCalculationService {
 
                 // Check if shift is a night shift and if not subtract break minutes
                 if(!overnightShift) {
-                    totalMinutes -= shift.getBreakMinutes();
+                    if(shift.getBreakMinutes() != null) {
+                        totalMinutes -= shift.getBreakMinutes();
+                    }
                 }
             }
         }
-
         return Math.round((totalMinutes / 60.0) * 100.0) / 100.0;
     }
 
@@ -288,6 +289,7 @@ public class SgiCalculationService {
 //        );
 //    }
 
+// This is what analyzeweek should return
 //    private int weeklyNumber;
 //    private Map<DayOfWeek, SgiStatus> dailyStatus; // Showing weekday and if that day is protected, at_risk or overcompensated
 //    private Map<DayOfWeek, Double> dailyRecommendation;
@@ -340,41 +342,6 @@ public class SgiCalculationService {
 
         return parentalLeaveRepository.findByPersonIdAndDateBetween(personId, from, to);
     }
-
-//    // Calculates the target hours to work (the SGI could be decided on a lower percentage)
-//    private double calculateOriginalTarget(Employment employment) {
-//
-//        return (employment.getOriginalWorkingHours() * employment.getOriginalEmploymentRate()) / 100.0;
-//    }
-
-//    private double calculateWorkTimeReduction(List<Shift> shifts, List<ParentalLeave> parentalLeaves, double hoursPerDay) {
-//        double hoursToReduce = 0;
-//
-//        // Go through each day that has parental leave registered
-//        for(ParentalLeave parentalLeave : parentalLeaves) {
-//            LocalDate date = parentalLeave.getDate();
-//
-//            // Sum the actual hours for shifts whose main day matches the leave date
-//            double shiftHoursOnSameDay = shifts.stream()
-//                    .filter(s -> sgiRuleService.identifyMainDay(s).equals(date))
-//                    .mapToDouble(s -> calculateShiftHours(s, hoursPerDay))
-//                    .sum();
-//            // If there are shifts on the same day, reduce by the leave extent of that day's shift hours
-//            if (shiftHoursOnSameDay > 0) {
-//                hoursToReduce += parentalLeave.getExtent() * shiftHoursOnSameDay;
-//            }
-//        }
-//        return Math.round(hoursToReduce * 100.0) / 100.0;
-//    }
-
-//    private double calculateShiftHours(Shift shift, double fallbackHoursPerDay) {
-//        LocalDateTime startTime = shift.getShiftStart();
-//        LocalDateTime endTime = shift.getShiftEnd();
-//        if (startTime == null || endTime == null) {
-//            return fallbackHoursPerDay;
-//        }
-//        return Duration.between(startTime, endTime).toMinutes() / 60.0;
-//    }
 
     private String collectWeeklyWarnings(Long personId,
                                          List<ParentalLeave> weeklyLeaves,

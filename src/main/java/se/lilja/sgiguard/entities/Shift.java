@@ -39,7 +39,7 @@ public class Shift {
 //    @Column(nullable = false)
 //    private LocalTime shiftEndTime;
 
-    @Column(nullable = false)
+    @Column
     private Integer breakMinutes;
 
     @Column(nullable = false)
