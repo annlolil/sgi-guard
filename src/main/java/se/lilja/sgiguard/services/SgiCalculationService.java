@@ -220,6 +220,13 @@ public class SgiCalculationService {
                 status);
     }
 
+//    public double getLeaveExtentOnDay(Long personId, LocalDate date) {
+//        return findByPersonIdAndDate(personId, date)
+//                .stream()
+//                .mapToDouble(ParentalLeave::getExtent)
+//                .sum();
+//    }
+
     // Main method that compares planned hours and parental leave with the target on weekly basis
 //    public SgiWeeklyAnalysisResponse analyzeWeek(Long personId, LocalDate dateInWeek) {
 //
@@ -343,44 +350,44 @@ public class SgiCalculationService {
         return parentalLeaveRepository.findByPersonIdAndDateBetween(personId, from, to);
     }
 
-    private String collectWeeklyWarnings(Long personId,
-                                         List<ParentalLeave> weeklyLeaves,
-                                         List<Shift> weeklyShifts,
-                                         LocalDate weekStart,
-                                         LocalDate weekEnd) {
-
-        StringBuilder warnings = new StringBuilder();
-
-        // Extend the list of shifts so that validateParentalLeaveDay looks at a wider period than a week
-        // Otherwise it might miss shifts in the week before and assume it is free days
-        List<Shift> extendedListOfShifts = getShiftsForPersonInPeriod(
-                personId,
-                weekStart.minusDays(4),
-                weekEnd.plusDays(4));
-
-        for (ParentalLeave parentalLeave : weeklyLeaves) {
-
-            List<ParentalLeave> sameDayLeaves = weeklyLeaves.stream()
-                    .filter(leaves -> leaves.getDate().equals(parentalLeave.getDate())).toList();
-
-            // Fetch parental leave extent for surrounding days
-            double fridayExtent = parentalLeaveRepository.getLeaveExtentOnDay(personId, weekStart.with(DayOfWeek.FRIDAY));
-            double mondayExtent = parentalLeaveRepository.getLeaveExtentOnDay(personId, weekEnd.plusDays(1));
-
-
-            String dayWarning = sgiRuleService.validateParentalLeave(
-                    parentalLeave,
-                    extendedListOfShifts,
-                    sameDayLeaves,
-                    fridayExtent,
-                    mondayExtent);
-
-            if (dayWarning != null) {
-                warnings.append(dayWarning).append(" ");
-            }
-        }
-        return warnings.toString().trim();
-    }
+//    private String collectWeeklyWarnings(Long personId,
+//                                         List<ParentalLeave> weeklyLeaves,
+//                                         List<Shift> weeklyShifts,
+//                                         LocalDate weekStart,
+//                                         LocalDate weekEnd) {
+//
+//        StringBuilder warnings = new StringBuilder();
+//
+//        // Extend the list of shifts so that validateParentalLeaveDay looks at a wider period than a week
+//        // Otherwise it might miss shifts in the week before and assume it is free days
+//        List<Shift> extendedListOfShifts = getShiftsForPersonInPeriod(
+//                personId,
+//                weekStart.minusDays(4),
+//                weekEnd.plusDays(4));
+//
+//        for (ParentalLeave parentalLeave : weeklyLeaves) {
+//
+//            List<ParentalLeave> sameDayLeaves = weeklyLeaves.stream()
+//                    .filter(leaves -> leaves.getDate().equals(parentalLeave.getDate())).toList();
+//
+//            // Fetch parental leave extent for surrounding days
+//            double fridayExtent = parentalLeaveRepository.getLeaveExtentOnDay(personId, weekStart.with(DayOfWeek.FRIDAY));
+//            double mondayExtent = parentalLeaveRepository.getLeaveExtentOnDay(personId, weekEnd.plusDays(1));
+//
+//
+//            String dayWarning = sgiRuleService.validateParentalLeave(
+//                    parentalLeave,
+//                    extendedListOfShifts,
+//                    sameDayLeaves,
+//                    fridayExtent,
+//                    mondayExtent);
+//
+//            if (dayWarning != null) {
+//                warnings.append(dayWarning).append(" ");
+//            }
+//        }
+//        return warnings.toString().trim();
+//    }
 
     private static LocalDate getWeekStart(LocalDate dateInWeek) {
         return dateInWeek.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));

@@ -39,5 +39,5 @@ VALUES ('2024-04-01 08:00','2024-04-01 15:00', 60, 'ACTUAL',1, 1);
 
 -- 11. Parental leave
 -- One whole day
-INSERT INTO parental_leave (date, extent, person_id)
-VALUES ('2024-04-01', 0.5, 1)
+-- INSERT INTO parental_leave (date, extent, person_id)
+-- VALUES ('2024-04-01', 0.5, 1)

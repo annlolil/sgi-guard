@@ -2,9 +2,14 @@ package se.lilja.sgiguard.services;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import se.lilja.sgiguard.entities.ParentalLeave;
 import se.lilja.sgiguard.entities.Person;
 import se.lilja.sgiguard.entities.Shift;
+import se.lilja.sgiguard.repositories.ShiftRepository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -14,16 +19,20 @@ import java.util.List;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
+@ExtendWith(MockitoExtension.class)
 class SgiRuleServiceTest {
 
+    @Mock
+    ShiftRepository shiftRepository;
+
+    @InjectMocks
     private SgiRuleService sgiRuleService;
+
     private Shift shift1;
     private Shift shift2;
 
-
     @BeforeEach
     void setUp() {
-        sgiRuleService = new SgiRuleService();
         shift1 = new Shift();
         shift2 = new Shift();
     }

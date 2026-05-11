@@ -1,6 +1,5 @@
 package se.lilja.sgiguard.services;
 
-import org.hibernate.annotations.Parent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -9,14 +8,11 @@ import se.lilja.sgiguard.dtos.ParentalLeaveRequest;
 import se.lilja.sgiguard.dtos.ParentalLeaveResponse;
 import se.lilja.sgiguard.entities.ParentalLeave;
 import se.lilja.sgiguard.entities.Person;
-import se.lilja.sgiguard.entities.Shift;
 import se.lilja.sgiguard.repositories.ParentalLeaveRepository;
 import se.lilja.sgiguard.repositories.PersonRepository;
-import se.lilja.sgiguard.repositories.ShiftRepository;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.util.List;
 
 @Service
 public class ParentalLeaveService implements ParentalLeaveInterface {
@@ -34,63 +30,56 @@ public class ParentalLeaveService implements ParentalLeaveInterface {
         this.sgiCalculationService = sgiCalculationService;
     }
 
-    /* When adding new parental leave
-    1. Get weeks baseline workhours
-    2. Get weeks actual workhours
-    3. Get already registered parental leave
-    4. Simulate new leave
-    5. Check total to validate it is okay
-     */
-
     public ParentalLeaveResponse addParentalLeave(ParentalLeaveRequest request) {
 
         Person person = personRepository.findById(request.getPersonId()).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Person not found")
         );
 
-        ParentalLeave parentalLeave = ParentalLeave.builder()
+        LocalDate requestDate = request.getDate();
+        Long personId = person.getId();
+
+        ParentalLeave newParentalLeave = ParentalLeave.builder()
                 .person(person)
-                .date(request.getDate())
+                .date(requestDate)
                 .extent(request.getExtent()).build();
 
-        LocalDate requestDate = request.getDate();
+        // Check if current extent exceeds eventual existing extent
+        double existingExtent = parentalLeaveRepository.findExtentsByDateAndPersonId(requestDate, personId);
+        boolean validExtent = sgiRuleService.isExtentValid(newParentalLeave, existingExtent);
+        if (!validExtent) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Extent exceeds 1.0 days");
+        }
+        double totalNewExtent = existingExtent + request.getExtent();
 
-        List<Shift> shifts = sgiCalculationService.getShiftsForPersonInPeriod(
-                request.getPersonId(),
-                requestDate.minusDays(4),
-                requestDate.plusDays(4));
+        // Check if the requested date is a work free day and a weekend
+        boolean workFreeDay = sgiRuleService.isWorkFreeDay(personId, requestDate);
+        if (sgiRuleService.isWeekend(requestDate) && workFreeDay) {
 
-        List<ParentalLeave> existingLeaves = parentalLeaveRepository.findByPersonIdAndDate(
-                request.getPersonId(), request.getDate());
+            boolean longLeave = sgiRuleService.is5DayFree(requestDate, personId);
 
-        if (sgiRuleService.isWeekend(request.getDate())) {
+            /* If not free for >= 5 days
+             Check that weekend rules are fulfilled in terms of
+             Extent on surrounding days are more or the same as weekend leaves extent */
+            if(!longLeave) {
+                LocalDate friday = requestDate.getDayOfWeek() == DayOfWeek.SATURDAY
+                        ? requestDate.minusDays(1)
+                        : requestDate.minusDays(2);
 
-            double fridayExtent;
-            double mondayExtent;
+                LocalDate monday = requestDate.getDayOfWeek() == DayOfWeek.SUNDAY
+                        ? requestDate.plusDays(1)
+                        : requestDate.plusDays(2);
 
-            LocalDate friday = requestDate.getDayOfWeek() == DayOfWeek.SATURDAY
-                    ? requestDate.minusDays(1)
-                    : requestDate.minusDays(2);
+                double fridayExtent = parentalLeaveRepository.findExtentsByDateAndPersonId(friday, personId);
+                double mondayExtent = parentalLeaveRepository.findExtentsByDateAndPersonId(monday, personId);
 
-            LocalDate monday = requestDate.getDayOfWeek() == DayOfWeek.SUNDAY
-                    ? requestDate.plusDays(1)
-                    : requestDate.plusDays(2);
-
-            fridayExtent = parentalLeaveRepository.getLeaveExtentOnDay(
-                    request.getPersonId(), friday);
-
-            mondayExtent = parentalLeaveRepository.getLeaveExtentOnDay(
-                    request.getPersonId(), monday);
-
-            // Göra om till boolean?
-            String validationError = sgiRuleService.validateParentalLeave(
-                    parentalLeave, shifts, existingLeaves, fridayExtent, mondayExtent);
-
-            if (validationError != null) { // skicka "This is not a valid day to apply for parental leave"
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, validationError);
+                boolean validWeekendExtent = sgiRuleService.isWeekendExtentValid(totalNewExtent, fridayExtent, mondayExtent);
+                if (!validWeekendExtent) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Weekend extent not valid");
+                }
             }
         }
-        ParentalLeave savedLeave = parentalLeaveRepository.save(parentalLeave);
+        ParentalLeave savedLeave = parentalLeaveRepository.save(newParentalLeave);
 
         return new ParentalLeaveResponse(savedLeave.getDate(), savedLeave.getExtent());
     }
