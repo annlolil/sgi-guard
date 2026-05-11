@@ -27,27 +27,27 @@ public class SgiRuleService {
     }
 
     // A method that takes a shift and identifies which day is the main day of working hours
-    public LocalDate identifyMainDay(Shift shift) {
-
-        LocalDateTime start = shift.getShiftStart();
-        LocalDateTime end = shift.getShiftEnd();
-
-        if (start.toLocalDate().isEqual(end.toLocalDate())) {
-            return start.toLocalDate();
-        }
-
-        LocalDateTime midnight = start.toLocalDate().plusDays(1).atStartOfDay();
-
-        long minutesFirstDay = Duration.between(start, midnight).toMinutes();
-        long minutesSecondDay = Duration.between(midnight, end).toMinutes();
-
-        if (minutesFirstDay >= minutesSecondDay) {
-            return start.toLocalDate();
-        }
-        else {
-            return end.toLocalDate();
-        }
-    }
+//    public LocalDate identifyMainDay(Shift shift) {
+//
+//        LocalDateTime start = shift.getShiftStart();
+//        LocalDateTime end = shift.getShiftEnd();
+//
+//        if (start.toLocalDate().isEqual(end.toLocalDate())) {
+//            return start.toLocalDate();
+//        }
+//
+//        LocalDateTime midnight = start.toLocalDate().plusDays(1).atStartOfDay();
+//
+//        long minutesFirstDay = Duration.between(start, midnight).toMinutes();
+//        long minutesSecondDay = Duration.between(midnight, end).toMinutes();
+//
+//        if (minutesFirstDay >= minutesSecondDay) {
+//            return start.toLocalDate();
+//        }
+//        else {
+//            return end.toLocalDate();
+//        }
+//    }
 
     public boolean isWeekend(LocalDate date) {
         DayOfWeek day = date.getDayOfWeek();

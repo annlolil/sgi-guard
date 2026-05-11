@@ -8,6 +8,7 @@ import se.lilja.sgiguard.dtos.ParentalLeaveRequest;
 import se.lilja.sgiguard.dtos.ParentalLeaveResponse;
 import se.lilja.sgiguard.entities.ParentalLeave;
 import se.lilja.sgiguard.entities.Person;
+import se.lilja.sgiguard.models.DailyWorkSummary;
 import se.lilja.sgiguard.repositories.ParentalLeaveRepository;
 import se.lilja.sgiguard.repositories.PersonRepository;
 
@@ -54,7 +55,17 @@ public class ParentalLeaveService implements ParentalLeaveInterface {
 
         // Check if the requested date is a work free day and a weekend
         boolean workFreeDay = sgiRuleService.isWorkFreeDay(personId, requestDate);
-        if (sgiRuleService.isWeekend(requestDate) && workFreeDay) {
+
+        if(!workFreeDay) {
+            DailyWorkSummary summary =
+                    sgiCalculationService.calculateDailyWorkSummary(personId, requestDate);
+            if(totalNewExtent > summary.getRecommendedExtent()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Extent exceeds the gap to fill");
+            }
+        }
+
+        boolean weekend = sgiRuleService.isWeekend(requestDate);
+        if (weekend && workFreeDay) {
 
             boolean longLeave = sgiRuleService.is5DayFree(requestDate, personId);
 
