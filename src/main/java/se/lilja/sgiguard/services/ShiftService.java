@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import se.lilja.sgiguard.dtos.ShiftRequest;
+import se.lilja.sgiguard.dtos.ShiftResponse;
 import se.lilja.sgiguard.entities.Person;
 import se.lilja.sgiguard.entities.Shift;
 import se.lilja.sgiguard.entities.Employment;
@@ -14,6 +15,7 @@ import se.lilja.sgiguard.repositories.ShiftRepository;
 import se.lilja.sgiguard.repositories.EmploymentRepository;
 import se.lilja.sgiguard.utils.DateRange;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -34,54 +36,39 @@ public class ShiftService implements ShiftServiceInterface {
     }
 
     @Override
-    public Shift addShift(ShiftRequest shiftRequest, Long personId) {
+    public ShiftResponse addShift(ShiftRequest request) {
         // Get the person that is logged in and connect it to the shift that's being saved
-        Person person = personRepository.findById(personId).orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.NOT_FOUND, "Person not found"));
+        Person person = personRepository.findPersonByPersonalNumber(request.getPersonalNumber());
 
-        Employment employment = employmentRepository.findById(shiftRequest.getEmploymentId()).orElseThrow(()->
-                new ResponseStatusException(HttpStatus.NOT_FOUND, "Employment not found"));
+//        Employment employment = employmentRepository.findById(shiftRequest.getEmploymentId()).orElseThrow(()->
+//                new ResponseStatusException(HttpStatus.NOT_FOUND, "Employment not found"));
 
         // Fetch start and end time for the shift and validate that
         // shifts start date and time is before end date and time
         // shift is not more than 24 hours long
-        LocalDateTime startDateTime = LocalDateTime.of(shiftRequest.getStartDate(), shiftRequest.getStartTime());
-        LocalDateTime endDateTime = LocalDateTime.of(shiftRequest.getEndDate(), shiftRequest.getEndTime());
-        DateRange dateRange = new DateRange(startDateTime, endDateTime);
-        dateRange.validateAsShift();
+        LocalDateTime startDateTime = LocalDateTime.of(request.getStartDate(), request.getStartTime());
+        LocalDateTime endDateTime = LocalDateTime.of(request.getEndDate(), request.getEndTime());
+        validateShiftDuration(startDateTime, endDateTime);
 
-        int breakMinutes = shiftRequest.getBreakMinutes();
-        ShiftType type = shiftRequest.getType();
+        int breakMinutes = request.getBreakMinutes();
 
-        Shift shift = convertToEntity(startDateTime, endDateTime, person, employment, breakMinutes, type);
-        return shiftRepository.save(shift);
-    }
+        // Shift type defaults to ACTUAL
+        ShiftType type = ShiftType.ACTUAL;
+        // Convert requested shift type from string to enum
+        if(request.getType().startsWith("b") || request.getType().startsWith("B")) {
+            type = ShiftType.BASELINE;
+        }
 
-    private static Shift convertToEntity(
-            LocalDateTime startDateTime,
-            LocalDateTime endDateTime,
-            Person person,
-            Employment employment,
-            Integer breakMinutes,
-            ShiftType type) {
+        Shift newShift = Shift.builder()
+                .shiftStart(startDateTime)
+                .shiftEnd(endDateTime)
+                .person(person)
+                .breakMinutes(breakMinutes)
+                .type(type).build();
 
-        Shift shift = new Shift();
-        shift.setPerson(person);
-        shift.setEmployment(employment);
-        shift.setShiftStart(startDateTime);
-        shift.setShiftEnd(endDateTime);
-        shift.setBreakMinutes(60);
-        shift.setType(type);
-        return shift;
-    }
+        Shift savedShift = shiftRepository.save(newShift);
 
-    @Override
-    public List<Shift> getShifts(Long personId) {
-
-        personRepository.findById(personId).orElseThrow(()->
-                new ResponseStatusException(HttpStatus.NOT_FOUND, "Person not found"));
-
-        return shiftRepository.findShiftByPersonId(personId);
+        return new ShiftResponse(savedShift.getShiftStart(), savedShift.getShiftEnd(), savedShift.getType());
     }
 
     @Override
@@ -94,16 +81,16 @@ public class ShiftService implements ShiftServiceInterface {
         return "Shift deleted";
     }
 
-//    private void validateShiftDuration(LocalDateTime start, LocalDateTime end) {
-//        Duration duration = Duration.between(start, end);
-//
-//        if (duration.isNegative()) {
-//            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Skiftet kan inte sluta innan det börjar.");
-//        }
-//
-//        if (duration.toHours() > 24) {
-//            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-//                    "Ett skift kan inte vara längre än 24 timmar. Kontrollera datum och tid.");
-//        }
-//    }
+    private void validateShiftDuration(LocalDateTime start, LocalDateTime end) {
+        Duration duration = Duration.between(start, end);
+
+        if (duration.isNegative()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A shift can not end before it starts.");
+        }
+
+        if (duration.toHours() > 24) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "A shift can not be more than 24 hours.");
+        }
+    }
 }

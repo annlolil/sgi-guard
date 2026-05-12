@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import se.lilja.sgiguard.dtos.ShiftRequest;
+import se.lilja.sgiguard.dtos.ShiftResponse;
 import se.lilja.sgiguard.entities.Shift;
 import se.lilja.sgiguard.repositories.ShiftRepository;
 import se.lilja.sgiguard.services.ShiftService;
@@ -26,17 +27,16 @@ public class ShiftController {
     }
 
     // An endpoint where a user adds a shift. The endpoint looks at the current users id and saves it to the shift.
-    @PostMapping("/addshift/{personId}")
-    public ResponseEntity<Shift> addShift(@RequestBody ShiftRequest shiftRequest,
-                                          @PathVariable Long personId) { // Change later do @Authentication principal if I have the time)
-        return new ResponseEntity<>(shiftService.addShift(shiftRequest, personId), HttpStatus.CREATED);
+    @PostMapping("/addshift")
+    public ResponseEntity<ShiftResponse> addShift(@RequestBody ShiftRequest shiftRequest) {
+        return new ResponseEntity<>(shiftService.addShift(shiftRequest), HttpStatus.CREATED);
     }
 
-    // An endpoint that gets a specific persons all saved shifts.
-    @GetMapping("/getshifts")
-    public ResponseEntity<List<Shift>> getShifts(Long personId) {
-        return ResponseEntity.ok(shiftService.getShifts(personId));
-    }
+//    // An endpoint that gets a specific persons all saved shifts.
+//    @GetMapping("/getshifts")
+//    public ResponseEntity<List<Shift>> getShifts(Long personId) {
+//        return ResponseEntity.ok(shiftService.getShifts(personId));
+//    }
 
     @DeleteMapping("/deleteshift/{id}")
     public ResponseEntity<String> deleteShift(@PathVariable Long id) {

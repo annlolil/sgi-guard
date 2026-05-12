@@ -23,11 +23,4 @@ public record DateRange(LocalDateTime start, LocalDateTime end) {
     public static DateRange of(LocalDate from, LocalDate to) {
         return new DateRange(from.atStartOfDay(), to.plusDays(1).atStartOfDay());
     }
-
-    public void validateAsShift() {
-        if (Duration.between(start, end).toHours() > 24) {
-            throw new IllegalArgumentException("Shift is too long");
-        }
-    }
-
 }

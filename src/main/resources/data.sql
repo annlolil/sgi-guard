@@ -8,13 +8,13 @@ VALUES (100, 85, 34.2, '2024-01-01', '2024-05-01', 1);
 
 -- 3. A workshift BASELINE
 -- 8h shift monday
-INSERT INTO shift (shift_start, shift_end, break_minutes, type, person_id, employment_id)
-VALUES ('2024-04-01 08:00','2024-04-01 17:00', 60,'BASELINE',1, 1);
+INSERT INTO shift (shift_start, shift_end, break_minutes, type, person_id)
+VALUES ('2024-04-01 08:00','2024-04-01 17:00', 60,'BASELINE',1);
 
 -- 3. A workshift ACTUAL
 -- 6h shift monday
-INSERT INTO shift (shift_start, shift_end, break_minutes, type, person_id, employment_id)
-VALUES ('2024-04-01 08:00','2024-04-01 15:00', 60, 'ACTUAL',1, 1);
+INSERT INTO shift (shift_start, shift_end, break_minutes, type, person_id)
+VALUES ('2024-04-01 08:00','2024-04-01 15:00', 60, 'ACTUAL',1);
 
 
 -- 6. A workshift

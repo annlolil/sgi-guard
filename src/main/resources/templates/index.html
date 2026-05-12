@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <title>SGIGuard</title>
+</head>
+
+<body>
+
+<h1>SGIGuard</h1>
+
+<h2>Add person</h2>
+
+<form action="/person" method="post">
+
+    <label>
+        <input type="text"
+               name="personalNumber"
+               placeholder="Personal number">
+    </label>
+
+    <label>
+        <input type="text"
+               name="firstName"
+               placeholder="First name">
+    </label>
+
+    <label>
+        <input type="text"
+               name="lastName"
+               placeholder="Last name">
+    </label>
+
+    <button type="submit">
+        Add person
+    </button>
+
+</form>
+
+<hr>
+
+<h2>Add baseline shift</h2>
+
+<form action="/shift" method="post">
+
+    <label>
+        <input type="text"
+               name="personalNumber"
+               placeholder="Personal number">
+    </label>
+
+    <label>
+        <input type="date"
+               name="startDate"
+               placeholder="Shift start date">
+    </label>
+
+    <label>
+        <input type="time"
+               name="startTime"
+               placeholder="Shift start time">
+    </label>
+
+    <label>
+        <input type="date"
+               name="endDate"
+               placeholder="Shift end">
+    </label>
+
+    <label>
+        <input type="time"
+               name="endTime"
+               placeholder="Shift end time">
+    </label>
+
+    <label>
+        <input type="number"
+               name="breakMinutes"
+               placeholder="Break minutes if any">
+    </label>
+
+    <label>
+        <input type="text"
+               name="type"
+               placeholder="Shift type: baseline or actual">
+    </label>
+
+    <button type="submit">
+        Add shift
+    </button>
+
+</form>
+
+<hr>
+
+<h2>Analyze Day</h2>
+
+<form action="/analyze" method="post">
+
+    <label>
+        <input type="number"
+               name="personalNumber"
+               placeholder="Personal Number">
+    </label>
+
+    <label>
+        <input type="date"
+               name="date">
+    </label>
+
+    <button type="submit">
+        Analyze
+    </button>
+
+</form>
+
+<hr>
+
+<h2>Add Parental Leave</h2>
+
+<form action="/parental-leave" method="post">
+
+    <label>
+        <input type="number"
+               name="personalNumber"
+               placeholder="Personal Number">
+    </label>
+
+    <label>
+        <input type="date"
+               name="date">
+    </label>
+
+    <label>
+        <input type="number"
+               step="0.125"
+               name="extent"
+               placeholder="Extent">
+    </label>
+
+    <button type="submit">
+        Add Leave
+    </button>
+
+</form>
+
+</body>
+</html>
+

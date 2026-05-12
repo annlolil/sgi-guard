@@ -34,9 +34,7 @@ public class ParentalLeaveService implements ParentalLeaveInterface {
 
     public ParentalLeaveResponse addParentalLeave(ParentalLeaveRequest request) {
 
-        Person person = personRepository.findById(request.getPersonId()).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Person not found")
-        );
+        Person person = personRepository.findPersonByPersonalNumber(request.getPersonalNumber());
 
         LocalDate requestDate = request.getDate();
         Long personId = person.getId();
