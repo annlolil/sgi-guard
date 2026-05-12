@@ -9,6 +9,7 @@ import se.lilja.sgiguard.dtos.SgiWeeklyAnalysisResponse;
 import se.lilja.sgiguard.entities.ParentalLeave;
 import se.lilja.sgiguard.entities.Shift;
 import se.lilja.sgiguard.entities.Employment;
+import se.lilja.sgiguard.models.DailyWorkSummary;
 import se.lilja.sgiguard.models.SgiStatus;
 import se.lilja.sgiguard.models.ShiftType;
 import se.lilja.sgiguard.repositories.EmploymentRepository;
@@ -160,9 +161,13 @@ public class SgiCalculationService {
         return Math.round((totalMinutes / 60.0) * 100.0) / 100.0;
     }
 
-    public SgiDailyAnalysisResponse analyzeDay(Long personId, LocalDate date) {
-
-        DayOfWeek dayOfWeek = date.getDayOfWeek(); // Get the week day to analyze
+    public DailyWorkSummary calculateDailyWorkSummary(Long personId, LocalDate date) {
+        /*fetch shifts
+        summarize baseline
+        summarize actual
+        calculate gap
+        calculate recommended extent
+        return DailyWorkSummary.*/
 
         // Get the shifts for that day, it can be shifts starting and/or ending upon that day
         LocalDateTime dayStart = date.atStartOfDay();
@@ -178,7 +183,7 @@ public class SgiCalculationService {
         double actualWorkHours = summarizeWorkHoursForDay(actualShifts, date);
         double baselineWorkHours = summarizeWorkHoursForDay(baselineShifts, date);
 
-        // Get existing parentalleaves for this day // rework to one object instead of a list?
+        // Get existing parentalleaves for this day
         List<ParentalLeave> parentalLeaves = parentalLeaveRepository.findByPersonIdAndDate(personId, date);
         double totalExtent = parentalLeaves.stream().mapToDouble(ParentalLeave::getExtent).sum();
         double leaveHours = baselineWorkHours > 0 ?
@@ -198,6 +203,25 @@ public class SgiCalculationService {
 
         double recommendedExtent = roundUpToNearest(rawRecommendedExtent);
 
+        return DailyWorkSummary.builder()
+                .baselineHours(baselineWorkHours)
+                .actualHours(actualWorkHours)
+                .leaveExtent(totalExtent)
+                .leaveHours(leaveHours)
+                .gapHours(gapHours)
+                .recommendedExtent(recommendedExtent)
+                .build();
+    }
+
+    public SgiDailyAnalysisResponse analyzeDay(Long personId, LocalDate date) {
+
+        DayOfWeek dayOfWeek = date.getDayOfWeek(); // Get the week day to analyze
+
+        DailyWorkSummary dailyWorkSummary = calculateDailyWorkSummary(personId, date);
+
+        double recommendedExtent = dailyWorkSummary.getRecommendedExtent();
+        double totalExtent = dailyWorkSummary.getLeaveExtent();
+
         SgiStatus status;
         if (totalExtent > recommendedExtent) {
             status = SgiStatus.OVERCOMPENSATED;
@@ -212,12 +236,13 @@ public class SgiCalculationService {
         return new SgiDailyAnalysisResponse(
                 date,
                 dayOfWeek,
-                baselineWorkHours,
-                actualWorkHours,
+                dailyWorkSummary.getBaselineHours(),
+                dailyWorkSummary.getActualHours(),
                 totalExtent,
-                gapHours,
+                dailyWorkSummary.getGapHours(),
                 recommendedExtent,
-                status);
+                status
+        );
     }
 
 //    public double getLeaveExtentOnDay(Long personId, LocalDate date) {
@@ -408,5 +433,19 @@ public class SgiCalculationService {
                 range.end()
         );
     }
+            /*
+        public double calculateRecommendedExtent(Long personId, LocalDate date) {
+         // Calculate how many hours that are missing without any parental leave
+        // To use for calculating recommended total extent of parental leave to apply for
+
+            double workHoursGap = Math.max(0, baselineWorkHours - actualWorkHours);
+            double rawRecommendedExtent = baselineWorkHours > 0 ?
+                workHoursGap / baselineWorkHours
+                : 0;
+
+            double recommendedExtent = roundUpToNearest(rawRecommendedExtent);
+
+            return recommendedExtent;
+         */
 
 }

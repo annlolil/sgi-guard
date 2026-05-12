@@ -27,27 +27,27 @@ public class SgiRuleService {
     }
 
     // A method that takes a shift and identifies which day is the main day of working hours
-    public LocalDate identifyMainDay(Shift shift) {
-
-        LocalDateTime start = shift.getShiftStart();
-        LocalDateTime end = shift.getShiftEnd();
-
-        if (start.toLocalDate().isEqual(end.toLocalDate())) {
-            return start.toLocalDate();
-        }
-
-        LocalDateTime midnight = start.toLocalDate().plusDays(1).atStartOfDay();
-
-        long minutesFirstDay = Duration.between(start, midnight).toMinutes();
-        long minutesSecondDay = Duration.between(midnight, end).toMinutes();
-
-        if (minutesFirstDay >= minutesSecondDay) {
-            return start.toLocalDate();
-        }
-        else {
-            return end.toLocalDate();
-        }
-    }
+//    public LocalDate identifyMainDay(Shift shift) {
+//
+//        LocalDateTime start = shift.getShiftStart();
+//        LocalDateTime end = shift.getShiftEnd();
+//
+//        if (start.toLocalDate().isEqual(end.toLocalDate())) {
+//            return start.toLocalDate();
+//        }
+//
+//        LocalDateTime midnight = start.toLocalDate().plusDays(1).atStartOfDay();
+//
+//        long minutesFirstDay = Duration.between(start, midnight).toMinutes();
+//        long minutesSecondDay = Duration.between(midnight, end).toMinutes();
+//
+//        if (minutesFirstDay >= minutesSecondDay) {
+//            return start.toLocalDate();
+//        }
+//        else {
+//            return end.toLocalDate();
+//        }
+//    }
 
     public boolean isWeekend(LocalDate date) {
         DayOfWeek day = date.getDayOfWeek();
@@ -77,7 +77,7 @@ public class SgiRuleService {
         return !hasBaselineShift;
     }
 
-    // Checks if a person has 5 free days of work
+    // Checks if a person has >=5 free days of work
     // According to Forsakringskassan it is okay to apply for parental leave on a saturday, sunday
     // or other day a person would not work as long as it is surrounded by 4 other free days.
     public boolean is5DayFree(LocalDate date, Long personId) {
@@ -93,7 +93,7 @@ public class SgiRuleService {
             if (freeDays) {
                 totalFreeDays++;
             } else {
-                totalFreeDays = 0; // Resets totalFreeDays if the 5 day period breaks with a work day
+                totalFreeDays = 0; // Resets totalFreeDays if the 5-day period breaks with a work day
             }
 
             if (totalFreeDays >= 5) {
@@ -103,61 +103,7 @@ public class SgiRuleService {
         return false;
     }
 
-//    private boolean isPeriodWorkFree(LocalDate start, LocalDate end, List<LocalDate> workDays) {
-//
-//        LocalDate current = start;
-//
-//        while(!current.isAfter(end)) {
-//            if(workDays.contains(current)) {
-//                return false;
-//            }
-//            current = current.plusDays(1);
-//        }
-//        return true;
-//    }
-
-//    public String validateParentalLeave(ParentalLeave parentalLeave,
-//                                           List<Shift> shifts,
-//                                           List<ParentalLeave> existingLeaves,
-//                                           double fridayExtent,
-//                                           double mondayExtent) {
-//
-//        // Extent > 0
-//        if(!isExtentValid(parentalLeave, existingLeaves)) {
-//            return "Total parental leave extent can not exceed 100 % on one day";
-//        }
-//
-//        // Weekend rule
-//        if (isWeekend(parentalLeave.getDate()) && !is5DayFree(parentalLeave.getDate(), shifts)) {
-//
-//            boolean valid = isWeekendClaimValid(
-//                    fridayExtent, mondayExtent, parentalLeave.getExtent());
-//
-//            if(!valid) {
-//                return "Warning weekend rule violation";
-//            }
-//
-//        }
-//        return null;
-//    }
-
-//    public boolean validateWeekendRule(ParentalLeave parentalLeave, List<Shift> shifts, double fridayExtent, double mondayExtent) {
-//
-//        // Weekend rule
-//        if (isWeekend(parentalLeave.getDate()) && !is5DayFree(parentalLeave.getDate(), shifts)) {
-//
-//            boolean valid = isWeekendClaimValid(
-//                    fridayExtent, mondayExtent, parentalLeave.getExtent());
-//
-//            if(!valid) {
-//                return false;
-//            }
-//
-//        }
-//        return true;
-//    }
-
-    // Check if current extent exceeds existing extent for the same date
+    // Check if total extent for a day exceeds the maximum value of 1.0 days
     public boolean isExtentValid(ParentalLeave newLeave, double existingExtent) {
 
         double totalExtent = existingExtent + newLeave.getExtent();
@@ -182,36 +128,6 @@ public class SgiRuleService {
 //
 //                warnings.add("Weekend rule may not be fulfilled");
 //            }
-//        return warnings;
-//    }
-
-//    public List<String> getParentalLeaveWarnings(
-//            ParentalLeave parentalLeave,
-//            List<Shift> shifts,
-//            List<ParentalLeave> sameDayLeaves,
-//            double fridayExtent,
-//            double mondayExtent) {
-//
-//        List<String> warnings = new ArrayList<>();
-//
-//        if(validateExtent(parentalLeave, sameDayLeaves)) {
-//            warnings.add("Parental leave exceeds 100% on one day");
-//        }
-//
-//        if(isWeekend(parentalLeave.getDate())
-//                && !is5DayFree(parentalLeave.getDate(), shifts)) {
-//
-//            boolean valid = isWeekendClaimValid(
-//                    fridayExtent,
-//                    mondayExtent,
-//                    parentalLeave.getExtent()
-//            );
-//
-//            if(!valid) {
-//                warnings.add("Weekend rule may not be fulfilled");
-//            }
-//        }
-//
 //        return warnings;
 //    }
 }

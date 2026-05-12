@@ -8,11 +8,13 @@ import se.lilja.sgiguard.dtos.ParentalLeaveRequest;
 import se.lilja.sgiguard.dtos.ParentalLeaveResponse;
 import se.lilja.sgiguard.entities.ParentalLeave;
 import se.lilja.sgiguard.entities.Person;
+import se.lilja.sgiguard.models.DailyWorkSummary;
 import se.lilja.sgiguard.repositories.ParentalLeaveRepository;
 import se.lilja.sgiguard.repositories.PersonRepository;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.util.List;
 
 @Service
 public class ParentalLeaveService implements ParentalLeaveInterface {
@@ -39,12 +41,16 @@ public class ParentalLeaveService implements ParentalLeaveInterface {
         LocalDate requestDate = request.getDate();
         Long personId = person.getId();
 
+        if(!VALID_EXTENTS.contains(request.getExtent())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid extent");
+        }
+
         ParentalLeave newParentalLeave = ParentalLeave.builder()
                 .person(person)
                 .date(requestDate)
                 .extent(request.getExtent()).build();
 
-        // Check if current extent exceeds eventual existing extent
+        // Check if new and existing extent exceeds 1.0 days
         double existingExtent = parentalLeaveRepository.findExtentsByDateAndPersonId(requestDate, personId);
         boolean validExtent = sgiRuleService.isExtentValid(newParentalLeave, existingExtent);
         if (!validExtent) {
@@ -54,7 +60,17 @@ public class ParentalLeaveService implements ParentalLeaveInterface {
 
         // Check if the requested date is a work free day and a weekend
         boolean workFreeDay = sgiRuleService.isWorkFreeDay(personId, requestDate);
-        if (sgiRuleService.isWeekend(requestDate) && workFreeDay) {
+
+        if(!workFreeDay) {
+            DailyWorkSummary summary =
+                    sgiCalculationService.calculateDailyWorkSummary(personId, requestDate);
+            if(totalNewExtent > summary.getRecommendedExtent()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Extent exceeds the gap to fill");
+            }
+        }
+
+        boolean weekend = sgiRuleService.isWeekend(requestDate);
+        if (weekend && workFreeDay) {
 
             boolean longLeave = sgiRuleService.is5DayFree(requestDate, personId);
 
@@ -94,4 +110,7 @@ public class ParentalLeaveService implements ParentalLeaveInterface {
         return "Parental leave deleted on " + parentalLeave.getDate() + ".";
     }
 
+    // Extents that represents parts of a parental leave day
+    private static final List<Double> VALID_EXTENTS =
+            List.of(0.125, 0.25, 0.5, 0.75, 1.0);
 }
