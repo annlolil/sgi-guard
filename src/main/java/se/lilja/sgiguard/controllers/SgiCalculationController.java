@@ -9,8 +9,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import se.lilja.sgiguard.dtos.SgiDailyAnalysisResponse;
-import se.lilja.sgiguard.dtos.SgiPeriodAnalysisResponse;
-import se.lilja.sgiguard.dtos.SgiWeeklyAnalysisResponse;
 import se.lilja.sgiguard.services.SgiCalculationService;
 
 import java.time.LocalDate;

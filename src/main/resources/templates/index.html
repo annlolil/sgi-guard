@@ -8,6 +8,19 @@
 
 <h1>SGIGuard</h1>
 
+<p th:if="${error}"
+   th:text="${error}"
+   style="color:red;">
+</p>
+
+<p th:if="${leave}"
+   style="color:green;">
+
+    Parental leave added:
+    <span th:text="${leave.date}"></span>
+
+</p>
+
 <h2>Add person</h2>
 
 <form action="/person" method="post">
@@ -90,6 +103,39 @@
 
 </form>
 
+<h2>Add Parental Leave</h2>
+
+<form action="/parental-leave" method="post">
+
+    <label>
+        <input type="number"
+               name="personalNumber"
+               placeholder="Personal Number">
+    </label>
+
+    <label>
+        <input type="date"
+               name="date">
+    </label>
+
+    <label>
+        <select name="extent">
+
+            <option value="0.125">1/8 day</option>
+            <option value="0.25">1/4 day</option>
+            <option value="0.5">1/2 day</option>
+            <option value="0.75">3/4 day</option>
+            <option value="1.0">Full day</option>
+
+        </select>
+    </label>
+
+    <button type="submit">
+        Add Leave
+    </button>
+
+</form>
+
 <hr>
 
 <h2>Analyze Day</h2>
@@ -114,34 +160,6 @@
 </form>
 
 <hr>
-
-<h2>Add Parental Leave</h2>
-
-<form action="/parental-leave" method="post">
-
-    <label>
-        <input type="number"
-               name="personalNumber"
-               placeholder="Personal Number">
-    </label>
-
-    <label>
-        <input type="date"
-               name="date">
-    </label>
-
-    <label>
-        <input type="number"
-               step="0.125"
-               name="extent"
-               placeholder="Extent">
-    </label>
-
-    <button type="submit">
-        Add Leave
-    </button>
-
-</form>
 
 </body>
 </html>

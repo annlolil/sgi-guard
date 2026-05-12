@@ -6,8 +6,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import se.lilja.sgiguard.dtos.SgiDailyAnalysisResponse;
-import se.lilja.sgiguard.dtos.SgiPeriodAnalysisResponse;
-import se.lilja.sgiguard.dtos.SgiWeeklyAnalysisResponse;
 import se.lilja.sgiguard.entities.ParentalLeave;
 import se.lilja.sgiguard.entities.Person;
 import se.lilja.sgiguard.entities.Shift;
@@ -274,38 +272,6 @@ public class SgiCalculationService {
 //    private int weeklyNumber;
 //    private Map<DayOfWeek, SgiStatus> dailyStatus; // Showing weekday and if that day is protected, at_risk or overcompensated
 //    private Map<DayOfWeek, Double> dailyRecommendation;
-
-//    public SgiPeriodAnalysisResponse analyzePeriod(Long personId, LocalDate from, LocalDate to) {
-//        List<SgiWeeklyAnalysisResponse> weeklyResults = new ArrayList<>();
-//
-//        // Adjust from and to so that the calculation is performed on whole weeks within the period
-//        LocalDate adjustedFrom = from.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-//        LocalDate adjustedTo = to.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
-//
-//        while(!adjustedFrom.isAfter(adjustedTo.minusDays(6))) {
-//            weeklyResults.add(analyzeWeek(personId, adjustedFrom));
-//            adjustedFrom = adjustedFrom.plusWeeks(1);
-//        }
-//
-//        double totalPlanned = weeklyResults.stream().mapToDouble(SgiWeeklyAnalysisResponse::getTotalPlannedHours).sum();
-//        double totalTarget = weeklyResults.stream().mapToDouble(SgiWeeklyAnalysisResponse::getTargetHours).sum();
-//        totalPlanned = Math.round(totalPlanned * 100.0) / 100.0;
-//        totalTarget = Math.round(totalTarget * 100.0) / 100.0;
-//
-//        SgiStatus overallStatus = (totalPlanned >= totalTarget) ? SgiStatus.PROTECTED : SgiStatus.AT_RISK;
-//
-//        String recommendation = (overallStatus == SgiStatus.PROTECTED) ? "Your total plan looks safe" :
-//                "The analyze is covering " + weeklyResults.size() + " whole weeks. Total goal for these weeks" +
-//                " are " + totalTarget + " hours.";
-//
-//        return new SgiPeriodAnalysisResponse(
-//                weeklyResults,
-//                totalPlanned,
-//                totalTarget,
-//                overallStatus,
-//                recommendation
-//        );
-//    }
 
     private static double roundUpToNearest(double days) {
         if(days <= 0) {

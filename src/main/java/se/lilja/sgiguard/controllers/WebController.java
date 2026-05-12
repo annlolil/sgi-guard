@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import se.lilja.sgiguard.dtos.*;
 import se.lilja.sgiguard.models.ShiftType;
 import se.lilja.sgiguard.repositories.PersonRepository;
@@ -62,19 +63,27 @@ public class WebController {
             @RequestParam Double extent,
             Model model) {
 
-        ParentalLeaveRequest request =
-                new ParentalLeaveRequest();
+        try {
+            ParentalLeaveRequest request =
+                    new ParentalLeaveRequest();
 
-        request.setPersonalNumber(personalNumber);
-        request.setDate(date);
-        request.setExtent(extent);
+            request.setPersonalNumber(personalNumber);
+            request.setDate(date);
+            request.setExtent(extent);
 
-        ParentalLeaveResponse response =
-                parentalLeaveService.addParentalLeave(request);
+            ParentalLeaveResponse response =
+                    parentalLeaveService.addParentalLeave(request);
 
-        model.addAttribute("leave", response);
+            model.addAttribute(
+                    "leave",
+                    response);
 
-        return "parentalleave";
+            return "index";
+        }
+        catch (ResponseStatusException e) {
+            model.addAttribute("error", e.getReason());
+            return "index";
+        }
     }
 
     @PostMapping("/person")
