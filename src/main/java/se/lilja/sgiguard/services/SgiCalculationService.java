@@ -1,16 +1,15 @@
 package se.lilja.sgiguard.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cglib.core.Local;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 import se.lilja.sgiguard.dtos.SgiDailyAnalysisResponse;
+import se.lilja.sgiguard.dtos.SgiWeeklyAnalysisResponse;
 import se.lilja.sgiguard.entities.ParentalLeave;
 import se.lilja.sgiguard.entities.Person;
 import se.lilja.sgiguard.entities.Shift;
 import se.lilja.sgiguard.entities.Employment;
 import se.lilja.sgiguard.models.DailyWorkSummary;
+import se.lilja.sgiguard.models.LeaveExtent;
 import se.lilja.sgiguard.models.SgiStatus;
 import se.lilja.sgiguard.models.ShiftType;
 import se.lilja.sgiguard.repositories.EmploymentRepository;
@@ -19,16 +18,12 @@ import se.lilja.sgiguard.repositories.PersonRepository;
 import se.lilja.sgiguard.repositories.ShiftRepository;
 import se.lilja.sgiguard.utils.DateRange;
 
-import java.time.DayOfWeek;
-import java.time.Duration;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.sql.SQLOutput;
+import java.time.*;
 import java.time.temporal.TemporalAdjusters;
 import java.time.temporal.WeekFields;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class SgiCalculationService {
@@ -55,7 +50,7 @@ public class SgiCalculationService {
         LocalDate empEnd = emp.getValidTo();
 
         //If employment is missing validTo it is active until further notice
-        if(empEnd == null) {
+        if (empEnd == null) {
             return !empStart.isAfter(to);
         }
 
@@ -96,8 +91,8 @@ public class SgiCalculationService {
                                 .equals(shift.getShiftEnd().toLocalDate());
 
                 // Check if shift is a night shift and if not subtract break minutes
-                if(!overnightShift) {
-                    if(shift.getBreakMinutes() != null) {
+                if (!overnightShift) {
+                    if (shift.getBreakMinutes() != null) {
                         totalMinutes -= shift.getBreakMinutes();
                     }
                 }
@@ -114,16 +109,16 @@ public class SgiCalculationService {
         calculate recommended extent
         return DailyWorkSummary.*/
 
-        // Get the shifts for that day, it can be shifts starting and/or ending upon that day
+        // Get the shifts for that day, it can be shifts starting and/or ending inside that day
         LocalDateTime dayStart = date.atStartOfDay();
         LocalDateTime dayEnd = date.plusDays(1).atStartOfDay();
         List<Shift> dailyShifts = shiftRepository.findOverlappingShifts(personId, dayStart, dayEnd);
 
         List<Shift> actualShifts = dailyShifts.stream().filter(s ->
-                s.getType().equals(ShiftType.ACTUAL)).toList();
+                s.getType() == ShiftType.ACTUAL).toList();
 
         List<Shift> baselineShifts = dailyShifts.stream().filter(s ->
-                s.getType().equals(ShiftType.BASELINE)).toList();
+                s.getType() == ShiftType.BASELINE).toList();
 
         double actualWorkHours = summarizeWorkHoursForDay(actualShifts, date);
         double baselineWorkHours = summarizeWorkHoursForDay(baselineShifts, date);
@@ -142,11 +137,13 @@ public class SgiCalculationService {
         // Calculate how many hours that are missing without any parental leave
         // To use for calculating recommended total extent of parental leave to apply for
         double workHoursGap = Math.max(0, baselineWorkHours - actualWorkHours);
-        double rawRecommendedExtent = baselineWorkHours > 0 ?
-                workHoursGap / baselineWorkHours
-                : 0;
 
-        double recommendedExtent = roundUpToNearest(rawRecommendedExtent);
+//        // Change this!! It must look att overlapping hours
+//        double rawRecommendedExtent = baselineWorkHours > 0 ?
+//                workHoursGap / baselineWorkHours
+//                : 0;
+
+        double recommendedExtent = calculateRecommendedExtent(date, baselineShifts, actualShifts);
 
         return DailyWorkSummary.builder()
                 .baselineHours(baselineWorkHours)
@@ -172,11 +169,9 @@ public class SgiCalculationService {
         SgiStatus status;
         if (totalExtent > recommendedExtent) {
             status = SgiStatus.OVERCOMPENSATED;
-        }
-        else if (totalExtent < recommendedExtent) {
+        } else if (totalExtent < recommendedExtent) {
             status = SgiStatus.AT_RISK;
-        }
-        else {
+        } else {
             status = SgiStatus.PROTECTED;
         }
 
@@ -192,175 +187,139 @@ public class SgiCalculationService {
         );
     }
 
-//    public double getLeaveExtentOnDay(Long personId, LocalDate date) {
-//        return findByPersonIdAndDate(personId, date)
-//                .stream()
-//                .mapToDouble(ParentalLeave::getExtent)
-//                .sum();
-//    }
+    // Creates a collection of dates for a whole week
+    private static LocalDate[] getWeekDates(LocalDate weekStart) {
 
-    // Main method that compares planned hours and parental leave with the target on weekly basis
-//    public SgiWeeklyAnalysisResponse analyzeWeek(Long personId, LocalDate dateInWeek) {
-//
-//        // Fetch actual week number and date for Monday and Sunday that week
-//        int weeklyNumber = getWeekNumber(dateInWeek);
-//        LocalDate weekStart = getWeekStart(dateInWeek);
-//        LocalDate weekEnd = getWeekEnd(dateInWeek);
-//
-//        // Fetch all shifts that a person has saved in db
-//        List<Shift> weeklyShifts = getShiftsForPersonInPeriod(personId, weekStart, weekEnd);
-//
-//        List<Shift> actualShifts = weeklyShifts.stream().filter(s ->
-//                s.getType().equals(ShiftType.ACTUAL)).toList();
-//
-//        List<Shift> baselineShifts = weeklyShifts.stream().filter(s ->
-//                s.getType().equals(ShiftType.BASELINE)).toList();
-//
-//        double actualWorkHours = summarizeWorkHoursInPeriod(actualShifts, weekStart, weekEnd);
-//        double baselineWorkHours = summarizeWorkHoursInPeriod(baselineShifts, weekStart, weekEnd);
-////        long baselineDays = baselineShifts.stream()
-////                .map(sgiRuleService::identifyMainDay)
-////                .distinct()
-////                .count();
-//        long baselineDays = baselineShifts.size();
-//
-//        // Fetch the actual Parental leaves that a person has planned to apply for and summarize the hours
-//        List<ParentalLeave> parentalLeaves = getParentalLeaves(personId, weekStart, weekEnd);
-//        double leaveHours = summarizeLeaveHoursInPeriod(parentalLeaves, baselineWorkHours, baselineDays);
-//
-//        double totalPlanned = actualWorkHours + leaveHours;
-//        double gapHours = Math.max(0, baselineWorkHours - totalPlanned);
-//
-//        SgiStatus status = (gapHours <= 0)
-//                ? SgiStatus.PROTECTED
-//                : SgiStatus.AT_RISK;
-//
-//        double hoursPerDay = baselineDays > 0
-//                ? baselineWorkHours / baselineDays
-//                : 0;
-//
-//        double rawRecommendedDays = hoursPerDay > 0
-//                ? gapHours / hoursPerDay
-//                : 0;
-//
-//        double recommendedDays = roundUpToNearest(rawRecommendedDays);
-//
-//        // Create warnings to return for the user that is based on planned parental leave
-//        // the weekend rule
-//        // the exception rule for minimum 5 days free
-//        String warning = collectWeeklyWarnings(personId, parentalLeaves, weeklyShifts, weekStart, weekEnd);
-//
-//
-//        String recommendation = (status == SgiStatus.PROTECTED)
-//                ? "SGI protected"
-//                : "SGI at risk. You need approximately " + recommendedDays + " parental leave days.";
-//
-//        return new SgiWeeklyAnalysisResponse(
-//                weeklyNumber,
-//                actualWorkHours,
-//                leaveHours,
-//                totalPlanned,
-//                gapHours,
-//                recommendedDays,
-//                status,
-//                recommendation,
-//                warning
-//        );
-//    }
+        LocalDate[] daysInWeek = new LocalDate[7];
 
-// This is what analyzeweek should return
-//    private int weeklyNumber;
-//    private Map<DayOfWeek, SgiStatus> dailyStatus; // Showing weekday and if that day is protected, at_risk or overcompensated
-//    private Map<DayOfWeek, Double> dailyRecommendation;
+        for (int i = 0; i < 7; i++) {
+            daysInWeek[i] = weekStart;
+            weekStart = weekStart.plusDays(1);
+        }
+        return daysInWeek;
+    }
 
-    private static double roundUpToNearest(double days) {
-        if(days <= 0) {
+    // Returns a weekly result of sgi statuses using analyze day
+    public SgiWeeklyAnalysisResponse analyzeWeek(String personalNumber, LocalDate date) {
+
+        Person person = personRepository.findPersonByPersonalNumber(personalNumber);
+
+        // Fetch actual week number and date for Monday and Sunday that week
+        int weeklyNumber = getWeekNumber(date);
+        LocalDate weekStart = getWeekStart(date);
+
+        LocalDate[] daysInWeek = getWeekDates(weekStart);
+        List<SgiDailyAnalysisResponse> dailyResponses = new ArrayList<>();
+
+        for (LocalDate localDate : daysInWeek) {
+            dailyResponses.add(analyzeDay(person.getPersonalNumber(), localDate));
+        }
+
+        return new SgiWeeklyAnalysisResponse(
+                weeklyNumber,
+                dailyResponses
+        );
+    }
+
+    private double roundUpToNearestValidExtent(double extent) {
+
+        if(extent <= 0) {
             return 0;
         }
-        double step = 0.125;
-        return Math.ceil(days / step) * step;
+
+        double closestValue = 0;
+        double smallestDifference = Double.MAX_VALUE;
+
+        for(LeaveExtent valid :
+                LeaveExtent.values()) {
+
+            double difference = Math.abs(extent - valid.getValue());
+
+            if(difference < smallestDifference) {
+                smallestDifference = difference;
+
+                closestValue = valid.getValue();
+            }
+        }
+
+        return closestValue;
     }
 
     private static int getWeekNumber(LocalDate date) {
         return date.get(WeekFields.of(Locale.getDefault()).weekOfWeekBasedYear());
     }
 
-    public List<ParentalLeave> getParentalLeaves(Long personId, LocalDate from, LocalDate to) {
-
-        return parentalLeaveRepository.findByPersonIdAndDateBetween(personId, from, to);
-    }
-
-//    private String collectWeeklyWarnings(Long personId,
-//                                         List<ParentalLeave> weeklyLeaves,
-//                                         List<Shift> weeklyShifts,
-//                                         LocalDate weekStart,
-//                                         LocalDate weekEnd) {
-//
-//        StringBuilder warnings = new StringBuilder();
-//
-//        // Extend the list of shifts so that validateParentalLeaveDay looks at a wider period than a week
-//        // Otherwise it might miss shifts in the week before and assume it is free days
-//        List<Shift> extendedListOfShifts = getShiftsForPersonInPeriod(
-//                personId,
-//                weekStart.minusDays(4),
-//                weekEnd.plusDays(4));
-//
-//        for (ParentalLeave parentalLeave : weeklyLeaves) {
-//
-//            List<ParentalLeave> sameDayLeaves = weeklyLeaves.stream()
-//                    .filter(leaves -> leaves.getDate().equals(parentalLeave.getDate())).toList();
-//
-//            // Fetch parental leave extent for surrounding days
-//            double fridayExtent = parentalLeaveRepository.getLeaveExtentOnDay(personId, weekStart.with(DayOfWeek.FRIDAY));
-//            double mondayExtent = parentalLeaveRepository.getLeaveExtentOnDay(personId, weekEnd.plusDays(1));
-//
-//
-//            String dayWarning = sgiRuleService.validateParentalLeave(
-//                    parentalLeave,
-//                    extendedListOfShifts,
-//                    sameDayLeaves,
-//                    fridayExtent,
-//                    mondayExtent);
-//
-//            if (dayWarning != null) {
-//                warnings.append(dayWarning).append(" ");
-//            }
-//        }
-//        return warnings.toString().trim();
-//    }
-
     private static LocalDate getWeekStart(LocalDate dateInWeek) {
         return dateInWeek.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
     }
 
-    private static LocalDate getWeekEnd(LocalDate dateInWeek) {
-        return dateInWeek.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
-    }
-
-    // Method that can list shifts a certain period of time
-    // It also looks at shifts that can overlap a period by starting before the period but ending inside the period.
-    public List<Shift> getShiftsForPersonInPeriod(Long personId, LocalDate from, LocalDate to) {
-
-        DateRange range = DateRange.of(from, to);
-        return shiftRepository.findOverlappingShifts(
-                personId,
-                range.start(),
-                range.end()
-        );
-    }
-            /*
-        public double calculateRecommendedExtent(Long personId, LocalDate date) {
-         // Calculate how many hours that are missing without any parental leave
+    public double calculateRecommendedExtent(LocalDate date, List<Shift> baseLineShifts, List<Shift> actualShifts) {
+        // Calculate how many hours that are missing without any parental leave
         // To use for calculating recommended total extent of parental leave to apply for
+        // Looks at both day shifts and overlapping shifts
 
-            double workHoursGap = Math.max(0, baselineWorkHours - actualWorkHours);
-            double rawRecommendedExtent = baselineWorkHours > 0 ?
-                workHoursGap / baselineWorkHours
-                : 0;
+        double rawRecommendedExtent = 0.0;
 
-            double recommendedExtent = roundUpToNearest(rawRecommendedExtent);
+        System.out.println(baseLineShifts.size());
 
-            return recommendedExtent;
-         */
+        System.out.println(actualShifts.size());
+        Map<Shift, List<Shift>> belongingShifts = findBelongingShifts(baseLineShifts, actualShifts);
 
+        for (var entry : belongingShifts.entrySet()) {
+
+            Shift baselineShift = entry.getKey();
+
+            List<Shift> matchingActuals =
+                    entry.getValue();
+
+            // Whole shift duration
+            double totalShiftHours = Duration.between(
+                    baselineShift.getShiftStart(), baselineShift.getShiftEnd()).toMinutes() / 60.0;
+
+            // Baseline hours for THIS DAY only
+            double baselineHoursForDay = summarizeWorkHoursForDay(
+                    List.of(baselineShift), date);
+
+            // Actual worked hours for THIS DAY only
+            double actualHoursForDay = summarizeWorkHoursForDay(
+                    matchingActuals, date);
+
+            // Missing hours for this shift/day
+            double missingHours = Math.max(0, baselineHoursForDay - actualHoursForDay);
+
+            // Extent contribution
+            rawRecommendedExtent += missingHours / totalShiftHours;
+        }
+
+        // Max one full day
+        rawRecommendedExtent = Math.min(1.0,
+                rawRecommendedExtent);
+
+        return roundUpToNearestValidExtent(
+                rawRecommendedExtent);
+    }
+
+    private Map<Shift, List<Shift>> findBelongingShifts(List<Shift> baseLineShifts, List<Shift> actualShifts) {
+
+        Map<Shift, List<Shift>> belongingShifts = new HashMap<>();
+
+        for(Shift baseLineShift : baseLineShifts) {
+            List<Shift> matchingActuals = actualShifts.stream()
+                    .filter(actualShift -> shiftsOverlap(baseLineShift, actualShift)).toList();
+
+            belongingShifts.put(baseLineShift, matchingActuals);
+        }
+        return belongingShifts;
+    }
+
+    private boolean shiftsOverlap(
+            Shift shift1,
+            Shift shift2) {
+
+        return shift1.getShiftStart()
+                .isBefore(shift2.getShiftEnd())
+                &&
+                shift1.getShiftEnd()
+                        .isAfter(shift2.getShiftStart());
+    }
 }

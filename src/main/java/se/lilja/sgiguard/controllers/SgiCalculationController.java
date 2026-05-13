@@ -1,6 +1,5 @@
 package se.lilja.sgiguard.controllers;
 
-import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -9,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import se.lilja.sgiguard.dtos.SgiDailyAnalysisResponse;
+import se.lilja.sgiguard.dtos.SgiWeeklyAnalysisResponse;
 import se.lilja.sgiguard.services.SgiCalculationService;
 
 import java.time.LocalDate;
@@ -24,14 +24,14 @@ public class SgiCalculationController {
         this.sgiCalculationService = sgiCalculationService;
     }
 
-//    @GetMapping("/analyzeweek")
-//    public ResponseEntity<SgiWeeklyAnalysisResponse> analyzeWeek(
-//            @RequestParam Long personId,
-//            @RequestParam LocalDate weekStart) {
-//
-//        SgiWeeklyAnalysisResponse response = sgiCalculationService.analyzeWeek(personId, weekStart);
-//        return ResponseEntity.ok(response);
-//    }
+    @GetMapping("/analyzeweek")
+    public ResponseEntity<SgiWeeklyAnalysisResponse> analyzeWeek(
+            @RequestParam String personalNumber,
+            @RequestParam LocalDate date) {
+
+        SgiWeeklyAnalysisResponse response = sgiCalculationService.analyzeWeek(personalNumber, date);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
 
     @GetMapping("/analyzeday")
     public ResponseEntity<SgiDailyAnalysisResponse> analyzeDay(

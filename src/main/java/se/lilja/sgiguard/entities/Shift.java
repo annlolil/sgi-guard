@@ -38,7 +38,19 @@ public class Shift {
     @JoinColumn(name = "person_id", nullable = false)
     private Person person;
 
-//    @ManyToOne(fetch = FetchType.LAZY)
+    @Override
+    public String toString() {
+        return "Shift{" +
+                "id=" + id +
+                ", shiftStart=" + shiftStart +
+                ", shiftEnd=" + shiftEnd +
+                ", breakMinutes=" + breakMinutes +
+                ", type=" + type +
+                ", person=" + person +
+                '}';
+    }
+
+    //    @ManyToOne(fetch = FetchType.LAZY)
 //    @JoinColumn(name = "employment_id", nullable = false)
 //    @JsonIgnoreProperties("person")
 //    private Employment employment;
