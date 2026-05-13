@@ -1,5 +1,7 @@
 package se.lilja.sgiguard.dtos;
 
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,11 +17,26 @@ import java.time.LocalTime;
 @Setter
 public class ShiftRequest {
 
-    private Long employmentId;
+//    private Long employmentId;
+    @NotNull
+    @Pattern(regexp = "\\d{12}", message = "Felaktigt personnummer")
+    private String personalNumber;
+
+    @NotNull
+//    @FutureOrPresent(message="Date can not be in the past") // outcommented for testing
     private LocalDate startDate;
+
+    @NotNull
+//    @FutureOrPresent(message="Date can not be in the past") // outcommented for testing
     private LocalDate endDate;
+
+    @NotNull
     private LocalTime startTime;
+
+    @NotNull
     private LocalTime endTime;
+
     private Integer breakMinutes;
-    private ShiftType type;
+
+    private String type;
 }

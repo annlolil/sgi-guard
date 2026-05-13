@@ -2,11 +2,12 @@ package se.lilja.sgiguard.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cglib.core.Local;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 import se.lilja.sgiguard.dtos.SgiDailyAnalysisResponse;
-import se.lilja.sgiguard.dtos.SgiPeriodAnalysisResponse;
-import se.lilja.sgiguard.dtos.SgiWeeklyAnalysisResponse;
 import se.lilja.sgiguard.entities.ParentalLeave;
+import se.lilja.sgiguard.entities.Person;
 import se.lilja.sgiguard.entities.Shift;
 import se.lilja.sgiguard.entities.Employment;
 import se.lilja.sgiguard.models.DailyWorkSummary;
@@ -14,6 +15,7 @@ import se.lilja.sgiguard.models.SgiStatus;
 import se.lilja.sgiguard.models.ShiftType;
 import se.lilja.sgiguard.repositories.EmploymentRepository;
 import se.lilja.sgiguard.repositories.ParentalLeaveRepository;
+import se.lilja.sgiguard.repositories.PersonRepository;
 import se.lilja.sgiguard.repositories.ShiftRepository;
 import se.lilja.sgiguard.utils.DateRange;
 
@@ -34,13 +36,15 @@ public class SgiCalculationService {
     private final EmploymentRepository employmentRepository;
     private final ParentalLeaveRepository parentalLeaveRepository;
     private final ShiftRepository shiftRepository;
+    private final PersonRepository personRepository;
     private final SgiRuleService sgiRuleService;
 
     @Autowired
-    public SgiCalculationService(EmploymentRepository employmentRepository, ParentalLeaveRepository parentalLeaveRepository, ShiftRepository shiftRepository, SgiRuleService sgiRuleService) {
+    public SgiCalculationService(EmploymentRepository employmentRepository, ParentalLeaveRepository parentalLeaveRepository, ShiftRepository shiftRepository, PersonRepository personRepository, SgiRuleService sgiRuleService) {
         this.employmentRepository = employmentRepository;
         this.parentalLeaveRepository = parentalLeaveRepository;
         this.shiftRepository = shiftRepository;
+        this.personRepository = personRepository;
         this.sgiRuleService = sgiRuleService;
     }
 
@@ -57,65 +61,6 @@ public class SgiCalculationService {
 
         return !empStart.isAfter(to) && !empEnd.isBefore(from);
     }
-
-//    // Calculates the target hours to work for all employments if a person has more than one
-//    // Filters on employments that are valid in the chosen period.
-//    public Double calculateTotalWeeklyTarget(Long personId, LocalDate from, LocalDate to) {
-//
-//        List<Employment> employments = employmentRepository.findByPersonId(personId);
-//
-//        if (from == null) {
-//            throw new IllegalArgumentException("from not be null");
-//        }
-//        if (to.isBefore(from)) {
-//            throw new IllegalArgumentException("to must not be before from");
-//        }
-//
-//        double totalTarget = employments.stream()
-//                .filter(emp -> isEmploymentActiveInPeriod(emp, from, to))
-//                .mapToDouble(this::calculateOriginalTarget)
-//                .sum();
-//
-//        return Math.round(totalTarget * 100.0) / 100.0;
-//    }
-
-    // Summarizes the hours from all shifts listed in a specific period of time
-//    public Double summarizeWorkHoursInPeriod(List<Shift> shifts, LocalDate from, LocalDate to) {
-//
-//        double totalMinutes = 0;
-//
-//        for (Shift shift : shifts) {
-//            // Only count the hours for a shift if its main day is in the period
-//            LocalDate mainDay = sgiRuleService.identifyMainDay(shift);
-//            if (!mainDay.isBefore(from) && !mainDay.isAfter(to)) {
-//                Duration duration = Duration.between(shift.getShiftStart(), shift.getShiftEnd());
-//
-//                long breakMinutes = shift.getBreakMinutes() != null ?
-//                        shift.getBreakMinutes() : 0;
-//
-//                long workedMinutes = duration.toMinutes() - breakMinutes;
-//
-//                totalMinutes += workedMinutes;
-//            }
-//        }
-//
-//        double totalHours = totalMinutes / 60.0;
-//
-//        return Math.round(totalHours * 100.0) / 100.0;
-//    }
-
-    // Method that summarizes the hours from parental leave
-//    public Double summarizeLeaveHoursInPeriod(List<ParentalLeave> parentalLeaves, Double baselineHours, long baselineDays) {
-//
-//        double hoursPerDay = baselineHours / baselineDays;
-//
-//        double totalLeaveDays = parentalLeaves.stream()
-//                .mapToDouble(ParentalLeave::getExtent).sum();
-//
-//        double totalLeaveHours = totalLeaveDays * hoursPerDay;
-//
-//        return Math.round(totalLeaveHours * 100.0) / 100.0;
-//    }
 
     public double summarizeWorkHoursForDay(List<Shift> shifts, LocalDate date) {
 
@@ -183,7 +128,7 @@ public class SgiCalculationService {
         double actualWorkHours = summarizeWorkHoursForDay(actualShifts, date);
         double baselineWorkHours = summarizeWorkHoursForDay(baselineShifts, date);
 
-        // Get existing parentalleaves for this day
+        // Get existing parental leaves for this day
         List<ParentalLeave> parentalLeaves = parentalLeaveRepository.findByPersonIdAndDate(personId, date);
         double totalExtent = parentalLeaves.stream().mapToDouble(ParentalLeave::getExtent).sum();
         double leaveHours = baselineWorkHours > 0 ?
@@ -213,11 +158,13 @@ public class SgiCalculationService {
                 .build();
     }
 
-    public SgiDailyAnalysisResponse analyzeDay(Long personId, LocalDate date) {
+    public SgiDailyAnalysisResponse analyzeDay(String personalNumber, LocalDate date) {
+
+        Person person = personRepository.findPersonByPersonalNumber(personalNumber);
 
         DayOfWeek dayOfWeek = date.getDayOfWeek(); // Get the week day to analyze
 
-        DailyWorkSummary dailyWorkSummary = calculateDailyWorkSummary(personId, date);
+        DailyWorkSummary dailyWorkSummary = calculateDailyWorkSummary(person.getId(), date);
 
         double recommendedExtent = dailyWorkSummary.getRecommendedExtent();
         double totalExtent = dailyWorkSummary.getLeaveExtent();
@@ -325,38 +272,6 @@ public class SgiCalculationService {
 //    private int weeklyNumber;
 //    private Map<DayOfWeek, SgiStatus> dailyStatus; // Showing weekday and if that day is protected, at_risk or overcompensated
 //    private Map<DayOfWeek, Double> dailyRecommendation;
-
-//    public SgiPeriodAnalysisResponse analyzePeriod(Long personId, LocalDate from, LocalDate to) {
-//        List<SgiWeeklyAnalysisResponse> weeklyResults = new ArrayList<>();
-//
-//        // Adjust from and to so that the calculation is performed on whole weeks within the period
-//        LocalDate adjustedFrom = from.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-//        LocalDate adjustedTo = to.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
-//
-//        while(!adjustedFrom.isAfter(adjustedTo.minusDays(6))) {
-//            weeklyResults.add(analyzeWeek(personId, adjustedFrom));
-//            adjustedFrom = adjustedFrom.plusWeeks(1);
-//        }
-//
-//        double totalPlanned = weeklyResults.stream().mapToDouble(SgiWeeklyAnalysisResponse::getTotalPlannedHours).sum();
-//        double totalTarget = weeklyResults.stream().mapToDouble(SgiWeeklyAnalysisResponse::getTargetHours).sum();
-//        totalPlanned = Math.round(totalPlanned * 100.0) / 100.0;
-//        totalTarget = Math.round(totalTarget * 100.0) / 100.0;
-//
-//        SgiStatus overallStatus = (totalPlanned >= totalTarget) ? SgiStatus.PROTECTED : SgiStatus.AT_RISK;
-//
-//        String recommendation = (overallStatus == SgiStatus.PROTECTED) ? "Your total plan looks safe" :
-//                "The analyze is covering " + weeklyResults.size() + " whole weeks. Total goal for these weeks" +
-//                " are " + totalTarget + " hours.";
-//
-//        return new SgiPeriodAnalysisResponse(
-//                weeklyResults,
-//                totalPlanned,
-//                totalTarget,
-//                overallStatus,
-//                recommendation
-//        );
-//    }
 
     private static double roundUpToNearest(double days) {
         if(days <= 0) {

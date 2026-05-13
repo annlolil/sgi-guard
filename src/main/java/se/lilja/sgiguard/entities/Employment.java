@@ -42,7 +42,7 @@ public class Employment {
     @JoinColumn(name = "person_id", nullable = false)
     private Person person;
 
-    @OneToMany(mappedBy = "employment")
-    @JsonIgnore
-    private List<Shift> shifts;
+//    @OneToMany(mappedBy = "employment")
+//    @JsonIgnore
+//    private List<Shift> shifts;
 }

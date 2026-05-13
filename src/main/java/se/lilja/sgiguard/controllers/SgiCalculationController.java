@@ -9,8 +9,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import se.lilja.sgiguard.dtos.SgiDailyAnalysisResponse;
-import se.lilja.sgiguard.dtos.SgiPeriodAnalysisResponse;
-import se.lilja.sgiguard.dtos.SgiWeeklyAnalysisResponse;
 import se.lilja.sgiguard.services.SgiCalculationService;
 
 import java.time.LocalDate;
@@ -37,20 +35,10 @@ public class SgiCalculationController {
 
     @GetMapping("/analyzeday")
     public ResponseEntity<SgiDailyAnalysisResponse> analyzeDay(
-            @RequestParam Long personId,
+            @RequestParam String personalNumber,
             @RequestParam LocalDate date) {
 
-        SgiDailyAnalysisResponse response = sgiCalculationService.analyzeDay(personId, date);
+        SgiDailyAnalysisResponse response = sgiCalculationService.analyzeDay(personalNumber, date);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }
-
-//    @GetMapping("/analyzeperiod")
-//    public ResponseEntity<SgiPeriodAnalysisResponse> analyzePeriod(
-//            @RequestParam Long personId,
-//            @RequestParam LocalDate from,
-//            @RequestParam LocalDate to) {
-//
-//        SgiPeriodAnalysisResponse response = sgiCalculationService.analyzePeriod(personId, from, to);
-//        return ResponseEntity.ok(response);
-//    }

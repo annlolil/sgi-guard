@@ -27,18 +27,6 @@ public class Shift {
     @Column(nullable = false)
     private LocalDateTime shiftEnd;
 
-//    @Column(nullable = false)
-//    private LocalDate shiftStartDate;
-//
-//    @Column(nullable = false)
-//    private LocalDate shiftEndDate;
-//
-//    @Column(nullable = false)
-//    private LocalTime shiftStartTime;
-//
-//    @Column(nullable = false)
-//    private LocalTime shiftEndTime;
-
     @Column
     private Integer breakMinutes;
 
@@ -50,8 +38,8 @@ public class Shift {
     @JoinColumn(name = "person_id", nullable = false)
     private Person person;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "employment_id", nullable = false)
-    @JsonIgnoreProperties("person")
-    private Employment employment;
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "employment_id", nullable = false)
+//    @JsonIgnoreProperties("person")
+//    private Employment employment;
 }

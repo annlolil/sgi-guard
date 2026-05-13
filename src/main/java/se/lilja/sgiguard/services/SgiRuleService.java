@@ -2,18 +2,13 @@ package se.lilja.sgiguard.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import se.lilja.sgiguard.dtos.ParentalLeaveRequest;
 import se.lilja.sgiguard.entities.ParentalLeave;
 import se.lilja.sgiguard.entities.Shift;
 import se.lilja.sgiguard.models.ShiftType;
-import se.lilja.sgiguard.repositories.ParentalLeaveRepository;
 import se.lilja.sgiguard.repositories.ShiftRepository;
 
 import java.time.DayOfWeek;
-import java.time.Duration;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -25,29 +20,6 @@ public class SgiRuleService {
     public SgiRuleService(ShiftRepository shiftRepository) {
         this.shiftRepository = shiftRepository;
     }
-
-    // A method that takes a shift and identifies which day is the main day of working hours
-//    public LocalDate identifyMainDay(Shift shift) {
-//
-//        LocalDateTime start = shift.getShiftStart();
-//        LocalDateTime end = shift.getShiftEnd();
-//
-//        if (start.toLocalDate().isEqual(end.toLocalDate())) {
-//            return start.toLocalDate();
-//        }
-//
-//        LocalDateTime midnight = start.toLocalDate().plusDays(1).atStartOfDay();
-//
-//        long minutesFirstDay = Duration.between(start, midnight).toMinutes();
-//        long minutesSecondDay = Duration.between(midnight, end).toMinutes();
-//
-//        if (minutesFirstDay >= minutesSecondDay) {
-//            return start.toLocalDate();
-//        }
-//        else {
-//            return end.toLocalDate();
-//        }
-//    }
 
     public boolean isWeekend(LocalDate date) {
         DayOfWeek day = date.getDayOfWeek();
@@ -110,24 +82,4 @@ public class SgiRuleService {
 
         return !(totalExtent > 1.0);
     }
-
-//    public List<String> getParentalLeaveWarnings(
-//            ParentalLeave parentalLeave,
-//            List<Shift> shifts,
-//            List<ParentalLeave> sameDayLeaves,
-//            double fridayExtent,
-//            double mondayExtent) {
-//
-//        List<String> warnings = new ArrayList<>();
-//
-//        if(!isExtentValid(parentalLeave, sameDayLeaves)) {
-//            warnings.add("Parental leave exceeds 100% on one day");
-//        }
-//
-//        if(!validateWeekendRule(parentalLeave, shifts, fridayExtent, mondayExtent)) {
-//
-//                warnings.add("Weekend rule may not be fulfilled");
-//            }
-//        return warnings;
-//    }
 }

@@ -8,4 +8,6 @@ import se.lilja.sgiguard.entities.Person;
 public interface PersonRepository extends JpaRepository<Person, Long> {
 
     boolean existsPersonByPersonalNumber(String personalNumber);
+
+    Person findPersonByPersonalNumber(String personalNumber);
 }

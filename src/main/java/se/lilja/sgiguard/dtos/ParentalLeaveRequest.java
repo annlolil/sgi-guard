@@ -15,7 +15,8 @@ import java.time.LocalDate;
 public class ParentalLeaveRequest {
 
     @NotNull
-    Long personId;
+    @Pattern(regexp = "\\d{12}", message = "Felaktigt personnummer")
+    private String personalNumber;
 
     @NotNull
 //    @FutureOrPresent(message="Date can not be in the past") // outcommented for testing
