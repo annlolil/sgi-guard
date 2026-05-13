@@ -109,6 +109,6 @@ public class ParentalLeaveService implements ParentalLeaveInterface {
     }
 
     // Extents that represents parts of a parental leave day
-    private static final List<Double> VALID_EXTENTS =
+    public static final List<Double> VALID_EXTENTS =
             List.of(0.125, 0.25, 0.5, 0.75, 1.0);
 }

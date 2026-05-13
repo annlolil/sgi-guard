@@ -24,5 +24,5 @@ public interface ShiftRepository extends JpaRepository<Shift, Long> {
             @Param("rangeEnd") LocalDateTime rangeEnd
     );
 
-    List<Shift> findShiftByPersonId(Long personId);
+    List<Shift> findShiftsByPersonId(Long personId);
 }

@@ -149,7 +149,7 @@ class ShiftRepositoryTest{
         testEntityManager.flush();
 
         // When
-        List<Shift> result = shiftRepository.findShiftByPersonId(person.getId());
+        List<Shift> result = shiftRepository.findShiftsByPersonId(person.getId());
 
         // Then
         assertThat(result).hasSize(1);
