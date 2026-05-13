@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <title>Weekly analyses</title>
+</head>
+
+<body style="
+background-color:#1e1e1e;
+color:white;
+font-family:Arial,serif;
+">
+
+<table>
+    <tr>
+        <th>Dag</th>
+        <th>Baseline</th>
+        <th>Actual</th>
+        <th>Gap</th>
+        <th>Recommended</th>
+        <th>Status</th>
+    </tr>
+
+    <tr th:each="day : ${weeklyanalyses.dailyAnalyses}">
+        <td th:text="${day.dayOfWeek}"></td>
+        <td th:text="${day.baselineHours}"></td>
+        <td th:text="${day.actualHours}"></td>
+        <td th:text="${day.gapHours}"></td>
+        <td th:text="${day.recommendedExtent}"></td>
+        <td th:text="${day.status}"></td>
+    </tr>
+</table>
+
+<a href="/">Back</a>
+</body>
+</html>

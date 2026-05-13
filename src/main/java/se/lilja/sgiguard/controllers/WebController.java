@@ -56,6 +56,20 @@ public class WebController {
         return "result";
     }
 
+    @PostMapping("/analyzeweek")
+    public String analyzeweek(
+            @RequestParam String personalNumber,
+            @RequestParam LocalDate date,
+            Model model) {
+
+        SgiWeeklyAnalysisResponse response =
+                sgiCalculationService.analyzeWeek(personalNumber, date);
+
+        model.addAttribute("weeklyanalyses", response);
+
+        return "weeklyresult";
+    }
+
     @PostMapping("/parental-leave")
     public String addParentalLeave(
             @RequestParam String personalNumber,

@@ -4,7 +4,13 @@
     <title>SGIGuard</title>
 </head>
 
-<body>
+<body
+
+style="
+background-color:#1e1e1e;
+color:white;
+font-family:Arial,serif;
+">
 
 <h1>SGIGuard</h1>
 
@@ -51,51 +57,98 @@
 
 <hr>
 
-<h2>Add baseline shift</h2>
+<h2>Add shift</h2>
 
 <form action="/shift" method="post">
 
-    <label>
-        <input type="text"
-               name="personalNumber"
-               placeholder="Personal number">
-    </label>
+    <div style="margin-bottom:10px;">
 
-    <label>
-        <input type="date"
-               name="startDate"
-               placeholder="Shift start date">
-    </label>
+        <label
+                for="personalNumber"
+                style="display:block; margin-bottom:4px;">
+            Person nummer
+        </label>
 
-    <label>
-        <input type="time"
-               name="startTime"
-               placeholder="Shift start time">
-    </label>
+        <input
+                id="personalNumber"
+                type="number"
+                name="personalNumber"
+                placeholder="xxxxxxxxxxxx"/>
+    </div>
 
-    <label>
-        <input type="date"
-               name="endDate"
-               placeholder="Shift end">
-    </label>
+    <div style="margin-bottom:10px;">
 
-    <label>
-        <input type="time"
-               name="endTime"
-               placeholder="Shift end time">
-    </label>
+        <label for="startDate">
+            Startdatum
+        </label>
 
-    <label>
-        <input type="number"
-               name="breakMinutes"
-               placeholder="Break minutes if any">
-    </label>
+        <input
+                id="startDate"
+                type="date"
+                name="startDate">
 
-    <label>
-        <input type="text"
-               name="type"
-               placeholder="Shift type: baseline or actual">
-    </label>
+        <label for="startTime">
+            Starttid
+        </label>
+
+        <input
+                id="startTime"
+                type="time"
+                name="startTime">
+
+    </div>
+
+    <div style="margin-bottom:10px;">
+
+        <label for="endDate">
+            Slutdatum
+        </label>
+
+        <input
+                id="endDate"
+                type="date"
+                name="endDate">
+
+        <label for="endTime">
+            Sluttid
+        </label>
+
+        <input
+                id="endTime"
+                type="time"
+                name="endTime">
+
+    </div>
+
+    <div style="margin-bottom:10px;">
+
+        <label
+                for="breakMinutes"
+                style="display:block; margin-bottom:4px;">
+            Rast i minuter
+        </label>
+
+        <input
+                id="breakMinutes"
+                type="number"
+                name="breakMinutes"
+                placeholder="Om rast, annars 0"/>
+    </div>
+
+    <div style="margin-bottom:10px;">
+
+        <label
+                for="type"
+                style="display:block; margin-bottom:4px;">
+            Typ av pass
+        </label>
+
+        <input
+                id="type"
+                type="text"
+                name="type"
+                placeholder="baseline eller actual">
+    </div>
 
     <button type="submit">
         Add shift
@@ -138,9 +191,9 @@
 
 <hr>
 
-<h2>Analyze Day</h2>
+<h2>Analyze</h2>
 
-<form action="/analyze" method="post">
+<form action="/analyzeweek" method="post">
 
     <label>
         <input type="number"
