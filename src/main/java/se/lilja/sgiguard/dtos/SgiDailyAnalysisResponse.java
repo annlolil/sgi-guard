@@ -16,7 +16,7 @@ import java.time.LocalDate;
 public class SgiDailyAnalysisResponse {
 
     private LocalDate date;
-    private DayOfWeek dayOfWeek;
+    private String dayOfWeek;
 
     private double baselineHours;
     private double actualHours;

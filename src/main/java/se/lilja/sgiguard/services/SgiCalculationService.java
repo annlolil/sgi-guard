@@ -20,6 +20,7 @@ import se.lilja.sgiguard.utils.DateRange;
 
 import java.sql.SQLOutput;
 import java.time.*;
+import java.time.format.TextStyle;
 import java.time.temporal.TemporalAdjusters;
 import java.time.temporal.WeekFields;
 import java.util.*;
@@ -159,7 +160,11 @@ public class SgiCalculationService {
 
         Person person = personRepository.findPersonByPersonalNumber(personalNumber);
 
-        DayOfWeek dayOfWeek = date.getDayOfWeek(); // Get the week day to analyze
+        // Get the week day to analyze (just for visual purposes)
+        String dayOfWeek = date.getDayOfWeek()
+                        .getDisplayName(TextStyle.SHORT, Locale.of("sv", "SE"));
+        dayOfWeek = dayOfWeek.substring(0, 1).toUpperCase()
+                        + dayOfWeek.substring(1);
 
         DailyWorkSummary dailyWorkSummary = calculateDailyWorkSummary(person.getId(), date);
 

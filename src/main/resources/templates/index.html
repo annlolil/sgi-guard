@@ -5,61 +5,95 @@
 </head>
 
 <body
-
 style="
 background-color:#1e1e1e;
 color:white;
 font-family:Arial,serif;
 ">
+<p
+        th:if="${param.success != null and param.success[0] == 'personAdded'}"
+        style="
+    color:lightgreen;
+    font-weight:bold;">
 
-<h1>SGIGuard</h1>
-
-<p th:if="${error}"
-   th:text="${error}"
-   style="color:red;">
+    Person tillagd!
 </p>
 
-<p th:if="${leave}"
-   style="color:green;">
+<p
+        t    th:if="${param.success != null and param.success[0] == 'shiftAdded'}"
 
-    Parental leave added:
-    <span th:text="${leave.date}"></span>
+        style="
+    color:lightgreen;
+    font-weight:bold;">
+
+    Pass tillagt!
 
 </p>
 
-<h2>Add person</h2>
+<p
+        th:if="${param.success != null and param.success[0] == 'parentalLeaveAdded'}"
+
+        style="
+    color:lightgreen;
+    font-weight:bold;">
+
+    Föräldrapenning tillagt!
+
+</p>
+
+<h1>
+    <p style="color:Green;">
+    SGIGuard
+    </p>
+</h1>
+
+<h2>Personuppgifter</h2>
 
 <form action="/person" method="post">
 
     <label>
         <input type="text"
                name="personalNumber"
-               placeholder="Personal number">
+               placeholder="xxxxxxxxxxxx">
     </label>
 
     <label>
         <input type="text"
                name="firstName"
-               placeholder="First name">
+               placeholder="Förnamn">
     </label>
 
     <label>
         <input type="text"
                name="lastName"
-               placeholder="Last name">
+               placeholder="Efternamn">
     </label>
 
-    <button type="submit">
-        Add person
+    <button
+        style="
+    background:#00aa00;
+    color:white;
+    border:none;
+    padding:10px 16px;
+    border-radius:6px;
+    cursor:pointer;"
+            type="submit">
+        Spara
     </button>
 
 </form>
 
 <hr>
 
-<h2>Add shift</h2>
+<h2>Lägg till arbetspass</h2>
 
 <form action="/shift" method="post">
+
+    <div style="
+    background:lightgrey;
+    padding:20px;
+    border-radius:10px;
+    width:400px;">
 
     <div style="margin-bottom:10px;">
 
@@ -135,28 +169,48 @@ font-family:Arial,serif;
                 placeholder="Om rast, annars 0"/>
     </div>
 
-    <div style="margin-bottom:10px;">
+        <div style="margin-bottom:10px;">
 
-        <label
-                for="type"
-                style="display:block; margin-bottom:4px;">
-            Typ av pass
-        </label>
+            <label
+                    for="type"
+                    style="display:block; margin-bottom:4px;">
 
-        <input
-                id="type"
-                type="text"
-                name="type"
-                placeholder="baseline eller actual">
-    </div>
+                Typ av pass
 
-    <button type="submit">
-        Add shift
+            </label>
+
+            <select name="type" id="type">
+
+                <option value="BASELINE">
+                    Ordinarie pass
+                </option>
+
+                <option value="ACTUAL">
+                    Faktiskt pass
+                </option>
+
+            </select>
+
+        </div>
+
+    <button
+            style="
+    background:#00aa00;
+    color:white;
+    border:none;
+    padding:10px 16px;
+    border-radius:6px;
+    cursor:pointer;"
+            type="submit">
+        Spara
+
     </button>
+
+    </div>
 
 </form>
 
-<h2>Add Parental Leave</h2>
+<h2>Lägg till föräldrapenning</h2>
 
 <form action="/parental-leave" method="post">
 
@@ -183,22 +237,30 @@ font-family:Arial,serif;
         </select>
     </label>
 
-    <button type="submit">
-        Add Leave
+    <button
+            style="
+    background:#00aa00;
+    color:white;
+    border:none;
+    padding:10px 16px;
+    border-radius:6px;
+    cursor:pointer;"
+            type="submit">
+        Spara
     </button>
 
 </form>
 
 <hr>
 
-<h2>Analyze</h2>
+<h2>Analysera SGI status</h2>
 
 <form action="/analyzeweek" method="post">
 
     <label>
         <input type="number"
                name="personalNumber"
-               placeholder="Personal Number">
+               placeholder="xxxxxxxxxxxx">
     </label>
 
     <label>
@@ -206,8 +268,17 @@ font-family:Arial,serif;
                name="date">
     </label>
 
-    <button type="submit">
-        Analyze
+    <button
+        style="
+    background:#00aa00;
+    color:white;
+    border:none;
+    padding:10px 16px;
+    border-radius:6px;
+    cursor:pointer;"
+
+            type="submit">
+        Analysera
     </button>
 
 </form>

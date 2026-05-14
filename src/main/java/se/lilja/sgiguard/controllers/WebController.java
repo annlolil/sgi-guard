@@ -6,7 +6,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import se.lilja.sgiguard.dtos.*;
-import se.lilja.sgiguard.models.ShiftType;
 import se.lilja.sgiguard.repositories.PersonRepository;
 import se.lilja.sgiguard.services.ParentalLeaveService;
 import se.lilja.sgiguard.services.PersonService;
@@ -22,15 +21,13 @@ public class WebController {
     private final SgiCalculationService sgiCalculationService;
     private final ParentalLeaveService parentalLeaveService;
     private final PersonService personService;
-    private final PersonRepository personRepository;
     private final ShiftService shiftService;
 
     @Autowired
-    public WebController(final SgiCalculationService sgiCalculationService, ParentalLeaveService parentalLeaveService, PersonService personService, PersonRepository personRepository, ShiftService shiftService) {
+    public WebController(final SgiCalculationService sgiCalculationService, ParentalLeaveService parentalLeaveService, PersonService personService, ShiftService shiftService) {
         this.sgiCalculationService = sgiCalculationService;
         this.parentalLeaveService = parentalLeaveService;
         this.personService = personService;
-        this.personRepository = personRepository;
         this.shiftService = shiftService;
     }
 
@@ -42,19 +39,19 @@ public class WebController {
         return "index";
     }
 
-    @PostMapping("/analyze")
-    public String analyze(
-            @RequestParam String personalNumber,
-            @RequestParam LocalDate date,
-            Model model) {
-
-        SgiDailyAnalysisResponse response =
-                sgiCalculationService.analyzeDay(personalNumber, date);
-
-        model.addAttribute("analysis", response);
-
-        return "result";
-    }
+//    @PostMapping("/analyze")
+//    public String analyze(
+//            @RequestParam String personalNumber,
+//            @RequestParam LocalDate date,
+//            Model model) {
+//
+//        SgiDailyAnalysisResponse response =
+//                sgiCalculationService.analyzeDay(personalNumber, date);
+//
+//        model.addAttribute("analysis", response);
+//
+//        return "result";
+//    }
 
     @PostMapping("/analyzeweek")
     public String analyzeweek(
@@ -62,12 +59,18 @@ public class WebController {
             @RequestParam LocalDate date,
             Model model) {
 
-        SgiWeeklyAnalysisResponse response =
-                sgiCalculationService.analyzeWeek(personalNumber, date);
+        try {
+            SgiWeeklyAnalysisResponse response =
+                    sgiCalculationService.analyzeWeek(personalNumber, date);
 
-        model.addAttribute("weeklyanalyses", response);
+            model.addAttribute("weeklyanalyses", response);
 
-        return "weeklyresult";
+            return "weeklyresult";
+        }
+        catch (ResponseStatusException e) {
+            model.addAttribute("error", e.getReason());
+            return "index";
+        }
     }
 
     @PostMapping("/parental-leave")
@@ -92,7 +95,7 @@ public class WebController {
                     "leave",
                     response);
 
-            return "index";
+            return "redirect:/?success=parentalLeaveAdded";
         }
         catch (ResponseStatusException e) {
             model.addAttribute("error", e.getReason());
@@ -107,18 +110,24 @@ public class WebController {
             @RequestParam String lastName,
             Model model) {
 
-        PersonRequest request =
-                new PersonRequest();
+        try {
+            PersonRequest request =
+                    new PersonRequest();
 
-        request.setPersonalNumber(personalNumber);
-        request.setFirstName(firstName);
-        request.setLastName(lastName);
+            request.setPersonalNumber(personalNumber);
+            request.setFirstName(firstName);
+            request.setLastName(lastName);
 
-        PersonResponse response = personService.addPerson(request);
+            PersonResponse response = personService.addPerson(request);
 
-        model.addAttribute("person", response);
+            model.addAttribute("person", response);
 
-        return "person";
+            return "redirect:/?success=personAdded";
+        }
+        catch (ResponseStatusException e) {
+            model.addAttribute("error", e.getReason());
+            return "index";
+        }
     }
 
     @PostMapping("/shift")
@@ -132,21 +141,27 @@ public class WebController {
             @RequestParam String type,
             Model model) {
 
-        ShiftRequest request =
-                new ShiftRequest();
+        try {
+            ShiftRequest request =
+                    new ShiftRequest();
 
-        request.setPersonalNumber(personalNumber);
-        request.setStartDate(startDate);
-        request.setStartTime(startTime);
-        request.setEndDate(endDate);
-        request.setEndTime(endTime);
-        request.setBreakMinutes(breakMinutes);
-        request.setType(type);
+            request.setPersonalNumber(personalNumber);
+            request.setStartDate(startDate);
+            request.setStartTime(startTime);
+            request.setEndDate(endDate);
+            request.setEndTime(endTime);
+            request.setBreakMinutes(breakMinutes);
+            request.setType(type);
 
-        ShiftResponse response = shiftService.addShift(request);
+            ShiftResponse response = shiftService.addShift(request);
 
-        model.addAttribute("shift", response);
+            model.addAttribute("shift", response);
 
-        return "shift";
+            return "redirect:/?success=shiftAdded";
+        }
+        catch (ResponseStatusException e) {
+            model.addAttribute("error", e.getReason());
+            return "index";
+        }
     }
 }
