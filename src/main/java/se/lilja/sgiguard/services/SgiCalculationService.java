@@ -20,6 +20,7 @@ import se.lilja.sgiguard.utils.DateRange;
 
 import java.sql.SQLOutput;
 import java.time.*;
+import java.time.format.TextStyle;
 import java.time.temporal.TemporalAdjusters;
 import java.time.temporal.WeekFields;
 import java.util.*;
@@ -159,12 +160,18 @@ public class SgiCalculationService {
 
         Person person = personRepository.findPersonByPersonalNumber(personalNumber);
 
-        DayOfWeek dayOfWeek = date.getDayOfWeek(); // Get the week day to analyze
+        // Get the week day to analyze (just for visual purposes)
+        String dayOfWeek = date.getDayOfWeek()
+                        .getDisplayName(TextStyle.SHORT, Locale.of("sv", "SE"));
+        dayOfWeek = dayOfWeek.substring(0, 1).toUpperCase()
+                        + dayOfWeek.substring(1);
 
         DailyWorkSummary dailyWorkSummary = calculateDailyWorkSummary(person.getId(), date);
 
         double recommendedExtent = dailyWorkSummary.getRecommendedExtent();
         double totalExtent = dailyWorkSummary.getLeaveExtent();
+
+        String recommendedExtentLabel = getRecommendedExtentLabel(recommendedExtent);
 
         SgiStatus status;
         if (totalExtent > recommendedExtent) {
@@ -183,6 +190,7 @@ public class SgiCalculationService {
                 totalExtent,
                 dailyWorkSummary.getGapHours(),
                 recommendedExtent,
+                recommendedExtentLabel,
                 status
         );
     }
@@ -321,5 +329,27 @@ public class SgiCalculationService {
                 &&
                 shift1.getShiftEnd()
                         .isAfter(shift2.getShiftStart());
+    }
+
+    // Used for UI, thymeleaf
+    public String getRecommendedExtentLabel(double recommendedExtent) {
+
+        String recommendedExtentLabel = "";
+
+        if(recommendedExtent == 0.125) {
+            recommendedExtentLabel = "1/8 dag";
+        } else if (recommendedExtent == 0.25) {
+            recommendedExtentLabel = "1/4 dag";
+        } else if (recommendedExtent == 0.5) {
+            recommendedExtentLabel = "1/2 dag";
+        } else if (recommendedExtent == 0.75) {
+            recommendedExtentLabel = "1/4 dag";
+        } else if (recommendedExtent == 1.0) {
+            recommendedExtentLabel = "Hel dag";
+        }
+        else {
+            recommendedExtentLabel = String.valueOf(recommendedExtent);
+        }
+        return recommendedExtentLabel;
     }
 }

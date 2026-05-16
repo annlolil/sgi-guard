@@ -4,148 +4,343 @@
     <title>SGIGuard</title>
 </head>
 
-<body>
+<body
+style="
+background-color:#1e1e1e;
+color:black;
+font-family:Arial,serif;
+">
+<p
+        th:if="${param.success != null and param.success[0] == 'personAdded'}"
+        style="
+    color:lightgreen;
+    font-weight:bold;">
 
-<h1>SGIGuard</h1>
-
-<p th:if="${error}"
-   th:text="${error}"
-   style="color:red;">
+    Person tillagd!
 </p>
 
-<p th:if="${leave}"
-   style="color:green;">
+<p
+        t    th:if="${param.success != null and param.success[0] == 'shiftAdded'}"
 
-    Parental leave added:
-    <span th:text="${leave.date}"></span>
+        style="
+    color:lightgreen;
+    font-weight:bold;">
+
+    Pass tillagt!
 
 </p>
 
-<h2>Add person</h2>
+<p
+        th:if="${param.success != null and param.success[0] == 'parentalLeaveAdded'}"
+
+        style="
+    color:lightgreen;
+    font-weight:bold;">
+
+    Föräldrapenning tillagt!
+
+</p>
+
+<h1>
+    <p style="color:Green;">
+    SGIGuard
+    </p>
+</h1>
 
 <form action="/person" method="post">
+
+    <div style="
+    background:lightgrey;
+    padding:20px;
+    border-radius:10px;
+    width:400px;">
+
+        <h2>Personuppgifter</h2>
 
     <label>
         <input type="text"
                name="personalNumber"
-               placeholder="Personal number">
+               placeholder="xxxxxxxxxxxx">
     </label>
 
     <label>
         <input type="text"
                name="firstName"
-               placeholder="First name">
+               placeholder="Förnamn">
     </label>
 
     <label>
         <input type="text"
                name="lastName"
-               placeholder="Last name">
+               placeholder="Efternamn">
     </label>
 
-    <button type="submit">
-        Add person
+    <button
+        style="
+    background:#00aa00;
+    color:white;
+    border:none;
+    padding:10px 16px;
+    border-radius:6px;
+    cursor:pointer;"
+            type="submit">
+        Spara
     </button>
+
+    </div>
 
 </form>
 
 <hr>
 
-<h2>Add baseline shift</h2>
+<div style="
+    display:flex;
+    gap:20px;
+    flex-wrap:wrap;
+    align-items:stretch;
+">
 
-<form action="/shift" method="post">
+    <!-- CARD 1 -->
+    <div style="
+    background:#dcdcdc;
+    padding:25px;
+    border-radius:15px;
+    width:380px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.3);
+">
 
-    <label>
-        <input type="text"
-               name="personalNumber"
-               placeholder="Personal number">
-    </label>
+    <form action="/shift" method="post">
 
-    <label>
-        <input type="date"
-               name="startDate"
-               placeholder="Shift start date">
-    </label>
+        <h2>Lägg till arbetspass</h2>
 
-    <label>
-        <input type="time"
-               name="startTime"
-               placeholder="Shift start time">
-    </label>
+    <div style="margin-bottom:10px;">
 
-    <label>
-        <input type="date"
-               name="endDate"
-               placeholder="Shift end">
-    </label>
+        <label
+                for="personalNumber"
+                style="display:block; margin-bottom:4px;">
+            Person nummer
+        </label>
 
-    <label>
-        <input type="time"
-               name="endTime"
-               placeholder="Shift end time">
-    </label>
+        <input
+                id="personalNumber"
+                type="number"
+                name="personalNumber"
+                placeholder="xxxxxxxxxxxx"/>
+    </div>
 
-    <label>
-        <input type="number"
-               name="breakMinutes"
-               placeholder="Break minutes if any">
-    </label>
+    <div style="margin-bottom:10px;">
 
-    <label>
-        <input type="text"
-               name="type"
-               placeholder="Shift type: baseline or actual">
-    </label>
+        <label for="startDate">
+            Startdatum
+        </label>
 
-    <button type="submit">
-        Add shift
+        <input
+                id="startDate"
+                type="date"
+                name="startDate">
+
+        <label for="startTime">
+            Starttid
+        </label>
+
+        <input
+                id="startTime"
+                type="time"
+                name="startTime">
+
+    </div>
+
+    <div style="margin-bottom:10px;">
+
+        <label for="endDate">
+            Slutdatum
+        </label>
+
+        <input
+                id="endDate"
+                type="date"
+                name="endDate">
+
+        <label for="endTime">
+            Sluttid
+        </label>
+
+        <input
+                id="endTime"
+                type="time"
+                name="endTime">
+
+    </div>
+
+    <div style="margin-bottom:10px;">
+
+        <label
+                for="breakMinutes"
+                style="display:block; margin-bottom:4px;">
+            Rast i minuter
+        </label>
+
+        <input
+                id="breakMinutes"
+                type="number"
+                name="breakMinutes"
+                placeholder="Om rast, annars 0"/>
+    </div>
+
+        <div style="margin-bottom:10px;">
+
+            <label
+                    for="type"
+                    style="display:block; margin-bottom:4px;">
+
+                Typ av pass
+
+            </label>
+
+            <select name="type" id="type">
+
+                <option value="BASELINE">
+                    Ordinarie pass
+                </option>
+
+                <option value="ACTUAL">
+                    Faktiskt pass
+                </option>
+
+            </select>
+
+        </div>
+
+    <button
+            style="
+    background:#00aa00;
+    color:white;
+    border:none;
+    padding:10px 16px;
+    border-radius:6px;
+    cursor:pointer;"
+            type="submit">
+        Spara
+
     </button>
 
 </form>
+</div>
 
-<h2>Add Parental Leave</h2>
+    <!-- CARD 2 -->
+    <div style="
+    background:#dcdcdc;
+    padding:25px;
+    border-radius:15px;
+    width:380px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.3);
+">
 
-<form action="/parental-leave" method="post">
+    <form action="/parental-leave" method="post">
 
-    <label>
-        <input type="number"
-               name="personalNumber"
-               placeholder="Personal Number">
-    </label>
+        <h2>Lägg till föräldrapenning</h2>
 
-    <label>
-        <input type="date"
-               name="date">
-    </label>
+<!--    <label>-->
+<!--        <input type="number"-->
+<!--               name="personalNumber"-->
+<!--               placeholder="Personal Number">-->
+<!--    </label>-->
 
-    <label>
-        <select name="extent">
+<!--    <label>-->
+<!--        <input type="date"-->
+<!--               name="date">-->
+<!--    </label>-->
 
-            <option value="0.125">1/8 day</option>
-            <option value="0.25">1/4 day</option>
-            <option value="0.5">1/2 day</option>
-            <option value="0.75">3/4 day</option>
-            <option value="1.0">Full day</option>
+<!--    <label>-->
+<!--        <select name="extent">-->
+
+<!--            <option value="0.125">1/8 day</option>-->
+<!--            <option value="0.25">1/4 day</option>-->
+<!--            <option value="0.5">1/2 day</option>-->
+<!--            <option value="0.75">3/4 day</option>-->
+<!--            <option value="1.0">Full day</option>-->
+
+<!--        </select>-->
+<!--    </label>-->
+        <div style="margin-bottom:15px;">
+
+            <label
+                    for="personalNumber"
+                    style="display:block; margin-bottom:5px;">
+
+                Personnummer
+
+            </label>
+
+            <input type="text" name="personalNumber">
+
+        </div>
+
+        <div style="margin-bottom:10px;">
+
+            <label for="date">
+                Datum
+            </label>
+
+            <input
+                    id="date"
+                    type="date"
+                    name="date">
+        </div>
+
+        <label
+                for="extent"
+                style="display:block; margin-bottom:4px;">
+
+            Omfattning
+
+        </label>
+
+        <select
+                id="extent"
+                name="extent">
+
+            <option value="0.125">1/8 dag</option>
+            <option value="0.25">1/4 dag</option>
+            <option value="0.5">1/2 dag</option>
+            <option value="0.75">3/4 dag</option>
+            <option value="1.0">Hel dag</option>
 
         </select>
-    </label>
 
-    <button type="submit">
-        Add Leave
+    <button
+            style="
+    background:#00aa00;
+    color:white;
+    border:none;
+    padding:10px 16px;
+    border-radius:6px;
+    cursor:pointer;"
+            type="submit">
+        Spara
     </button>
 
 </form>
+    </div>
 
 <hr>
 
-<h2>Analyze Day</h2>
+<form action="/analyzeweek" method="post">
 
-<form action="/analyze" method="post">
+    <div style="
+    background:#dcdcdc;
+    padding:25px;
+    border-radius:15px;
+    width:380px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.3);
+">
+
+    <h2>Analysera SGI status</h2>
 
     <label>
         <input type="number"
                name="personalNumber"
-               placeholder="Personal Number">
+               placeholder="xxxxxxxxxxxx">
     </label>
 
     <label>
@@ -153,13 +348,25 @@
                name="date">
     </label>
 
-    <button type="submit">
-        Analyze
+    <button
+        style="
+    background:#00aa00;
+    color:white;
+    border:none;
+    padding:10px 16px;
+    border-radius:6px;
+    cursor:pointer;"
+
+            type="submit">
+        Analysera
     </button>
+
+    </div>
 
 </form>
 
 <hr>
+</div>
 
 </body>
 </html>
