@@ -171,6 +171,8 @@ public class SgiCalculationService {
         double recommendedExtent = dailyWorkSummary.getRecommendedExtent();
         double totalExtent = dailyWorkSummary.getLeaveExtent();
 
+        String recommendedExtentLabel = getRecommendedExtentLabel(recommendedExtent);
+
         SgiStatus status;
         if (totalExtent > recommendedExtent) {
             status = SgiStatus.OVERCOMPENSATED;
@@ -188,6 +190,7 @@ public class SgiCalculationService {
                 totalExtent,
                 dailyWorkSummary.getGapHours(),
                 recommendedExtent,
+                recommendedExtentLabel,
                 status
         );
     }
@@ -326,5 +329,27 @@ public class SgiCalculationService {
                 &&
                 shift1.getShiftEnd()
                         .isAfter(shift2.getShiftStart());
+    }
+
+    // Used for UI, thymeleaf
+    public String getRecommendedExtentLabel(double recommendedExtent) {
+
+        String recommendedExtentLabel = "";
+
+        if(recommendedExtent == 0.125) {
+            recommendedExtentLabel = "1/8 dag";
+        } else if (recommendedExtent == 0.25) {
+            recommendedExtentLabel = "1/4 dag";
+        } else if (recommendedExtent == 0.5) {
+            recommendedExtentLabel = "1/2 dag";
+        } else if (recommendedExtent == 0.75) {
+            recommendedExtentLabel = "1/4 dag";
+        } else if (recommendedExtent == 1.0) {
+            recommendedExtentLabel = "Hel dag";
+        }
+        else {
+            recommendedExtentLabel = String.valueOf(recommendedExtent);
+        }
+        return recommendedExtentLabel;
     }
 }

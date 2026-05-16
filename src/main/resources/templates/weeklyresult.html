@@ -29,12 +29,8 @@ font-family:Arial,serif;
     min-width:1100px;
     text-align:center;
     ">
-    <tr>
-        <th style="
-    padding:14px;
-    background:#f2f2f2;
-    font-size:18px;">
         <th>Datum</th>
+        <th>Veckodag</th>
         <th>Ordinarie timmar</th>
         <th>Faktiska timmar</th>
         <th>Saknas</th>
@@ -66,18 +62,20 @@ font-family:Arial,serif;
         </td>
 
         <td style="padding:10px;"
-            th:text="${day.recommendedExtent}">
+            th:text="${day.recommendedExtentLabel}">
         </td>
 
         <td
-            th:text="${day.status}"
+                th:text="${day.status.toString() == 'AT_RISK'}
+                ? 'Risk'
+                : 'Skyddad'"
             style="
     padding:12px;
     font-weight:bold;
     width:160px;"
 
 
-            th:styleappend="${day.status == 'AT_RISK'}
+            th:styleappend="${day.status.toString() == 'AT_RISK'}
     ? 'background-color:#ffcccc; color:red;'
     : 'background-color:#ccffcc; color:green;'">
         </td>
@@ -87,11 +85,18 @@ font-family:Arial,serif;
 
 <a
         href="/"
+
         style="
+    background:#333;
     color:white;
+    padding:10px 20px;
+    border-radius:8px;
     text-decoration:none;
-    margin-top:20px;">
+    margin-top:20px;
+    display:inline-block;">
+
     Tillbaka
+
 </a>
 </body>
 </html>

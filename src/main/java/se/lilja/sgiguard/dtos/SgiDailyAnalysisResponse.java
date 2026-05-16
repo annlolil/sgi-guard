@@ -24,6 +24,7 @@ public class SgiDailyAnalysisResponse {
 
     private double gapHours;
     private double recommendedExtent;
+    private String recommendedExtentLabel;
 
     private SgiStatus status;
 }

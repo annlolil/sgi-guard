@@ -7,7 +7,7 @@
 <body
 style="
 background-color:#1e1e1e;
-color:white;
+color:black;
 font-family:Arial,serif;
 ">
 <p
@@ -47,9 +47,15 @@ font-family:Arial,serif;
     </p>
 </h1>
 
-<h2>Personuppgifter</h2>
-
 <form action="/person" method="post">
+
+    <div style="
+    background:lightgrey;
+    padding:20px;
+    border-radius:10px;
+    width:400px;">
+
+        <h2>Personuppgifter</h2>
 
     <label>
         <input type="text"
@@ -81,19 +87,31 @@ font-family:Arial,serif;
         Spara
     </button>
 
+    </div>
+
 </form>
 
 <hr>
 
-<h2>Lägg till arbetspass</h2>
+<div style="
+    display:flex;
+    gap:20px;
+    flex-wrap:wrap;
+    align-items:stretch;
+">
 
-<form action="/shift" method="post">
-
+    <!-- CARD 1 -->
     <div style="
-    background:lightgrey;
-    padding:20px;
-    border-radius:10px;
-    width:400px;">
+    background:#dcdcdc;
+    padding:25px;
+    border-radius:15px;
+    width:380px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.3);
+">
+
+    <form action="/shift" method="post">
+
+        <h2>Lägg till arbetspass</h2>
 
     <div style="margin-bottom:10px;">
 
@@ -206,36 +224,89 @@ font-family:Arial,serif;
 
     </button>
 
-    </div>
-
 </form>
+</div>
 
-<h2>Lägg till föräldrapenning</h2>
+    <!-- CARD 2 -->
+    <div style="
+    background:#dcdcdc;
+    padding:25px;
+    border-radius:15px;
+    width:380px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.3);
+">
 
-<form action="/parental-leave" method="post">
+    <form action="/parental-leave" method="post">
 
-    <label>
-        <input type="number"
-               name="personalNumber"
-               placeholder="Personal Number">
-    </label>
+        <h2>Lägg till föräldrapenning</h2>
 
-    <label>
-        <input type="date"
-               name="date">
-    </label>
+<!--    <label>-->
+<!--        <input type="number"-->
+<!--               name="personalNumber"-->
+<!--               placeholder="Personal Number">-->
+<!--    </label>-->
 
-    <label>
-        <select name="extent">
+<!--    <label>-->
+<!--        <input type="date"-->
+<!--               name="date">-->
+<!--    </label>-->
 
-            <option value="0.125">1/8 day</option>
-            <option value="0.25">1/4 day</option>
-            <option value="0.5">1/2 day</option>
-            <option value="0.75">3/4 day</option>
-            <option value="1.0">Full day</option>
+<!--    <label>-->
+<!--        <select name="extent">-->
+
+<!--            <option value="0.125">1/8 day</option>-->
+<!--            <option value="0.25">1/4 day</option>-->
+<!--            <option value="0.5">1/2 day</option>-->
+<!--            <option value="0.75">3/4 day</option>-->
+<!--            <option value="1.0">Full day</option>-->
+
+<!--        </select>-->
+<!--    </label>-->
+        <div style="margin-bottom:15px;">
+
+            <label
+                    for="personalNumber"
+                    style="display:block; margin-bottom:5px;">
+
+                Personnummer
+
+            </label>
+
+            <input type="text" name="personalNumber">
+
+        </div>
+
+        <div style="margin-bottom:10px;">
+
+            <label for="date">
+                Datum
+            </label>
+
+            <input
+                    id="date"
+                    type="date"
+                    name="date">
+        </div>
+
+        <label
+                for="extent"
+                style="display:block; margin-bottom:4px;">
+
+            Omfattning
+
+        </label>
+
+        <select
+                id="extent"
+                name="extent">
+
+            <option value="0.125">1/8 dag</option>
+            <option value="0.25">1/4 dag</option>
+            <option value="0.5">1/2 dag</option>
+            <option value="0.75">3/4 dag</option>
+            <option value="1.0">Hel dag</option>
 
         </select>
-    </label>
 
     <button
             style="
@@ -250,12 +321,21 @@ font-family:Arial,serif;
     </button>
 
 </form>
+    </div>
 
 <hr>
 
-<h2>Analysera SGI status</h2>
-
 <form action="/analyzeweek" method="post">
+
+    <div style="
+    background:#dcdcdc;
+    padding:25px;
+    border-radius:15px;
+    width:380px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.3);
+">
+
+    <h2>Analysera SGI status</h2>
 
     <label>
         <input type="number"
@@ -281,9 +361,12 @@ font-family:Arial,serif;
         Analysera
     </button>
 
+    </div>
+
 </form>
 
 <hr>
+</div>
 
 </body>
 </html>
