@@ -15,6 +15,7 @@ import se.lilja.sgiguard.repositories.PersonRepository;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ParentalLeaveService implements ParentalLeaveInterface {
@@ -34,7 +35,8 @@ public class ParentalLeaveService implements ParentalLeaveInterface {
 
     public ParentalLeaveResponse addParentalLeave(ParentalLeaveRequest request) {
 
-        Person person = personRepository.findPersonByPersonalNumber(request.getPersonalNumber());
+        Person person = personRepository.findPersonByPersonalNumber(request.getPersonalNumber())
+                .orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "Person not found"));
 
         LocalDate requestDate = request.getDate();
         Long personId = person.getId();

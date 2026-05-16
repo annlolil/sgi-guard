@@ -38,7 +38,8 @@ public class ShiftService implements ShiftServiceInterface {
     @Override
     public ShiftResponse addShift(ShiftRequest request) {
         // Get the person that is logged in and connect it to the shift that's being saved
-        Person person = personRepository.findPersonByPersonalNumber(request.getPersonalNumber());
+        Person person = personRepository.findPersonByPersonalNumber(request.getPersonalNumber())
+                .orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "Person not found"));
 
 //        Employment employment = employmentRepository.findById(shiftRequest.getEmploymentId()).orElseThrow(()->
 //                new ResponseStatusException(HttpStatus.NOT_FOUND, "Employment not found"));

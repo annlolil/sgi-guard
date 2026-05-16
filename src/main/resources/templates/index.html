@@ -10,14 +10,6 @@ background-color:#1e1e1e;
 color:black;
 font-family:Arial,serif;
 ">
-<p
-        th:if="${param.success != null and param.success[0] == 'personAdded'}"
-        style="
-    color:lightgreen;
-    font-weight:bold;">
-
-    Person tillagd!
-</p>
 
 <p
         t    th:if="${param.success != null and param.success[0] == 'shiftAdded'}"
@@ -47,326 +39,335 @@ font-family:Arial,serif;
     </p>
 </h1>
 
-<form action="/person" method="post">
-
     <div style="
-    background:lightgrey;
-    padding:20px;
-    border-radius:10px;
-    width:400px;">
+    color:white;">
 
-        <h2>Personuppgifter</h2>
+        <h2 th:text="'Användare: '
+    + ${person.firstName}
+    + ' '
+    + ${person.lastName}">
+        </h2>
 
-    <label>
-        <input type="text"
-               name="personalNumber"
-               placeholder="xxxxxxxxxxxx">
-    </label>
+        <div style="
+            display:flex;
+            gap:40px;
+            flex-wrap:wrap;
+            justify-content:center;
+            align-items:flex-start;
+            margin-top:40px;
+            ">
 
-    <label>
-        <input type="text"
-               name="firstName"
-               placeholder="Förnamn">
-    </label>
+    <!-- Shift -->
+            <div style="
+background:#dcdcdc;
+color:black;
+padding:25px;
+border-radius:15px;
+width:380px;
+min-height:250px;
 
-    <label>
-        <input type="text"
-               name="lastName"
-               placeholder="Efternamn">
-    </label>
+display:flex;
+flex-direction:column;
+justify-content:space-between;
 
-    <button
-        style="
-    background:#00aa00;
-    color:white;
-    border:none;
-    padding:10px 16px;
-    border-radius:6px;
-    cursor:pointer;"
-            type="submit">
-        Spara
-    </button>
-
-    </div>
-
-</form>
-
-<hr>
-
-<div style="
-    display:flex;
-    gap:20px;
-    flex-wrap:wrap;
-    align-items:stretch;
-">
-
-    <!-- CARD 1 -->
-    <div style="
-    background:#dcdcdc;
-    padding:25px;
-    border-radius:15px;
-    width:380px;
-    box-shadow:0 4px 12px rgba(0,0,0,0.3);
+box-shadow:0 4px 12px rgba(0,0,0,0.3);
 ">
 
     <form action="/shift" method="post">
 
         <h2>Lägg till arbetspass</h2>
 
-    <div style="margin-bottom:10px;">
-
-        <label
-                for="personalNumber"
-                style="display:block; margin-bottom:4px;">
-            Person nummer
-        </label>
-
-        <input
-                id="personalNumber"
-                type="number"
-                name="personalNumber"
-                placeholder="xxxxxxxxxxxx"/>
-    </div>
-
-    <div style="margin-bottom:10px;">
-
-        <label for="startDate">
-            Startdatum
-        </label>
-
-        <input
-                id="startDate"
-                type="date"
-                name="startDate">
-
-        <label for="startTime">
-            Starttid
-        </label>
-
-        <input
-                id="startTime"
-                type="time"
-                name="startTime">
-
-    </div>
-
-    <div style="margin-bottom:10px;">
-
-        <label for="endDate">
-            Slutdatum
-        </label>
-
-        <input
-                id="endDate"
-                type="date"
-                name="endDate">
-
-        <label for="endTime">
-            Sluttid
-        </label>
-
-        <input
-                id="endTime"
-                type="time"
-                name="endTime">
-
-    </div>
-
-    <div style="margin-bottom:10px;">
-
-        <label
-                for="breakMinutes"
-                style="display:block; margin-bottom:4px;">
-            Rast i minuter
-        </label>
-
-        <input
-                id="breakMinutes"
-                type="number"
-                name="breakMinutes"
-                placeholder="Om rast, annars 0"/>
-    </div>
-
-        <div style="margin-bottom:10px;">
+        <div style="
+display:flex;
+align-items:center;
+gap:10px;
+margin-bottom:12px;
+">
 
             <label
-                    for="type"
-                    style="display:block; margin-bottom:4px;">
+                    for="startDate"
+                    style="width:90px;">
 
-                Typ av pass
+                Startdatum
 
             </label>
 
-            <select name="type" id="type">
+            <input
+                    id="startDate"
+                    type="date"
+                    name="startDate">
 
-                <option value="BASELINE">
-                    Ordinarie pass
-                </option>
+            <label
+                    for="startTime"
+                    style="width:60px;">
 
-                <option value="ACTUAL">
-                    Faktiskt pass
-                </option>
+                Starttid
 
-            </select>
+            </label>
+
+            <input
+                    id="startTime"
+                    type="time"
+                    name="startTime">
 
         </div>
 
-    <button
-            style="
-    background:#00aa00;
-    color:white;
-    border:none;
-    padding:10px 16px;
-    border-radius:6px;
-    cursor:pointer;"
-            type="submit">
-        Spara
+        <div style="
+display:flex;
+align-items:center;
+gap:10px;
+margin-bottom:12px;
+">
 
-    </button>
+            <label
+                    for="endDate"
+                    style="width:90px;">
+
+                Slutdatum
+
+            </label>
+
+            <input
+                    id="endDate"
+                    type="date"
+                    name="endDate">
+
+            <label
+                    for="endTime"
+                    style="width:60px;">
+
+                Sluttid
+
+            </label>
+
+            <input
+                    id="endTime"
+                    type="time"
+                    name="endTime">
+
+        </div>
+
+        <div style="
+display:flex;
+align-items:center;
+gap:10px;
+margin-bottom:12px;
+">
+
+            <label
+                    for="breakMinutes"
+                    style="width:90px;">
+
+                Rast i minuter
+
+            </label>
+
+            <input
+                    id="breakMinutes"
+                    type="number"
+                    name="breakMinutes">
+
+            <label
+                for="type"
+                style="display:block; margin-bottom:6px;">
+
+                Typ av pass
+
+                                <select
+                                        name="type"
+                                        id="type"
+                                        style="width:100%;">
+
+                                    <option value="BASELINE">
+                                        Ordinarie pass
+                                    </option>
+
+                                    <option value="ACTUAL">
+                                        Faktiskt pass
+                                    </option>
+
+                                </select>
+            </label>
+
+        </div>
+
+        <div style="
+display:flex;
+justify-content:flex-end;
+">
+
+            <button
+                    style="
+background:#00aa00;
+color:white;
+border:none;
+padding:10px 16px;
+border-radius:6px;
+cursor:pointer;"
+                    type="submit">
+
+                Spara
+
+            </button>
+
+        </div>
 
 </form>
 </div>
 
-    <!-- CARD 2 -->
-    <div style="
-    background:#dcdcdc;
-    padding:25px;
-    border-radius:15px;
-    width:380px;
-    box-shadow:0 4px 12px rgba(0,0,0,0.3);
+    <!-- Parental leave -->
+            <div style="
+background:#dcdcdc;
+color:black;
+padding:25px;
+border-radius:15px;
+width:380px;
+min-height:250px;
+
+display:flex;
+flex-direction:column;
+justify-content:space-between;
+
+box-shadow:0 4px 12px rgba(0,0,0,0.3);
 ">
 
-    <form action="/parental-leave" method="post">
+        <form action="/parental-leave" method="post">
 
-        <h2>Lägg till föräldrapenning</h2>
+            <h2>Lägg till föräldrapenning</h2>
 
-<!--    <label>-->
-<!--        <input type="number"-->
-<!--               name="personalNumber"-->
-<!--               placeholder="Personal Number">-->
-<!--    </label>-->
+            <div style="margin-bottom:20px;">
 
-<!--    <label>-->
-<!--        <input type="date"-->
-<!--               name="date">-->
-<!--    </label>-->
+                <label
+                        for="parentalLeaveDate"
+                        style="display:block; margin-bottom:6px;">
 
-<!--    <label>-->
-<!--        <select name="extent">-->
+                    Datum
 
-<!--            <option value="0.125">1/8 day</option>-->
-<!--            <option value="0.25">1/4 day</option>-->
-<!--            <option value="0.5">1/2 day</option>-->
-<!--            <option value="0.75">3/4 day</option>-->
-<!--            <option value="1.0">Full day</option>-->
+                </label>
 
-<!--        </select>-->
-<!--    </label>-->
-        <div style="margin-bottom:15px;">
+                <input
+                        id="parentalLeaveDate"
+                        type="date"
+                        name="date">
 
-            <label
-                    for="personalNumber"
-                    style="display:block; margin-bottom:5px;">
+            </div>
 
-                Personnummer
+            <div>
 
-            </label>
+                <label
+                        for="extent"
+                        style="display:block; margin-bottom:6px;">
 
-            <input type="text" name="personalNumber">
+                    Omfattning
 
-        </div>
+                </label>
 
-        <div style="margin-bottom:10px;">
+                <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        ">
 
-            <label for="date">
-                Datum
-            </label>
+                    <select id="extent" name="extent">
 
-            <input
-                    id="date"
-                    type="date"
-                    name="date">
-        </div>
+                        <option value="0.125">1/8 dag</option>
+                        <option value="0.25">1/4 dag</option>
+                        <option value="0.5">1/2 dag</option>
+                        <option value="0.75">3/4 dag</option>
+                        <option value="1.0">Hel dag</option>
 
-        <label
-                for="extent"
-                style="display:block; margin-bottom:4px;">
+                    </select>
 
-            Omfattning
+                    <div style="
+display:flex;
+justify-content:flex-end;
+">
 
-        </label>
+                        <button
+                                style="
+background:#00aa00;
+color:white;
+border:none;
+padding:10px 16px;
+border-radius:6px;
+cursor:pointer;"
+                                type="submit">
 
-        <select
-                id="extent"
-                name="extent">
+                            Spara
 
-            <option value="0.125">1/8 dag</option>
-            <option value="0.25">1/4 dag</option>
-            <option value="0.5">1/2 dag</option>
-            <option value="0.75">3/4 dag</option>
-            <option value="1.0">Hel dag</option>
+                        </button>
 
-        </select>
+                    </div>
 
-    <button
-            style="
-    background:#00aa00;
-    color:white;
-    border:none;
-    padding:10px 16px;
-    border-radius:6px;
-    cursor:pointer;"
-            type="submit">
-        Spara
-    </button>
+                </div>
+            </div>
 
-</form>
+        </form>
     </div>
-
-<hr>
 
 <form action="/analyzeweek" method="post">
 
     <div style="
-    background:#dcdcdc;
-    padding:25px;
-    border-radius:15px;
-    width:380px;
-    box-shadow:0 4px 12px rgba(0,0,0,0.3);
+background:#dcdcdc;
+color:black;
+padding:25px;
+border-radius:15px;
+width:380px;
+min-height:250px;
+
+display:flex;
+flex-direction:column;
+justify-content:space-between;
+
+box-shadow:0 4px 12px rgba(0,0,0,0.3);
 ">
 
     <h2>Analysera SGI status</h2>
 
-    <label>
-        <input type="number"
-               name="personalNumber"
-               placeholder="xxxxxxxxxxxx">
-    </label>
+        <div style="margin-bottom:20px;">
 
-    <label>
-        <input type="date"
-               name="date">
-    </label>
+            <label
+                    for="analysisDate"
+                    style="display:block; margin-bottom:6px;">
 
-    <button
-        style="
-    background:#00aa00;
-    color:white;
-    border:none;
-    padding:10px 16px;
-    border-radius:6px;
-    cursor:pointer;"
+                Datum
 
-            type="submit">
-        Analysera
-    </button>
+            </label>
+
+            <input
+                    id="analysisDate"
+                    type="date"
+                    name="date">
+
+        </div>
+
+        <div style="
+display:flex;
+justify-content:flex-end;
+">
+
+            <button
+                    style="
+background:#00aa00;
+color:white;
+border:none;
+padding:10px 16px;
+border-radius:6px;
+cursor:pointer;"
+                    type="submit">
+
+                Analysera
+
+            </button>
+
+        </div>
 
     </div>
 
 </form>
 
-<hr>
 </div>
+    </div>
 
 </body>
 </html>

@@ -40,4 +40,12 @@ public class PersonService implements PersonServiceInterface {
 
         return new PersonResponse(savedPerson.getFirstName(), savedPerson.getLastName());
     }
+
+    public Person getByPersonalNumber(
+            String personalNumber) {
+
+        return personRepository
+                .findPersonByPersonalNumber(personalNumber)
+                .orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "Person not found"));
+    }
 }
