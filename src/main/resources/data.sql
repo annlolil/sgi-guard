@@ -1,6 +1,6 @@
 -- 1. Create a person
-INSERT INTO person (personal_number, first_name, last_name)
-VALUES ('19850505-1234', 'Anna', 'Andersson');
+INSERT INTO person (personal_number, first_name, last_name, password)
+VALUES ('19850505-1234', 'Anna', 'Andersson', 'password');
 
 -- 2. Add an employment with current rate 85 % and original rate 100 %
 INSERT INTO employment (original_employment_rate, current_employment_rate, original_working_hours, valid_from, valid_to, person_id)

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Registrera</title>
+</head>
+
+<body style="
+background:#1e1e1e;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+font-family:Arial,serif;
+">
+
+<div style="
+background:#dcdcdc;
+padding:50px;
+border-radius:20px;
+width:400px;
+">
+
+  <h1 style="margin-bottom:30px;">
+    Registrera användare
+  </h1>
+
+  <form th:action="@{/register}"
+        th:object="${person}"
+        method="post">
+
+    <div style="margin-bottom:20px;">
+      <label>Personnummer</label>
+
+      <input type="text"
+             th:field="*{personalNumber}"
+             style="width:100%; padding:12px;">
+    </div>
+
+    <div style="margin-bottom:20px;">
+      <label>Förnamn</label>
+
+      <input type="text"
+             th:field="*{firstName}"
+             style="width:100%; padding:12px;">
+    </div>
+
+    <div style="margin-bottom:20px;">
+      <label>Efternamn</label>
+
+      <input type="text"
+             th:field="*{lastName}"
+             style="width:100%; padding:12px;">
+    </div>
+
+    <div style="margin-bottom:20px;">
+      <label>Lösenord</label>
+
+      <input type="password"
+             th:field="*{password}"
+             style="width:100%; padding:12px;">
+    </div>
+
+    <button type="submit"
+            style="
+                width:100%;
+                padding:14px;
+                background:green;
+                color:white;
+                border:none;
+                border-radius:10px;
+                font-size:18px;
+                font-weight:bold;">
+
+      Registrera
+
+    </button>
+
+  </form>
+
+</div>
+
+</body>
+</html>

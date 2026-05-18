@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head>
+  <title>Login</title>
+</head>
+
+<body style="
+    background:#1e1e1e;
+    color:white;
+    font-family:Arial, sans-serif;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+    margin:0;">
+
+<p
+        th:if="${param.success != null and param.success[0] == 'personAdded'}"
+        style="
+    color:lightgreen;
+    font-weight:bold;">
+
+  Person tillagd!
+</p>
+
+<div style="
+    background:#d3d3d3;
+    padding:40px;
+    border-radius:12px;
+    width:320px;">
+
+  <h1 style="
+        color:green;
+        margin-bottom:24px;">
+
+    SGIGuard Login
+  </h1>
+
+  <form
+          th:action="@{/login}"
+          method="post">
+
+    <div style="margin-bottom:16px;">
+
+      <label style="
+                display:block;
+                margin-bottom:6px;
+                color:black;">
+
+        Personnummer
+
+      </label>
+
+      <label>
+        <input
+                type="text"
+                name="username"
+                placeholder="YYYYMMDDXXXX"
+                style="
+                      width:100%;
+                      padding:10px;">
+      </label>
+    </div>
+
+    <div style="margin-bottom:20px;">
+
+      <label style="
+                display:block;
+                margin-bottom:6px;
+                color:black;">
+
+        Lösenord
+
+      </label>
+
+      <label>
+        <input
+                type="password"
+                name="password"
+                style="
+                      width:100%;
+                      padding:10px;">
+      </label>
+    </div>
+
+    <div style="display:flex; gap:10px; margin-top:20px;">
+
+      <button type="submit"
+              style="
+            flex:1;
+            padding:14px;
+            background:green;
+            color:white;
+            border:none;
+            border-radius:10px;
+            font-size:18px;
+            font-weight:bold;
+            cursor:pointer;">
+
+        Login
+
+      </button>
+
+      <a href="/register"
+         style="
+       flex:1;
+       padding:14px;
+       background:#333;
+       color:white;
+       text-decoration:none;
+       border-radius:10px;
+       text-align:center;
+       font-size:18px;
+       font-weight:bold;">
+
+        Registrera
+
+      </a>
+    </div>
+
+  </form>
+
+</div>
+
+</body>
+</html>

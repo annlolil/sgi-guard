@@ -1,7 +1,9 @@
 package se.lilja.sgiguard.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 import se.lilja.sgiguard.dtos.SgiDailyAnalysisResponse;
 import se.lilja.sgiguard.dtos.SgiWeeklyAnalysisResponse;
 import se.lilja.sgiguard.entities.ParentalLeave;
@@ -139,11 +141,6 @@ public class SgiCalculationService {
         // To use for calculating recommended total extent of parental leave to apply for
         double workHoursGap = Math.max(0, baselineWorkHours - actualWorkHours);
 
-//        // Change this!! It must look att overlapping hours
-//        double rawRecommendedExtent = baselineWorkHours > 0 ?
-//                workHoursGap / baselineWorkHours
-//                : 0;
-
         double recommendedExtent = calculateRecommendedExtent(date, baselineShifts, actualShifts);
 
         return DailyWorkSummary.builder()
@@ -158,7 +155,8 @@ public class SgiCalculationService {
 
     public SgiDailyAnalysisResponse analyzeDay(String personalNumber, LocalDate date) {
 
-        Person person = personRepository.findPersonByPersonalNumber(personalNumber);
+        Person person = personRepository.findPersonByPersonalNumber(personalNumber)
+                .orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "Person not found"));
 
         // Get the week day to analyze (just for visual purposes)
         String dayOfWeek = date.getDayOfWeek()
@@ -210,7 +208,8 @@ public class SgiCalculationService {
     // Returns a weekly result of sgi statuses using analyze day
     public SgiWeeklyAnalysisResponse analyzeWeek(String personalNumber, LocalDate date) {
 
-        Person person = personRepository.findPersonByPersonalNumber(personalNumber);
+        Person person = personRepository.findPersonByPersonalNumber(personalNumber)
+                .orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "Person not found"));
 
         // Fetch actual week number and date for Monday and Sunday that week
         int weeklyNumber = getWeekNumber(date);
@@ -231,26 +230,18 @@ public class SgiCalculationService {
 
     private double roundUpToNearestValidExtent(double extent) {
 
-        if(extent <= 0) {
+        if (extent <= 0) {
             return 0;
         }
 
-        double closestValue = 0;
-        double smallestDifference = Double.MAX_VALUE;
+        for (LeaveExtent valid : LeaveExtent.values()) {
 
-        for(LeaveExtent valid :
-                LeaveExtent.values()) {
-
-            double difference = Math.abs(extent - valid.getValue());
-
-            if(difference < smallestDifference) {
-                smallestDifference = difference;
-
-                closestValue = valid.getValue();
+            if (extent <= valid.getValue()) {
+                return valid.getValue();
             }
         }
 
-        return closestValue;
+        return 1.0;
     }
 
     private static int getWeekNumber(LocalDate date) {

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
+    <title>SGIGuard</title>
     <title>Veckoanalys</title>
 </head>
 
@@ -15,6 +16,12 @@ font-family:Arial,serif;
     flex-direction:column;
     align-items:center;
     ">
+
+<h2 th:text="'Användare: '
+    + ${person.firstName}
+    + ' '
+    + ${person.lastName}">
+</h2>
 
 <h2 th:text="'Vecka ' + ${weeklyanalyses.weeklyNumber}">
 </h2>
@@ -36,7 +43,6 @@ font-family:Arial,serif;
         <th>Saknas</th>
         <th>Rek. FP</th>
         <th>Status</th>
-    </tr>
 
     <tr th:each="day : ${weeklyanalyses.dailyAnalyses}"
         style="transition:0.2s;">
@@ -82,6 +88,20 @@ font-family:Arial,serif;
     </tr>
 
 </table>
+
+<div
+        th:if="${hasRisk}"
+
+        style="
+    background:#ffcccc;
+    color:#990000;
+    padding:15px 25px;
+    border-radius:10px;
+    margin-bottom:20px;
+    font-weight:bold;">
+
+    Varning: En eller flera dagar riskerar att påverka SGI.
+</div>
 
 <a
         href="/"

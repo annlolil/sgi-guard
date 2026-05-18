@@ -1,11 +1,15 @@
 package se.lilja.sgiguard.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import se.lilja.sgiguard.dtos.*;
+import se.lilja.sgiguard.entities.Person;
+import se.lilja.sgiguard.models.SgiStatus;
 import se.lilja.sgiguard.repositories.PersonRepository;
 import se.lilja.sgiguard.services.ParentalLeaveService;
 import se.lilja.sgiguard.services.PersonService;
@@ -32,38 +36,41 @@ public class WebController {
     }
 
     @GetMapping("/")
-    public String home(Model model) {
+    public String home(
+
+            @AuthenticationPrincipal User user,
+            Model model
+    ) {
+
+        Person person = personService.getByPersonalNumber(user.getUsername());
+
+        model.addAttribute("person", person);
 
         model.addAttribute("message", "SGIGuard");
 
         return "index";
     }
 
-//    @PostMapping("/analyze")
-//    public String analyze(
-//            @RequestParam String personalNumber,
-//            @RequestParam LocalDate date,
-//            Model model) {
-//
-//        SgiDailyAnalysisResponse response =
-//                sgiCalculationService.analyzeDay(personalNumber, date);
-//
-//        model.addAttribute("analysis", response);
-//
-//        return "result";
-//    }
-
     @PostMapping("/analyzeweek")
-    public String analyzeweek(
-            @RequestParam String personalNumber,
+    public String analyzeWeek(
+            @AuthenticationPrincipal User user,
             @RequestParam LocalDate date,
             Model model) {
 
         try {
+            String personalNumber = user.getUsername();
+
             SgiWeeklyAnalysisResponse response =
                     sgiCalculationService.analyzeWeek(personalNumber, date);
 
+            boolean hasRisk =
+                    response.getDailyAnalyses()
+                            .stream()
+                            .anyMatch(day ->
+                                    day.getStatus() == SgiStatus.AT_RISK);
+
             model.addAttribute("weeklyanalyses", response);
+            model.addAttribute("hasRisk", hasRisk);
 
             return "weeklyresult";
         }
@@ -75,12 +82,14 @@ public class WebController {
 
     @PostMapping("/parental-leave")
     public String addParentalLeave(
-            @RequestParam String personalNumber,
+            @AuthenticationPrincipal User user,
             @RequestParam LocalDate date,
             @RequestParam Double extent,
             Model model) {
 
         try {
+            String personalNumber = user.getUsername();
+
             ParentalLeaveRequest request =
                     new ParentalLeaveRequest();
 
@@ -132,7 +141,7 @@ public class WebController {
 
     @PostMapping("/shift")
     public String addShift(
-            @RequestParam String personalNumber,
+            @AuthenticationPrincipal User user,
             @RequestParam LocalDate startDate,
             @RequestParam LocalTime startTime,
             @RequestParam LocalDate endDate,
@@ -142,6 +151,8 @@ public class WebController {
             Model model) {
 
         try {
+            String personalNumber = user.getUsername();
+
             ShiftRequest request =
                     new ShiftRequest();
 
