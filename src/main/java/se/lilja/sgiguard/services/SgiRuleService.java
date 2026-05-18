@@ -45,7 +45,6 @@ public class SgiRuleService {
         boolean hasBaselineShift =
                 shifts.stream()
                         .anyMatch(s -> s.getType() == ShiftType.BASELINE);
-
         return !hasBaselineShift;
     }
 

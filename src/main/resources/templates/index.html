@@ -11,28 +11,6 @@ color:black;
 font-family:Arial,serif;
 ">
 
-<p
-        t    th:if="${param.success != null and param.success[0] == 'shiftAdded'}"
-
-        style="
-    color:lightgreen;
-    font-weight:bold;">
-
-    Pass tillagt!
-
-</p>
-
-<p
-        th:if="${param.success != null and param.success[0] == 'parentalLeaveAdded'}"
-
-        style="
-    color:lightgreen;
-    font-weight:bold;">
-
-    Föräldrapenning tillagt!
-
-</p>
-
 <!-- Header -->
 <div style="
 text-align:center;
@@ -215,6 +193,17 @@ margin-bottom:12px;
         </div>
         </div>
 
+        <p
+                th:if="${param.success != null and param.success[0] == 'shiftAdded'}"
+
+                style="
+    color:green;
+    font-weight:bold;">
+
+            Pass tillagt!
+
+        </p>
+
         <div style="
     margin-top:auto;
     display:flex;
@@ -304,20 +293,31 @@ box-shadow:0 4px 12px rgba(0,0,0,0.3);
                 </select>
 
             </div>
-<!--                This is for sending messages when parental leave adding is not valid -->
-<!--                <div-->
-<!--                        th:if="${hasMessage}"-->
 
-<!--                        style="-->
-<!--    background:#ffcccc;-->
-<!--    color:#990000;-->
-<!--    padding:15px 25px;-->
-<!--    border-radius:10px;-->
-<!--    margin-bottom:20px;-->
-<!--    font-weight:bold;">-->
+                <p
+                        th:if="${param.success != null and param.success[0] == 'parentalLeaveAdded'}"
 
-<!--                    th: text=${message}.-->
-<!--                </div>-->
+                        style="
+    color:green;
+    font-weight:bold;">
+
+                    Föräldrapenning tillagt!
+
+                </p>
+
+                <div th:if="${error}"
+                     style="
+     background:#ffcccc;
+     color:#990000;
+     padding:10px;
+     border-radius:8px;
+     margin-top:25px;
+     margin-bottom:15px;
+     font-weight:bold;">
+
+                    <span th:text="${error}"></span>
+
+                </div>
                 </div>
 
                 <div style="

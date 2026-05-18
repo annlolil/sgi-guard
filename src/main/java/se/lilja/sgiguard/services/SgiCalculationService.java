@@ -158,12 +158,20 @@ public class SgiCalculationService {
 
         String recommendedExtentLabel = getRecommendedExtentLabel(recommendedExtent);
 
+        // Set the SGI status
+        double gapHours = Math.max(0, dailyWorkSummary.getGapHours());
         SgiStatus status;
-        if (totalExtent > recommendedExtent) {
+        if (totalExtent > recommendedExtent
+                && dailyWorkSummary.getGapHours() == 0) {
+
             status = SgiStatus.OVERCOMPENSATED;
-        } else if (totalExtent < recommendedExtent) {
+
+        } else if (gapHours > 0) {
+
             status = SgiStatus.AT_RISK;
+
         } else {
+
             status = SgiStatus.PROTECTED;
         }
 

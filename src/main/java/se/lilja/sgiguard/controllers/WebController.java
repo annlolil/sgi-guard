@@ -46,7 +46,7 @@ public class WebController {
 
         model.addAttribute("person", person);
 
-        model.addAttribute("message", "SGIGuard");
+//        model.addAttribute("message", "SGIGuard");
 
         return "index";
     }
@@ -76,6 +76,11 @@ public class WebController {
             return "weeklyresult";
         }
         catch (ResponseStatusException e) {
+            Person person =
+                    personService.getByPersonalNumber(
+                            user.getUsername());
+
+            model.addAttribute("person", person);
             model.addAttribute("error", e.getReason());
             return "index";
         }
@@ -102,6 +107,11 @@ public class WebController {
             return "redirect:/?success=parentalLeaveAdded";
         }
         catch (ResponseStatusException e) {
+            Person person =
+                    personService.getByPersonalNumber(
+                            user.getUsername());
+
+            model.addAttribute("person", person);
             model.addAttribute("error", e.getReason());
             return "index";
         }
@@ -130,7 +140,7 @@ public class WebController {
         }
         catch (ResponseStatusException e) {
             model.addAttribute("error", e.getReason());
-            return "index";
+            return "login";
         }
     }
 
@@ -146,12 +156,14 @@ public class WebController {
             Model model) {
 
         try {
-            String personalNumber = user.getUsername();
+            Person person =
+                personService.getByPersonalNumber(
+                        user.getUsername());
 
             ShiftRequest request =
                     new ShiftRequest();
 
-            request.setPersonalNumber(personalNumber);
+            request.setPersonalNumber(person.getPersonalNumber());
             request.setStartDate(startDate);
             request.setStartTime(startTime);
             request.setEndDate(endDate);
@@ -166,6 +178,10 @@ public class WebController {
             return "redirect:/?success=shiftAdded";
         }
         catch (ResponseStatusException e) {
+            Person person =
+                    personService.getByPersonalNumber(
+                            user.getUsername());
+            model.addAttribute("person", person);
             model.addAttribute("error", e.getReason());
             return "index";
         }

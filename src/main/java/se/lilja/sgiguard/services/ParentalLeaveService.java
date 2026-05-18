@@ -94,6 +94,10 @@ public class ParentalLeaveService implements ParentalLeaveInterface {
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Weekend extent not valid");
                 }
             }
+            else {
+                String weekendWarning = "You need to add shifts next week to be sure that weekend rule is fulfilled";
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, weekendWarning);
+            }
         }
         ParentalLeave savedLeave = parentalLeaveRepository.save(newParentalLeave);
 
