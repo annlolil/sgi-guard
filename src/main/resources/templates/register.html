@@ -20,7 +20,10 @@ border-radius:20px;
 width:400px;
 ">
 
-  <h1 style="margin-bottom:30px;">
+  <h1 style="
+        color:green;
+        margin-bottom:24px;">
+
     Registrera användare
   </h1>
 
@@ -29,35 +32,47 @@ width:400px;
         method="post">
 
     <div style="margin-bottom:20px;">
-      <label>Personnummer</label>
+      <label>Personnummer
 
       <input type="text"
              th:field="*{personalNumber}"
-             style="width:100%; padding:12px;">
+             style="width:100%;
+             padding:12px;
+             box-sizing:border-box;">
+      </label>
     </div>
 
     <div style="margin-bottom:20px;">
-      <label>Förnamn</label>
+      <label>Förnamn
 
       <input type="text"
              th:field="*{firstName}"
-             style="width:100%; padding:12px;">
+             style="width:100%;
+             padding:12px;
+             box-sizing:border-box;">
+      </label>
     </div>
 
     <div style="margin-bottom:20px;">
-      <label>Efternamn</label>
+      <label>Efternamn
 
       <input type="text"
              th:field="*{lastName}"
-             style="width:100%; padding:12px;">
+             style="width:100%;
+             padding:12px;
+             box-sizing:border-box;">
+      </label>
     </div>
 
     <div style="margin-bottom:20px;">
-      <label>Lösenord</label>
+      <label>Lösenord
 
       <input type="password"
              th:field="*{password}"
-             style="width:100%; padding:12px;">
+             style="width:100%;
+             padding:12px;
+             box-sizing:border-box;">
+      </label>
     </div>
 
     <button type="submit"

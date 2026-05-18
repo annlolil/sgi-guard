@@ -58,10 +58,10 @@ public class WebController {
             Model model) {
 
         try {
-            String personalNumber = user.getUsername();
+            Person person = personService.getByPersonalNumber(user.getUsername());
 
             SgiWeeklyAnalysisResponse response =
-                    sgiCalculationService.analyzeWeek(personalNumber, date);
+                    sgiCalculationService.analyzeWeek(person.getPersonalNumber(), date);
 
             boolean hasRisk =
                     response.getDailyAnalyses()
@@ -71,6 +71,7 @@ public class WebController {
 
             model.addAttribute("weeklyanalyses", response);
             model.addAttribute("hasRisk", hasRisk);
+            model.addAttribute("person", person);
 
             return "weeklyresult";
         }
@@ -88,21 +89,15 @@ public class WebController {
             Model model) {
 
         try {
-            String personalNumber = user.getUsername();
 
             ParentalLeaveRequest request =
                     new ParentalLeaveRequest();
 
-            request.setPersonalNumber(personalNumber);
+            request.setPersonalNumber(user.getUsername());
             request.setDate(date);
             request.setExtent(extent);
 
-            ParentalLeaveResponse response =
-                    parentalLeaveService.addParentalLeave(request);
-
-            model.addAttribute(
-                    "leave",
-                    response);
+            parentalLeaveService.addParentalLeave(request);
 
             return "redirect:/?success=parentalLeaveAdded";
         }

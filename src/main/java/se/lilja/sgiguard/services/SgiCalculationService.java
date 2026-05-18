@@ -31,33 +31,15 @@ import java.util.stream.Collectors;
 @Service
 public class SgiCalculationService {
 
-    private final EmploymentRepository employmentRepository;
     private final ParentalLeaveRepository parentalLeaveRepository;
     private final ShiftRepository shiftRepository;
     private final PersonRepository personRepository;
-    private final SgiRuleService sgiRuleService;
 
     @Autowired
-    public SgiCalculationService(EmploymentRepository employmentRepository, ParentalLeaveRepository parentalLeaveRepository, ShiftRepository shiftRepository, PersonRepository personRepository, SgiRuleService sgiRuleService) {
-        this.employmentRepository = employmentRepository;
+    public SgiCalculationService(ParentalLeaveRepository parentalLeaveRepository, ShiftRepository shiftRepository, PersonRepository personRepository) {
         this.parentalLeaveRepository = parentalLeaveRepository;
         this.shiftRepository = shiftRepository;
         this.personRepository = personRepository;
-        this.sgiRuleService = sgiRuleService;
-    }
-
-    // Checks if employments are valid in the actual period
-    private boolean isEmploymentActiveInPeriod(Employment emp, LocalDate from, LocalDate to) {
-
-        LocalDate empStart = emp.getValidFrom();
-        LocalDate empEnd = emp.getValidTo();
-
-        //If employment is missing validTo it is active until further notice
-        if (empEnd == null) {
-            return !empStart.isAfter(to);
-        }
-
-        return !empStart.isAfter(to) && !empEnd.isBefore(from);
     }
 
     public double summarizeWorkHoursForDay(List<Shift> shifts, LocalDate date) {
@@ -89,12 +71,13 @@ public class SgiCalculationService {
 
                 totalMinutes += duration.toMinutes();
 
-                boolean overnightShift =
-                        !shift.getShiftStart().toLocalDate()
-                                .equals(shift.getShiftEnd().toLocalDate());
-
                 // Check if shift is a night shift and if not subtract break minutes
-                if (!overnightShift) {
+                if (!overnightShift(shift)) {
+                    System.out.println("Break minutes: "
+                            + shift.getBreakMinutes());
+
+                    System.out.println("Overnight: "
+                            + overnightShift(shift));
                     if (shift.getBreakMinutes() != null) {
                         totalMinutes -= shift.getBreakMinutes();
                     }
@@ -139,9 +122,13 @@ public class SgiCalculationService {
 
         // Calculate how many hours that are missing without any parental leave
         // To use for calculating recommended total extent of parental leave to apply for
-        double workHoursGap = Math.max(0, baselineWorkHours - actualWorkHours);
+//        double workHoursGap = Math.max(0, baselineWorkHours - actualWorkHours);
 
         double recommendedExtent = calculateRecommendedExtent(date, baselineShifts, actualShifts);
+
+        if (leaveHours >= gapHours) {
+            gapHours = 0;
+        }
 
         return DailyWorkSummary.builder()
                 .baselineHours(baselineWorkHours)
@@ -259,9 +246,6 @@ public class SgiCalculationService {
 
         double rawRecommendedExtent = 0.0;
 
-        System.out.println(baseLineShifts.size());
-
-        System.out.println(actualShifts.size());
         Map<Shift, List<Shift>> belongingShifts = findBelongingShifts(baseLineShifts, actualShifts);
 
         for (var entry : belongingShifts.entrySet()) {
@@ -286,8 +270,18 @@ public class SgiCalculationService {
             // Missing hours for this shift/day
             double missingHours = Math.max(0, baselineHoursForDay - actualHoursForDay);
 
+            // Calculating extent depending on if the shift is a nightshift or not
+            // If nightshift calculate using the whole shifts hours
+            // If dayshift calculate using the days (planned) total baselinehours
+            double denominator;
+            if(overnightShift(baselineShift)){
+                denominator = totalShiftHours;
+            }
+            else{
+                denominator = baselineHoursForDay;
+            }
             // Extent contribution
-            rawRecommendedExtent += missingHours / totalShiftHours;
+            rawRecommendedExtent += missingHours / denominator;
         }
 
         // Max one full day
@@ -325,7 +319,7 @@ public class SgiCalculationService {
     // Used for UI, thymeleaf
     public String getRecommendedExtentLabel(double recommendedExtent) {
 
-        String recommendedExtentLabel = "";
+        String recommendedExtentLabel;
 
         if(recommendedExtent == 0.125) {
             recommendedExtentLabel = "1/8 dag";
@@ -334,7 +328,7 @@ public class SgiCalculationService {
         } else if (recommendedExtent == 0.5) {
             recommendedExtentLabel = "1/2 dag";
         } else if (recommendedExtent == 0.75) {
-            recommendedExtentLabel = "1/4 dag";
+            recommendedExtentLabel = "3/4 dag";
         } else if (recommendedExtent == 1.0) {
             recommendedExtentLabel = "Hel dag";
         }
@@ -342,5 +336,10 @@ public class SgiCalculationService {
             recommendedExtentLabel = String.valueOf(recommendedExtent);
         }
         return recommendedExtentLabel;
+    }
+
+    private boolean overnightShift(Shift shift) {
+        return !shift.getShiftStart().toLocalDate()
+                .equals(shift.getShiftEnd().toLocalDate());
     }
 }
