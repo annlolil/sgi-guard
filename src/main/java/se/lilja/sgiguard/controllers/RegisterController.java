@@ -1,5 +1,6 @@
 package se.lilja.sgiguard.controllers;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -15,6 +16,7 @@ public class RegisterController {
     private final PersonRepository repository;
     private final PasswordEncoder passwordEncoder;
 
+    @Autowired
     public RegisterController(PersonRepository repository,
                               PasswordEncoder passwordEncoder) {
 

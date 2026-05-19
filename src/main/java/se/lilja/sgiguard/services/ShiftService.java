@@ -49,9 +49,12 @@ public class ShiftService implements ShiftServiceInterface {
         // shift is not more than 24 hours long
         LocalDateTime startDateTime = LocalDateTime.of(request.getStartDate(), request.getStartTime());
         LocalDateTime endDateTime = LocalDateTime.of(request.getEndDate(), request.getEndTime());
-        validateShiftDuration(startDateTime, endDateTime);
+
 
         int breakMinutes = request.getBreakMinutes();
+        LocalDateTime newEndTime = endDateTime.minus(Duration.ofMinutes(breakMinutes));
+
+        validateShiftDuration(startDateTime, newEndTime);
 
         // Shift type defaults to ACTUAL
         ShiftType type = ShiftType.ACTUAL;
@@ -87,6 +90,10 @@ public class ShiftService implements ShiftServiceInterface {
 
         if (duration.isNegative()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A shift can not end before it starts.");
+        }
+
+        if (duration.toHours() < 1) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A shift can not be less than one hour.");
         }
 
         if (duration.toHours() > 24) {

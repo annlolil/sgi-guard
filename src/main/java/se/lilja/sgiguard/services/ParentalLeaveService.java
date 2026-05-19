@@ -89,9 +89,9 @@ public class ParentalLeaveService implements ParentalLeaveInterface {
                 double fridayExtent = parentalLeaveRepository.findExtentsByDateAndPersonId(friday, personId);
                 double mondayExtent = parentalLeaveRepository.findExtentsByDateAndPersonId(monday, personId);
 
-                boolean validWeekendExtent = sgiRuleService.isWeekendExtentValid(totalNewExtent, fridayExtent, mondayExtent);
-                if (!validWeekendExtent) {
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Weekend extent not valid");
+                boolean validWeekendExtent = sgiRuleService.isWeekendExtentValid(fridayExtent, mondayExtent, totalNewExtent);
+                if (!validWeekendExtent) { // Translate to "Uttag bryter mot helgregler, ta ut minst lika mycket FP på fredag/måndag"
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Weekend rule violation");
                 }
             }
             else {

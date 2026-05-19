@@ -1,5 +1,6 @@
 package se.lilja.sgiguard.controllers;
 
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.User;
@@ -45,8 +46,6 @@ public class WebController {
         Person person = personService.getByPersonalNumber(user.getUsername());
 
         model.addAttribute("person", person);
-
-//        model.addAttribute("message", "SGIGuard");
 
         return "index";
     }
@@ -112,7 +111,7 @@ public class WebController {
                             user.getUsername());
 
             model.addAttribute("person", person);
-            model.addAttribute("error", e.getReason());
+            model.addAttribute("leaveError", e.getReason());
             return "index";
         }
     }
@@ -139,7 +138,7 @@ public class WebController {
             return "redirect:/?success=personAdded";
         }
         catch (ResponseStatusException e) {
-            model.addAttribute("error", e.getReason());
+            model.addAttribute("personError", e.getReason());
             return "login";
         }
     }
@@ -182,7 +181,7 @@ public class WebController {
                     personService.getByPersonalNumber(
                             user.getUsername());
             model.addAttribute("person", person);
-            model.addAttribute("error", e.getReason());
+            model.addAttribute("shiftError", e.getReason());
             return "index";
         }
     }

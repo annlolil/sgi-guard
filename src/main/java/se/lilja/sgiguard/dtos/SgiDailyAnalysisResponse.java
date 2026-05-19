@@ -22,7 +22,7 @@ public class SgiDailyAnalysisResponse {
     private double actualHours;
     private double leaveExtent;
 
-    private double gapHours;
+    private double remainingGapHours;
     private double recommendedExtent;
     private String recommendedExtentLabel;
 
