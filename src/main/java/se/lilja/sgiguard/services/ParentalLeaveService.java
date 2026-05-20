@@ -9,6 +9,7 @@ import se.lilja.sgiguard.dtos.ParentalLeaveResponse;
 import se.lilja.sgiguard.entities.ParentalLeave;
 import se.lilja.sgiguard.entities.Person;
 import se.lilja.sgiguard.models.DailyWorkSummary;
+import se.lilja.sgiguard.models.Warning;
 import se.lilja.sgiguard.repositories.ParentalLeaveRepository;
 import se.lilja.sgiguard.repositories.PersonRepository;
 
@@ -34,16 +35,13 @@ public class ParentalLeaveService implements ParentalLeaveInterface {
         this.sgiCalculationService = sgiCalculationService;
     }
 
-    public ParentalLeaveResponse addParentalLeave(ParentalLeaveRequest request) {
-
-        Person person = personRepository.findPersonByPersonalNumber(request.getPersonalNumber())
-                .orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "Person not found"));
+    public ParentalLeaveResponse addParentalLeave(Person person, ParentalLeaveRequest request) {
 
         LocalDate requestDate = request.getDate();
         Long personId = person.getId();
 
         if(!VALID_EXTENTS.contains(request.getExtent())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid extent");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Warning.INVALID_EXTENT.getMessage());
         }
 
         ParentalLeave newParentalLeave = ParentalLeave.builder()
@@ -55,7 +53,7 @@ public class ParentalLeaveService implements ParentalLeaveInterface {
         double existingExtent = parentalLeaveRepository.findExtentsByDateAndPersonId(requestDate, personId);
         boolean validExtent = sgiRuleService.isExtentValid(newParentalLeave, existingExtent);
         if (!validExtent) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Extent exceeds 1.0 days");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Warning.EXTENT_EXCEEDS_DAY.getMessage());
         }
         double totalNewExtent = existingExtent + request.getExtent();
 
@@ -66,7 +64,7 @@ public class ParentalLeaveService implements ParentalLeaveInterface {
             DailyWorkSummary summary =
                     sgiCalculationService.calculateDailyWorkSummary(personId, requestDate);
             if(totalNewExtent > summary.getRecommendedExtent()) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Extent exceeds the gap to fill");
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Warning.EXTENT_EXCEEDS_GAP.getMessage());
             }
         }
 
@@ -91,13 +89,12 @@ public class ParentalLeaveService implements ParentalLeaveInterface {
                 double mondayExtent = parentalLeaveRepository.findExtentsByDateAndPersonId(monday, personId);
 
                 boolean validWeekendExtent = sgiRuleService.isWeekendExtentValid(fridayExtent, mondayExtent, totalNewExtent);
-                if (!validWeekendExtent) { // Translate to "Uttag bryter mot helgregler, ta ut minst lika mycket FP på fredag/måndag"
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Weekend rule violation");
+                if (!validWeekendExtent) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Warning.WEEKEND_RULE.getMessage());
                 }
             }
             else {
-                String weekendWarning = "You need to add shifts next week to be sure that weekend rule is fulfilled";
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, weekendWarning);
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Warning.WEEK_SCHEDULE_MISSING.getMessage());
             }
         }
         ParentalLeave savedLeave = parentalLeaveRepository.save(newParentalLeave);

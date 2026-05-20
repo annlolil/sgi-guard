@@ -6,31 +6,22 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import se.lilja.sgiguard.dtos.SgiDailyAnalysisResponse;
-import se.lilja.sgiguard.dtos.SgiWeeklyAnalysisResponse;
 import se.lilja.sgiguard.entities.ParentalLeave;
-import se.lilja.sgiguard.entities.Person;
 import se.lilja.sgiguard.entities.Shift;
-import se.lilja.sgiguard.entities.Employment;
 import se.lilja.sgiguard.models.SgiStatus;
 import se.lilja.sgiguard.models.ShiftType;
-import se.lilja.sgiguard.repositories.EmploymentRepository;
 import se.lilja.sgiguard.repositories.ParentalLeaveRepository;
 import se.lilja.sgiguard.repositories.ShiftRepository;
 
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.temporal.WeekFields;
 import java.util.List;
-import java.util.Locale;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
-import static se.lilja.sgiguard.models.SgiStatus.AT_RISK;
-import static se.lilja.sgiguard.models.SgiStatus.PROTECTED;
 
 @ExtendWith(MockitoExtension.class)
 class SgiCalculationServiceTest {

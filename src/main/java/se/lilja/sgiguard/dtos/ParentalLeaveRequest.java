@@ -14,16 +14,11 @@ import java.time.LocalDate;
 @Setter
 public class ParentalLeaveRequest {
 
-    @NotNull
-    @Pattern(regexp = "\\d{12}", message = "Felaktigt personnummer")
-    private String personalNumber;
-
-    @NotNull
-    @FutureOrPresent(message="Date can not be in the past")
+    @NotNull(message = "Välj datum")
     LocalDate date;
 
-    @NotNull
-    @DecimalMax(value = "1.0", message="Extent must be between 0.125-1.0")
-    @DecimalMin(value = "0.125", message="Extent must be between 0.125-1.0")
+    @NotNull(message = "Omfattning måste väljas")
+    @DecimalMax(value = "1.0", message="Omfattning måste vara mellan 0.125-1.0")
+    @DecimalMin(value = "0.125", message="Omfattning måste vara mellan 0.125-1.0")
     Double extent;
 }

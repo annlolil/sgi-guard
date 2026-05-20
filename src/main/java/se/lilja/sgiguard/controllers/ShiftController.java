@@ -27,10 +27,10 @@ public class ShiftController {
         this.shiftRepository = shiftRepository;
     }
 
-    @PostMapping("/addshift")
-    public ResponseEntity<ShiftResponse> addShift(@Valid @RequestBody ShiftRequest shiftRequest) {
-        return new ResponseEntity<>(shiftService.addShift(shiftRequest), HttpStatus.CREATED);
-    }
+//    @PostMapping("/addshift")
+//    public ResponseEntity<ShiftResponse> addShift(@Valid @RequestBody ShiftRequest shiftRequest) {
+//        return new ResponseEntity<>(shiftService.addShift(shiftRequest), HttpStatus.CREATED);
+//    }
 
 //    @DeleteMapping("/deleteshifts")
 //    public ResponseEntity<String> deleteShifts(@AuthenticationPrincipal User user,

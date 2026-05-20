@@ -33,10 +33,8 @@ public class ShiftService implements ShiftServiceInterface {
     }
 
     @Override
-    public ShiftResponse addShift(ShiftRequest request) {
+    public ShiftResponse addShift(Person person, ShiftRequest request) {
         // Get the person that is logged in and connect it to the shift that's being saved
-        Person person = personRepository.findPersonByPersonalNumber(request.getPersonalNumber())
-                .orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "Person not found"));
 
         // Fetch start and end time for the shift and validate that
         // shifts start date and time is before end date and time
@@ -73,16 +71,16 @@ public class ShiftService implements ShiftServiceInterface {
         Duration duration = Duration.between(start, end);
 
         if (duration.isNegative()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A shift can not end before it starts.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Slutdatum kan inte vara före startdatum");
         }
 
         if (duration.toHours() < 1) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A shift can not be less than one hour.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ett skift kan inte vara mindre än 1 timme");
         }
 
         if (duration.toHours() > 24) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "A shift can not be more than 24 hours.");
+                    "Ett skift kan inte vara mer än 24 timmar");
         }
     }
 
