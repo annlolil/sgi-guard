@@ -41,6 +41,7 @@ font-family:Arial,serif;
         <th>Ordinarie timmar</th>
         <th>Faktiska timmar</th>
         <th>Saknas</th>
+        <th>Inlagd FP</th>
         <th>Rek. FP</th>
         <th>Status</th>
 
@@ -66,6 +67,9 @@ font-family:Arial,serif;
         <td style="padding:10px;"
             th:text="${day.remainingGapHours}">
         </td>
+
+        <td style="padding:10px;"
+            th:text="${day.leaveExtent}">
 
         <td style="padding:10px;"
             th:text="${day.recommendedExtentLabel}">
