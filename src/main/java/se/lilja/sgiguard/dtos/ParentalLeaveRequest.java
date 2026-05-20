@@ -19,7 +19,7 @@ public class ParentalLeaveRequest {
     private String personalNumber;
 
     @NotNull
-//    @FutureOrPresent(message="Date can not be in the past") // outcommented for testing
+    @FutureOrPresent(message="Date can not be in the past")
     LocalDate date;
 
     @NotNull

@@ -121,6 +121,20 @@
       </a>
     </div>
 
+    <div th:if="${personError}"
+         style="
+     background:#ffcccc;
+     color:#990000;
+     padding:10px;
+     border-radius:8px;
+     margin-top:25px;
+     margin-bottom:15px;
+     font-weight:bold;">
+
+      <span th:text="${personError}"></span>
+
+    </div>
+
   </form>
 
 </div>

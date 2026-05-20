@@ -73,11 +73,6 @@ public class SgiCalculationService {
 
                 // Check if shift is a night shift and if not subtract break minutes
                 if (!overnightShift(shift)) {
-                    System.out.println("Break minutes: "
-                            + shift.getBreakMinutes());
-
-                    System.out.println("Overnight: "
-                            + overnightShift(shift));
                     if (shift.getBreakMinutes() != null) {
                         totalMinutes -= shift.getBreakMinutes();
                     }
@@ -118,16 +113,16 @@ public class SgiCalculationService {
 
         // Calculate how many hours that are missing including existing parental leave
         double totalPlanned = actualWorkHours + leaveHours;
-        double gapHours = Math.max(0, baselineWorkHours - totalPlanned);
 
         // Calculate how many hours that are missing without any parental leave
         // To use for calculating recommended total extent of parental leave to apply for
-//        double workHoursGap = Math.max(0, baselineWorkHours - actualWorkHours);
+        double requiredLeaveHours = Math.max(0, baselineWorkHours - actualWorkHours);
 
         double recommendedExtent = calculateRecommendedExtent(date, baselineShifts, actualShifts);
-
-        if (leaveHours >= gapHours) {
-            gapHours = 0;
+        double remainingGapHours = 0;
+        if(totalExtent < recommendedExtent && baselineWorkHours >= 1.0) {
+            double rawRemainingGapHours = Math.max(0, baselineWorkHours - totalPlanned);
+            remainingGapHours = Math.round(rawRemainingGapHours * 100.0) / 100.0;
         }
 
         return DailyWorkSummary.builder()
@@ -135,7 +130,8 @@ public class SgiCalculationService {
                 .actualHours(actualWorkHours)
                 .leaveExtent(totalExtent)
                 .leaveHours(leaveHours)
-                .gapHours(gapHours)
+                .remainingGapHours(remainingGapHours)
+                .requiredLeaveHours(requiredLeaveHours)
                 .recommendedExtent(recommendedExtent)
                 .build();
     }
@@ -158,12 +154,21 @@ public class SgiCalculationService {
 
         String recommendedExtentLabel = getRecommendedExtentLabel(recommendedExtent);
 
+        // Set the SGI status
+        double remainingGapHours = dailyWorkSummary.getRemainingGapHours();
+
         SgiStatus status;
-        if (totalExtent > recommendedExtent) {
+        if (totalExtent > recommendedExtent
+                && remainingGapHours == 0) {
+
             status = SgiStatus.OVERCOMPENSATED;
-        } else if (totalExtent < recommendedExtent) {
+
+        } else if (remainingGapHours > 0) {
+
             status = SgiStatus.AT_RISK;
+
         } else {
+
             status = SgiStatus.PROTECTED;
         }
 
@@ -173,7 +178,7 @@ public class SgiCalculationService {
                 dailyWorkSummary.getBaselineHours(),
                 dailyWorkSummary.getActualHours(),
                 totalExtent,
-                dailyWorkSummary.getGapHours(),
+                dailyWorkSummary.getRemainingGapHours(),
                 recommendedExtent,
                 recommendedExtentLabel,
                 status
@@ -273,6 +278,7 @@ public class SgiCalculationService {
             // Calculating extent depending on if the shift is a nightshift or not
             // If nightshift calculate using the whole shifts hours
             // If dayshift calculate using the days (planned) total baselinehours
+
             double denominator;
             if(overnightShift(baselineShift)){
                 denominator = totalShiftHours;
@@ -284,9 +290,9 @@ public class SgiCalculationService {
             rawRecommendedExtent += missingHours / denominator;
         }
 
-        // Max one full day
-        rawRecommendedExtent = Math.min(1.0,
-                rawRecommendedExtent);
+//        // Max one full day
+//        rawRecommendedExtent = Math.min(1.0,
+//                rawRecommendedExtent);
 
         return roundUpToNearestValidExtent(
                 rawRecommendedExtent);

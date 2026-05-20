@@ -1,5 +1,6 @@
 package se.lilja.sgiguard.controllers;
 
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.User;
@@ -46,8 +47,6 @@ public class WebController {
 
         model.addAttribute("person", person);
 
-        model.addAttribute("message", "SGIGuard");
-
         return "index";
     }
 
@@ -76,6 +75,11 @@ public class WebController {
             return "weeklyresult";
         }
         catch (ResponseStatusException e) {
+            Person person =
+                    personService.getByPersonalNumber(
+                            user.getUsername());
+
+            model.addAttribute("person", person);
             model.addAttribute("error", e.getReason());
             return "index";
         }
@@ -102,7 +106,12 @@ public class WebController {
             return "redirect:/?success=parentalLeaveAdded";
         }
         catch (ResponseStatusException e) {
-            model.addAttribute("error", e.getReason());
+            Person person =
+                    personService.getByPersonalNumber(
+                            user.getUsername());
+
+            model.addAttribute("person", person);
+            model.addAttribute("leaveError", e.getReason());
             return "index";
         }
     }
@@ -129,8 +138,8 @@ public class WebController {
             return "redirect:/?success=personAdded";
         }
         catch (ResponseStatusException e) {
-            model.addAttribute("error", e.getReason());
-            return "index";
+            model.addAttribute("personError", e.getReason());
+            return "login";
         }
     }
 
@@ -146,12 +155,14 @@ public class WebController {
             Model model) {
 
         try {
-            String personalNumber = user.getUsername();
+            Person person =
+                personService.getByPersonalNumber(
+                        user.getUsername());
 
             ShiftRequest request =
                     new ShiftRequest();
 
-            request.setPersonalNumber(personalNumber);
+            request.setPersonalNumber(person.getPersonalNumber());
             request.setStartDate(startDate);
             request.setStartTime(startTime);
             request.setEndDate(endDate);
@@ -166,7 +177,11 @@ public class WebController {
             return "redirect:/?success=shiftAdded";
         }
         catch (ResponseStatusException e) {
-            model.addAttribute("error", e.getReason());
+            Person person =
+                    personService.getByPersonalNumber(
+                            user.getUsername());
+            model.addAttribute("person", person);
+            model.addAttribute("shiftError", e.getReason());
             return "index";
         }
     }

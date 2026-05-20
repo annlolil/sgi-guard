@@ -1,5 +1,6 @@
 package se.lilja.sgiguard.controllers;
 
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +24,7 @@ public class ShiftController {
     }
 
     @PostMapping("/addshift")
-    public ResponseEntity<ShiftResponse> addShift(@RequestBody ShiftRequest shiftRequest) {
+    public ResponseEntity<ShiftResponse> addShift(@Valid @RequestBody ShiftRequest shiftRequest) {
         return new ResponseEntity<>(shiftService.addShift(shiftRequest), HttpStatus.CREATED);
     }
 

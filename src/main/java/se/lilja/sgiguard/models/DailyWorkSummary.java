@@ -1,6 +1,5 @@
 package se.lilja.sgiguard.models;
 
-import jakarta.persistence.Entity;
 import lombok.*;
 
 @Getter
@@ -16,6 +15,8 @@ public class DailyWorkSummary {
     private double leaveExtent;
     private double leaveHours;
 
-    private double gapHours;
+    private double remainingGapHours;
+    private double requiredLeaveHours;
+
     private double recommendedExtent;
 }
