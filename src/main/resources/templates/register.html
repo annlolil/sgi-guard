@@ -28,7 +28,7 @@ width:400px;
   </h1>
 
   <form th:action="@{/register}"
-        th:object="${person}"
+        th:object="${registerRequest}"
         method="post">
 
     <div style="margin-bottom:20px;">
@@ -89,6 +89,20 @@ width:400px;
       Registrera
 
     </button>
+
+    <div th:if="${registerError}"
+         style="
+     background:#ffcccc;
+     color:#990000;
+     padding:10px;
+     border-radius:8px;
+     margin-top:25px;
+     margin-bottom:15px;
+     font-weight:bold;">
+
+      <span th:text="${registerError}"></span>
+
+    </div>
 
   </form>
 
