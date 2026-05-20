@@ -103,20 +103,55 @@ font-family:Arial,serif;
     Varning: En eller flera dagar riskerar att påverka SGI.
 </div>
 
-<a
-        href="/"
-
+<div
         style="
-    background:#333;
-    color:white;
-    padding:10px 20px;
-    border-radius:8px;
-    text-decoration:none;
-    margin-top:20px;
-    display:inline-block;">
+        display:flex;
+        gap:40px;
+        margin-top:20px;
+        align-items:center;">
 
-    Tillbaka
+    <a
+            href="/"
 
-</a>
+            style="
+        background:#333;
+        color:white;
+        padding:10px 20px;
+        border-radius:8px;
+        text-decoration:none;
+        display:inline-block;">
+
+        Tillbaka
+
+    </a>
+
+    <form th:action="@{/deleteshiftsinweek}"
+          method="post">
+
+        <input type="hidden"
+               name="date"
+               th:value="${weeklyanalyses.dailyAnalyses[0].date}"/>
+
+        <button type="submit"
+
+                onclick="return confirm(
+                'Rensa alla pass och föräldrapenning för veckan?')"
+
+                style="
+                padding:10px 20px;
+                background:red;
+                color:white;
+                border:none;
+                border-radius:8px;
+                font-size:16px;
+                cursor:pointer;">
+
+            Reset vecka
+
+        </button>
+
+    </form>
+
+</div>
 </body>
 </html>

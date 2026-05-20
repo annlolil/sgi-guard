@@ -1,5 +1,6 @@
 package se.lilja.sgiguard.repositories;
 
+import org.springframework.cglib.core.Local;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -25,4 +26,5 @@ public interface ShiftRepository extends JpaRepository<Shift, Long> {
     );
 
     List<Shift> findShiftsByPersonId(Long personId);
+
 }

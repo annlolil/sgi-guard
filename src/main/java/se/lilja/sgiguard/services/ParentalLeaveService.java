@@ -14,6 +14,7 @@ import se.lilja.sgiguard.repositories.PersonRepository;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import java.util.Optional;
 
@@ -113,6 +114,22 @@ public class ParentalLeaveService implements ParentalLeaveInterface {
         parentalLeaveRepository.delete(parentalLeave);
         return "Parental leave deleted on " + parentalLeave.getDate() + ".";
     }
+
+    public void deleteParentalLeavesInWeek(Long personId, LocalDate start) {
+
+        Person person = personRepository.findById(personId).orElseThrow(
+                ()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "Person not found"));
+
+        LocalDate weekStart = start.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        LocalDate weekEnd = weekStart.plusDays(7);
+
+        List<ParentalLeave> parentalLeavesToDelete = parentalLeaveRepository
+                .findByPersonIdAndDateBetween(person.getId(), weekStart, weekEnd);
+
+        parentalLeaveRepository.deleteAll(parentalLeavesToDelete);
+    }
+
+
 
     // Extents that represents parts of a parental leave day
     public static final List<Double> VALID_EXTENTS =
