@@ -11,7 +11,6 @@ public enum Warning {
     EXTENT_EXCEEDS_DAY("Omfattning överstiger 1 dag"),
     WEEK_SCHEDULE_MISSING("Lägg till pass nästa vecka för att verifiera helgregeln");
 
-
     private final String message;
 
     Warning(String message) {

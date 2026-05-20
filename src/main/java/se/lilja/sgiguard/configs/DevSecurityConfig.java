@@ -31,7 +31,8 @@ public class DevSecurityConfig {
                 )
 
                 .formLogin(form -> form
-                        .loginPage("/login")
+                                .loginPage("/login")
+                                .failureUrl("/login?error=true")
                         .defaultSuccessUrl("/", true)
                         .permitAll()
                 )
