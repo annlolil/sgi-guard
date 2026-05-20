@@ -15,14 +15,14 @@
     height:100vh;
     margin:0;">
 
-<p
-        th:if="${param.success != null and param.success[0] == 'personAdded'}"
-        style="
-    color:lightgreen;
-    font-weight:bold;">
+<!--<p-->
+<!--        th:if="${param.success != null and param.success[0] == 'personAdded'}"-->
+<!--        style="-->
+<!--    color:lightgreen;-->
+<!--    font-weight:bold;">-->
 
-  Person tillagd!
-</p>
+<!--  Person tillagd!-->
+<!--</p>-->
 
 <div style="
     background:#d3d3d3;
@@ -121,7 +121,7 @@
       </a>
     </div>
 
-    <div th:if="${personError}"
+    <div th:if="${loginError}"
          style="
      background:#ffcccc;
      color:#990000;
@@ -131,7 +131,7 @@
      margin-bottom:15px;
      font-weight:bold;">
 
-      <span th:text="${personError}"></span>
+      <span th:text="${loginError}"></span>
 
     </div>
 
