@@ -185,4 +185,24 @@ public class WebController {
             return "index";
         }
     }
+
+    @PostMapping("/deleteshiftsinweek")
+    public String deleteShiftsInWeek(
+            @AuthenticationPrincipal User user,
+            @RequestParam LocalDate date) {
+
+        Person person =
+                personService.getByPersonalNumber(
+                        user.getUsername());
+
+        shiftService.deleteShiftsInWeek(
+                person.getId(),
+                date);
+
+        parentalLeaveService.deleteParentalLeavesInWeek(
+                person.getId(),
+                date);
+
+        return "redirect:/?success=weekReset";
+    }
 }
