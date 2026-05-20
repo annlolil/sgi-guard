@@ -18,11 +18,11 @@ public class SgiDailyAnalysisResponse {
     private LocalDate date;
     private String dayOfWeek;
 
-    private double baselineHours;
-    private double actualHours;
-    private double leaveExtent;
+    private String baselineHours;
+    private String actualHours;
+    private String leaveExtent;
 
-    private double remainingGapHours;
+    private String remainingGapHours;
     private double recommendedExtent;
     private String recommendedExtentLabel;
 

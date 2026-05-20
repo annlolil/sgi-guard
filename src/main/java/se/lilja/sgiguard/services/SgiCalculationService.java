@@ -152,8 +152,6 @@ public class SgiCalculationService {
         double recommendedExtent = dailyWorkSummary.getRecommendedExtent();
         double totalExtent = dailyWorkSummary.getLeaveExtent();
 
-        String recommendedExtentLabel = getRecommendedExtentLabel(recommendedExtent);
-
         // Set the SGI status
         double remainingGapHours = dailyWorkSummary.getRemainingGapHours();
 
@@ -172,13 +170,22 @@ public class SgiCalculationService {
             status = SgiStatus.PROTECTED;
         }
 
+        // Format hours for UI
+        String formattedBaseLineWorkHours = formatHoursAndMinutes(dailyWorkSummary.getBaselineHours());
+        String formattedActualWorkHours = formatHoursAndMinutes(dailyWorkSummary.getActualHours());
+        String formattedRemainingGapHours = formatHoursAndMinutes(dailyWorkSummary.getRemainingGapHours());
+
+        // Format extent label for UI
+        String recommendedExtentLabel = getExtentLabel(recommendedExtent);
+        String totalExtentLabel = getExtentLabel(totalExtent);
+
         return new SgiDailyAnalysisResponse(
                 date,
                 dayOfWeek,
-                dailyWorkSummary.getBaselineHours(),
-                dailyWorkSummary.getActualHours(),
-                totalExtent,
-                dailyWorkSummary.getRemainingGapHours(),
+                formattedBaseLineWorkHours,
+                formattedActualWorkHours,
+                totalExtentLabel,
+                formattedRemainingGapHours,
                 recommendedExtent,
                 recommendedExtentLabel,
                 status
@@ -290,10 +297,6 @@ public class SgiCalculationService {
             rawRecommendedExtent += missingHours / denominator;
         }
 
-//        // Max one full day
-//        rawRecommendedExtent = Math.min(1.0,
-//                rawRecommendedExtent);
-
         return roundUpToNearestValidExtent(
                 rawRecommendedExtent);
     }
@@ -323,29 +326,46 @@ public class SgiCalculationService {
     }
 
     // Used for UI, thymeleaf
-    public String getRecommendedExtentLabel(double recommendedExtent) {
+    public String getExtentLabel(double extent) {
 
-        String recommendedExtentLabel;
+        String extentLabel;
 
-        if(recommendedExtent == 0.125) {
-            recommendedExtentLabel = "1/8 dag";
-        } else if (recommendedExtent == 0.25) {
-            recommendedExtentLabel = "1/4 dag";
-        } else if (recommendedExtent == 0.5) {
-            recommendedExtentLabel = "1/2 dag";
-        } else if (recommendedExtent == 0.75) {
-            recommendedExtentLabel = "3/4 dag";
-        } else if (recommendedExtent == 1.0) {
-            recommendedExtentLabel = "Hel dag";
+        if (extent == 0.125) {
+            extentLabel = "1/8 dag";
+        } else if (extent == 0.25) {
+            extentLabel = "1/4 dag";
+        } else if (extent == 0.5) {
+            extentLabel = "1/2 dag";
+        } else if (extent == 0.75) {
+            extentLabel = "3/4 dag";
+        } else if (extent == 1.0) {
+            extentLabel = "Hel dag";
+        } else if (extent == 0.0) {
+            extentLabel = "0 dagar";
         }
         else {
-            recommendedExtentLabel = String.valueOf(recommendedExtent);
+            extentLabel = String.valueOf(extent);
         }
-        return recommendedExtentLabel;
+        return extentLabel;
     }
 
     private boolean overnightShift(Shift shift) {
         return !shift.getShiftStart().toLocalDate()
                 .equals(shift.getShiftEnd().toLocalDate());
+    }
+
+    // For UI to show hours in 3 h 10 min instead of 3,17
+    public String formatHoursAndMinutes(double hours) {
+
+        int totalMinutes = (int)Math.round(hours * 60);
+
+        int wholeHours = totalMinutes / 60;
+        int remainingMinutes = totalMinutes % 60;
+
+        if (remainingMinutes == 0) {
+            return wholeHours + " h";
+        }
+
+        return wholeHours + " h " + remainingMinutes + " min";
     }
 }
