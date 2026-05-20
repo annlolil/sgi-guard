@@ -402,6 +402,20 @@ box-shadow:0 4px 12px rgba(0,0,0,0.3);
 
             </div>
 
+            <div th:if="${analyzeError}"
+                 style="
+     background:#ffcccc;
+     color:#990000;
+     padding:10px;
+     border-radius:8px;
+     margin-top:25px;
+     margin-bottom:15px;
+     font-weight:bold;">
+
+                <span th:text="${analyzeError}"></span>
+
+            </div>
+
             <div style="
     margin-top:auto;
     display:flex;

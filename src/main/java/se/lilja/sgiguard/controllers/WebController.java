@@ -6,12 +6,13 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import se.lilja.sgiguard.dtos.*;
 import se.lilja.sgiguard.entities.Person;
 import se.lilja.sgiguard.models.SgiStatus;
-import se.lilja.sgiguard.repositories.PersonRepository;
+import se.lilja.sgiguard.models.Warning;
 import se.lilja.sgiguard.services.ParentalLeaveService;
 import se.lilja.sgiguard.services.PersonService;
 import se.lilja.sgiguard.services.SgiCalculationService;
@@ -19,6 +20,7 @@ import se.lilja.sgiguard.services.ShiftService;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.Objects;
 
 @Controller
 public class WebController {
@@ -53,14 +55,22 @@ public class WebController {
     @PostMapping("/analyzeweek")
     public String analyzeWeek(
             @AuthenticationPrincipal User user,
-            @RequestParam LocalDate date,
+            @Valid @ModelAttribute AnalyzeWeekRequest request,
+            BindingResult bindingResult,
             Model model) {
 
-        try {
-            Person person = personService.getByPersonalNumber(user.getUsername());
+        Person person = personService.getByPersonalNumber(user.getUsername());
+        model.addAttribute("person", person);
 
+        if(bindingResult.hasErrors()) {
+
+            model.addAttribute("analyzeError", bindingResult.getFieldError().getDefaultMessage());
+            return "index";
+        }
+
+        try {
             SgiWeeklyAnalysisResponse response =
-                    sgiCalculationService.analyzeWeek(person.getPersonalNumber(), date);
+                    sgiCalculationService.analyzeWeek(person.getPersonalNumber(), request.getDate());
 
             boolean hasRisk =
                     response.getDailyAnalyses()
@@ -70,16 +80,10 @@ public class WebController {
 
             model.addAttribute("weeklyanalyses", response);
             model.addAttribute("hasRisk", hasRisk);
-            model.addAttribute("person", person);
 
             return "weeklyresult";
         }
         catch (ResponseStatusException e) {
-            Person person =
-                    personService.getByPersonalNumber(
-                            user.getUsername());
-
-            model.addAttribute("person", person);
             model.addAttribute("error", e.getReason());
             return "index";
         }
@@ -88,29 +92,29 @@ public class WebController {
     @PostMapping("/parental-leave")
     public String addParentalLeave(
             @AuthenticationPrincipal User user,
-            @RequestParam LocalDate date,
-            @RequestParam Double extent,
+            @Valid @ModelAttribute ParentalLeaveRequest request,
+            BindingResult bindingResult,
             Model model) {
+
+        Person person = personService.getByPersonalNumber(user.getUsername());
+        model.addAttribute("person", person);
+
+        if(bindingResult.hasErrors()) {
+
+            model.addAttribute("leaveError", bindingResult.getFieldError().getDefaultMessage());
+            return "index";
+        }
 
         try {
 
-            ParentalLeaveRequest request =
-                    new ParentalLeaveRequest();
+            ParentalLeaveResponse response =
+            parentalLeaveService.addParentalLeave(person, request);
 
-            request.setPersonalNumber(user.getUsername());
-            request.setDate(date);
-            request.setExtent(extent);
-
-            parentalLeaveService.addParentalLeave(request);
+            model.addAttribute("parentalLeave", response);
 
             return "redirect:/?success=parentalLeaveAdded";
         }
         catch (ResponseStatusException e) {
-            Person person =
-                    personService.getByPersonalNumber(
-                            user.getUsername());
-
-            model.addAttribute("person", person);
             model.addAttribute("leaveError", e.getReason());
             return "index";
         }
@@ -146,41 +150,30 @@ public class WebController {
     @PostMapping("/shift")
     public String addShift(
             @AuthenticationPrincipal User user,
-            @RequestParam LocalDate startDate,
-            @RequestParam LocalTime startTime,
-            @RequestParam LocalDate endDate,
-            @RequestParam LocalTime endTime,
-            @RequestParam Integer breakMinutes,
-            @RequestParam String type,
+            @Valid @ModelAttribute ShiftRequest request,
+            BindingResult bindingResult,
             Model model) {
 
-        try {
-            Person person =
+        Person person =
                 personService.getByPersonalNumber(
                         user.getUsername());
 
-            ShiftRequest request =
-                    new ShiftRequest();
+        model.addAttribute("person", person);
 
-            request.setPersonalNumber(person.getPersonalNumber());
-            request.setStartDate(startDate);
-            request.setStartTime(startTime);
-            request.setEndDate(endDate);
-            request.setEndTime(endTime);
-            request.setBreakMinutes(breakMinutes);
-            request.setType(type);
+        if(bindingResult.hasErrors()) {
 
-            ShiftResponse response = shiftService.addShift(request);
+            model.addAttribute("shiftError", bindingResult.getFieldError().getDefaultMessage());
+            return "index";
+        }
+
+        try {
+            ShiftResponse response = shiftService.addShift(person, request);
 
             model.addAttribute("shift", response);
 
             return "redirect:/?success=shiftAdded";
         }
         catch (ResponseStatusException e) {
-            Person person =
-                    personService.getByPersonalNumber(
-                            user.getUsername());
-            model.addAttribute("person", person);
             model.addAttribute("shiftError", e.getReason());
             return "index";
         }

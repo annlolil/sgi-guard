@@ -9,24 +9,19 @@ import se.lilja.sgiguard.dtos.SgiWeeklyAnalysisResponse;
 import se.lilja.sgiguard.entities.ParentalLeave;
 import se.lilja.sgiguard.entities.Person;
 import se.lilja.sgiguard.entities.Shift;
-import se.lilja.sgiguard.entities.Employment;
 import se.lilja.sgiguard.models.DailyWorkSummary;
 import se.lilja.sgiguard.models.LeaveExtent;
 import se.lilja.sgiguard.models.SgiStatus;
 import se.lilja.sgiguard.models.ShiftType;
-import se.lilja.sgiguard.repositories.EmploymentRepository;
 import se.lilja.sgiguard.repositories.ParentalLeaveRepository;
 import se.lilja.sgiguard.repositories.PersonRepository;
 import se.lilja.sgiguard.repositories.ShiftRepository;
-import se.lilja.sgiguard.utils.DateRange;
 
-import java.sql.SQLOutput;
 import java.time.*;
 import java.time.format.TextStyle;
 import java.time.temporal.TemporalAdjusters;
 import java.time.temporal.WeekFields;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class SgiCalculationService {

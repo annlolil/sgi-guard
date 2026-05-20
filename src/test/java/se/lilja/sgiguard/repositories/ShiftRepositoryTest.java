@@ -7,7 +7,6 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import se.lilja.sgiguard.entities.Person;
 import se.lilja.sgiguard.entities.Shift;
-import se.lilja.sgiguard.entities.Employment;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;

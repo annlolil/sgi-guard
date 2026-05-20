@@ -16,24 +16,20 @@ import java.time.LocalTime;
 @Setter
 public class ShiftRequest {
 
-    @NotNull
-    @Pattern(regexp = "\\d{12}", message = "Felaktigt personnummer")
-    private String personalNumber;
-
-    @NotNull
-    @FutureOrPresent(message="Date can not be in the past")
+    @NotNull(message = "Välj startdatum")
     private LocalDate startDate;
 
-    @NotNull
-    @FutureOrPresent(message="Date can not be in the past")
+    @NotNull(message = "Välj slutdatum")
     private LocalDate endDate;
 
-    @NotNull
+    @NotNull(message = "Välj starttid")
     private LocalTime startTime;
 
-    @NotNull
+    @NotNull(message = "Välj sluttid")
     private LocalTime endTime;
 
+    @NotNull(message = "Rast får inte vara tom, om ingen rast fyll i 0")
+    @Min(value = 0, message = "Om ingen rast, fyll i 0")
     private Integer breakMinutes;
 
     private String type;

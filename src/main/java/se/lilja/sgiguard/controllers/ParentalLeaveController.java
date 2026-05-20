@@ -21,10 +21,10 @@ public class ParentalLeaveController {
         this.parentalLeaveService = parentalLeaveService;
     }
 
-    @PostMapping("/add")
-    public ResponseEntity<ParentalLeaveResponse> addParentalLeave(@Valid @RequestBody ParentalLeaveRequest request) {
-        return new ResponseEntity<>(parentalLeaveService.addParentalLeave(request), HttpStatus.CREATED);
-    }
+//    @PostMapping("/add")
+//    public ResponseEntity<ParentalLeaveResponse> addParentalLeave(@Valid @RequestBody ParentalLeaveRequest request) {
+//        return new ResponseEntity<>(parentalLeaveService.addParentalLeave(person, request), HttpStatus.CREATED);
+//    }
 
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> deleteParentalLeave(@PathVariable Long id) {
