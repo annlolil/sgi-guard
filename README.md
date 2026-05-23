@@ -26,6 +26,7 @@ The system uses a relational model centered around the person and their register
 ```mermaid
 erDiagram
     PERSON ||--o{ SHIFT : "performs"
+    PERSON ||--o{ PARENTALLEAVE : "has"
 
     PERSON {
         long id PK
