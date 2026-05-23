@@ -44,7 +44,7 @@ erDiagram
         long personId FK
     }
 
-    SHIFT {
+    PARENTALLEAVE {
         long id PK
         date date
         double extent
