@@ -1,62 +1,54 @@
 # SGI-Guard 🛡️
 
-**SGI-Guard** is a backend service developed as part of my graduation project (degree project). The purpose is to help users protect their **SGI** (*Sjukpenninggrundande inkomst* / Sickness benefit qualifying income) by analyzing and validating work shifts and employment rates.
+**SGI-Guard** is a backend service developed as part of my graduation project (degree project). The purpose is to help parents who mainly work irregular hours to protect their **SGI** (*Sjukpenninggrundande inkomst* / Sickness benefit qualifying income) by analyzing workshifts and validating desired parental leave. The service is intended as a decision support tool and not as a 100% decision-making system. The implemented rules are based on my interpretation of regulations from the Swedish Social Insurance Agency. And the rules that the service is based upon are interpreted by myself.
 
-## 🚀 About the Project
-This project focuses on automating calculations for SGI protection according to the Swedish Social Insurance Agency's regulations. It warns users if their worked hours or activity levels risk negatively affecting their benefit levels.
+## About the Project
+This project focuses on automating calculations for SGI protection according to the Swedish Social Insurance Agency's regulations. It warns users if their planned working hours risk negatively affecting their SGI. 
 
 ### Key Features
-- **Shift Registration:** Log workshifts and employment intensity.
-- **SGI Analysis:** Calculate whether current work patterns meet the legal requirements for SGI protection.
-- **REST API:** A robust backend built with Spring Boot, ready for frontend integration.
+- **Shift Registration:** Register work shifts as baseline (original planned shift) or actual (an original shift but with reduced working hours).
+- **SGI Analysis:** Calculate whether current work patterns meet the legal requirements for SGI protection and get recommendations for parental leave.
+- **Parental Leave Registration:** Register parental leave for specific dates that gets validated in consideration to weekend rules, long period of leave and desired extent.
+- **REST API:** A backend built with Java Spring Boot, ready for frontend integration.
+- **Thymeleaf UI:** Server-side rendered user interface with forms, validation and weekly analysis visualization.
 
 ## 🛠 Technologies
 - **Java 21**
 - **Spring Boot 3.x**
-- **Spring Data JPA** (Persistence)
-- **PostgreSQL** (Database)
+- **Spring Security**
+- **PostgreSQL** (Production profile with Docker support)
 - **H2** (Database for testing and development)
-- **Lombok** (Boilerplate reduction)
+- **JUnit 5** for unit testing
 
 ## 🏗 Architecture & Data Model
-To ensure SGI protection logic, the system uses a relational model centered around the person and their work-life balance.
+The system uses a relational model centered around the person and their registered work shifts.
 
 ```mermaid
 erDiagram
-    PERSON ||--o{ CHILD : "parent of"
-    PERSON ||--o{ EMPLOYMENT : "has"
     PERSON ||--o{ SHIFT : "performs"
+    PERSON ||--o{ PARENTALLEAVE : "has"
 
     PERSON {
         long id PK
         string personalNumber UK
         string firstName
         string lastName
-    }
-
-    CHILD {
-        long id PK
-        string firstName
-        date birthDate
-        boolean sgiProtecting
-        long personId FK
-    }
-
-    EMPLOYMENT {
-        long id PK
-        string workPlaceName
-        double currentEmploymentRate
-        double originalEmploymentRate
-        double originalWorkingHours
-        date validFrom
-        date validTo
-        long personId FK
+        string password
     }
 
     SHIFT {
         long id PK
         dateTime shiftStart
         dateTime shiftEnd
+        integer breakMinutes
+        shiftType type
+        long personId FK
+    }
+
+    PARENTALLEAVE {
+        long id PK
+        date date
+        double extent
         long personId FK
     }
 ```
@@ -66,48 +58,66 @@ Below is a simplified view of the project layout.
 
 ```
 src/main/java/.../
+  configs/
+    DevSecurityConfig
+    SecurityConfig
   controllers/
-    ChildController
-    EmploymentController
+    LoginController
+    ParentalLeaveController
     PersonController
+    RegisterController
+    SgiCalculationController
     ShiftController
-
+    WebController
   dtos/
-    ShiftDTO
-
   entities/
-    Child
-    Employment
+    ParentalLeave
     Person
     Shift
-
+  models/
   repositories/
-    ChildRepository
-    EmploymentRepository
-    PersonRepository
-    ShiftRepository
-
   services/
-    ChildService
-    ChildServiceInterface
-    EmploymentService
-    EmploymentServiceInterface
+    ParentalLeaveService
     PersonService
-    PersonServiceInterface
     SgiCalculationService
+    SgiRuleService
     ShiftService
-    ShiftServiceInterface
-
-  utils/
-    DateRange
 ```
 
-🏁 Getting Started
+## Getting Started
 
 Prerequisites
 
-* Java 21 SDK
-* A running PostgreSQL postgres:16 instance (for production)
+* Java 21
+* Maven
+
+### Clone repository
+
+```bash
+git clone https://github.com/annlolil/sgiguard.git
+cd sgiguard
+```
+
+### Start the application:
+
+```bash
+mvn spring-boot:run
+```
+
+Or run directly from your IDE.
+
+Application will be available at:
+
+http://localhost:8080/login
+
+### Database
+
+The application uses different database configurations depending on the active profile.
+
+- **Development profile:** H2 in-memory database for fast testing and simplified setup.
+- **Production profile:** PostgreSQL configured through Docker Compose for persistent storage.
+
+The H2 database is created automatically at application startup and all stored data is removed when the application stops.
   
 
 
