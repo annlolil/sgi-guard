@@ -18,14 +18,14 @@ public class DevSecurityConfig {
     public SecurityFilterChain devSecurityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/h2-console/**", // allow H2 console
+                        .requestMatchers("/h2-console/**",
                         "/login",
-                        "/register",
-                        "/css/**").permitAll()
+                        "/register")
+                        .permitAll()
                         .anyRequest().authenticated()
                 )
 
-                .csrf(AbstractHttpConfigurer::disable)                     // needed for H2 console
+                .csrf(AbstractHttpConfigurer::disable)
                 .headers(headers -> headers
                         .frameOptions(HeadersConfigurer.FrameOptionsConfig::disable)
                 )

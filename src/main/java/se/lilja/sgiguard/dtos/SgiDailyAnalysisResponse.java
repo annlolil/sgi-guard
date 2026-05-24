@@ -1,9 +1,6 @@
 package se.lilja.sgiguard.dtos;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import se.lilja.sgiguard.models.SgiStatus;
 
 import java.time.DayOfWeek;
@@ -11,11 +8,12 @@ import java.time.LocalDate;
 
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @Getter
 @Setter
 public class SgiDailyAnalysisResponse {
 
-    private LocalDate date;
+    private LocalDate analysisDate;
     private String dayOfWeek;
 
     private String baselineHours;

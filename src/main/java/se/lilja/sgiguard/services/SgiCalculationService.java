@@ -174,17 +174,17 @@ public class SgiCalculationService {
         String recommendedExtentLabel = getExtentLabel(recommendedExtent);
         String totalExtentLabel = getExtentLabel(totalExtent);
 
-        return new SgiDailyAnalysisResponse(
-                date,
-                dayOfWeek,
-                formattedBaseLineWorkHours,
-                formattedActualWorkHours,
-                totalExtentLabel,
-                formattedRemainingGapHours,
-                recommendedExtent,
-                recommendedExtentLabel,
-                status
-        );
+        return SgiDailyAnalysisResponse.builder()
+                .analysisDate(date)
+                .dayOfWeek(dayOfWeek)
+                .baselineHours(formattedBaseLineWorkHours)
+                .actualHours(formattedActualWorkHours)
+                .leaveExtent(totalExtentLabel)
+                .remainingGapHours(formattedRemainingGapHours)
+                .recommendedExtent(recommendedExtent)
+                .recommendedExtentLabel(recommendedExtentLabel)
+                .status(status)
+                .build();
     }
 
     // Creates a collection of dates for a whole week

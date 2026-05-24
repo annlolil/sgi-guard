@@ -49,7 +49,7 @@ font-family:Arial,serif;
         style="transition:0.2s;">
 
         <td style="padding:10px;"
-            th:text="${day.date}">
+            th:text="${day.analysisDate}">
         </td>
 
         <td style="padding:10px;"
@@ -134,7 +134,7 @@ font-family:Arial,serif;
 
         <input type="hidden"
                name="date"
-               th:value="${weeklyanalyses.dailyAnalyses[0].date}"/>
+               th:value="${weeklyanalyses.dailyAnalyses[0].analysisDate}"/>
 
         <button type="submit"
 

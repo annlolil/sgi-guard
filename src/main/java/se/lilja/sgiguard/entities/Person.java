@@ -15,7 +15,6 @@ public class Person {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // TODO: Implement AES-256 encryption for GDPR compliance
     @Column(unique = true, nullable = false)
     private String personalNumber;
 

@@ -120,33 +120,6 @@ public class WebController {
         }
     }
 
-//    @PostMapping("/person")
-//    public String addPerson(
-//            @RequestParam String personalNumber,
-//            @RequestParam String firstName,
-//            @RequestParam String lastName,
-//            Model model) {
-//
-//        try {
-//            PersonRequest request =
-//                    new PersonRequest();
-//
-//            request.setPersonalNumber(personalNumber);
-//            request.setFirstName(firstName);
-//            request.setLastName(lastName);
-//
-//            PersonResponse response = personService.addPerson(request);
-//
-//            model.addAttribute("person", response);
-//
-//            return "redirect:/?success=personAdded";
-//        }
-//        catch (ResponseStatusException e) {
-//            model.addAttribute("personError", e.getReason());
-//            return "login";
-//        }
-//    }
-
     @PostMapping("/shift")
     public String addShift(
             @AuthenticationPrincipal User user,

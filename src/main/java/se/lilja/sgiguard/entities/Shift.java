@@ -1,13 +1,9 @@
 package se.lilja.sgiguard.entities;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import se.lilja.sgiguard.models.ShiftType;
-
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 
 @Getter
 @Setter
@@ -49,9 +45,4 @@ public class Shift {
                 ", person=" + person +
                 '}';
     }
-
-    //    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "employment_id", nullable = false)
-//    @JsonIgnoreProperties("person")
-//    private Employment employment;
 }
