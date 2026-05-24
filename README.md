@@ -108,7 +108,7 @@ Or run directly from your IDE.
 
 Application will be available at:
 
-http://localhost:8080
+http://localhost:8080/login
 
 ### Database
 
