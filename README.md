@@ -88,8 +88,33 @@ src/main/java/.../
 
 Prerequisites
 
-* Java 21 SDK
-* A running PostgreSQL postgres:16 instance (for production)
+* Java 21
+* Maven
+
+Clone repository
+git clone https://github.com/annlolil/sgiguard.git
+cd sgiguard
+Run application
+
+Start the application:
+
+mvn spring-boot:run
+
+Or run directly from your IDE.
+
+Application will be available at:
+
+http://localhost:8080
+
+Database
+
+The application currently uses an H2 in-memory database during development.
+
+The database is created automatically when the application starts and all stored data is removed when the application stops.
+
+No additional database installation or configuration is required to run the application.
+
+Future work will include migration to PostgreSQL for persistent storage.
   
 
 
