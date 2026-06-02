@@ -75,19 +75,18 @@ font-family:Arial,serif;
             th:text="${day.recommendedExtentLabel}">
         </td>
 
-        <td
-                th:text="${day.status.toString() == 'AT_RISK'}
-                ? 'Risk'
-                : 'Skyddad'"
+        <td th:text="${day.status.displayName}"
             style="
-    padding:12px;
-    font-weight:bold;
-    width:160px;"
+        padding:12px;
+        font-weight:bold;
+        width:160px;"
 
-
-            th:styleappend="${day.status.toString() == 'AT_RISK'}
-    ? 'background-color:#ffcccc; color:red;'
-    : 'background-color:#ccffcc; color:green;'">
+            th:styleappend="
+        ${day.status.toString() == 'AT_RISK'}
+            ? 'background-color:#ffcccc; color:red;'
+            : (${day.status.toString() == 'OVERCOMPENSATED'}
+                ? 'background-color:#fff3cd; color:#856404;'
+                : 'background-color:#ccffcc; color:green;')">
         </td>
     </tr>
 

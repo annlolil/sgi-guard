@@ -152,7 +152,7 @@ public class SgiCalculationService {
 
         SgiStatus status;
         if (totalExtent > recommendedExtent
-                && remainingGapHours == 0) {
+                && dailyWorkSummary.getBaselineHours() >= 1.0 && remainingGapHours == 0) {
 
             status = SgiStatus.OVERCOMPENSATED;
 

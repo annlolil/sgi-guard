@@ -17,7 +17,7 @@ public class Shift {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(name = "Shift beginning", nullable = false)
     private LocalDateTime shiftStart;
 
     @Column(nullable = false)

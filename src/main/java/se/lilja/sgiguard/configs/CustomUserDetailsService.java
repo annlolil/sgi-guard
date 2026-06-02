@@ -29,7 +29,7 @@ public class CustomUserDetailsService
                 .findPersonByPersonalNumber(personalNumber)
                 .orElseThrow(() ->
                         new UsernameNotFoundException(
-                                "User not found"));
+                                "Användare hittades ej"));
 
         return User.builder()
                 .username(person.getPersonalNumber())

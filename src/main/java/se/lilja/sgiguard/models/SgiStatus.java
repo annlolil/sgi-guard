@@ -1,8 +1,16 @@
 package se.lilja.sgiguard.models;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@Getter
+@AllArgsConstructor
 public enum SgiStatus {
 
-    PROTECTED,
-    AT_RISK,
-    OVERCOMPENSATED
+    PROTECTED("Skyddad"),
+    AT_RISK("Risk"),
+    OVERCOMPENSATED("Överkompenserad");
+
+    private final String displayName;
+
 }
