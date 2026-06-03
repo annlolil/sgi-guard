@@ -57,9 +57,11 @@ public class ParentalLeaveService implements ParentalLeaveInterface {
         }
         double totalNewExtent = existingExtent + request.getExtent();
 
-        // Check if the requested date is a work free day and a weekend
+        // Check if the requested date is a work free day
         boolean workFreeDay = sgiRuleService.isWorkFreeDay(personId, requestDate);
 
+
+        // Check that the requested extent do not exceed the recommended extent eg. the gap to fill
         if(!workFreeDay) {
             DailyWorkSummary summary =
                     sgiCalculationService.calculateDailyWorkSummary(personId, requestDate);
@@ -68,6 +70,7 @@ public class ParentalLeaveService implements ParentalLeaveInterface {
             }
         }
 
+        // Check if the requested date is a weekend day and workfree
         boolean weekend = sgiRuleService.isWeekend(requestDate);
         if (weekend && workFreeDay) {
 
@@ -92,9 +95,6 @@ public class ParentalLeaveService implements ParentalLeaveInterface {
                 if (!validWeekendExtent) {
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Warning.WEEKEND_RULE.getMessage());
                 }
-            }
-            else {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Warning.WEEK_SCHEDULE_MISSING.getMessage());
             }
         }
         ParentalLeave savedLeave = parentalLeaveRepository.save(newParentalLeave);
