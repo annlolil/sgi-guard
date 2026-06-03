@@ -463,18 +463,22 @@ justify-content:center;
 margin-top:30px;
 ">
 
-        <a href="/login"
-           style="
-background:green;
-color:white;
-padding:10px 20px;
-border-radius:8px;
-text-decoration:none;
-display:inline-block;">
+        <form th:action="@{/logout}" method="post">
 
-            Logga ut
+            <button type="submit"
+                    style="
+            background:green;
+            color:white;
+            padding:10px 20px;
+            border:none;
+            border-radius:8px;
+            cursor:pointer;">
 
-        </a>
+                Logga ut
+
+            </button>
+
+        </form>
 
     </div>
 </div>
