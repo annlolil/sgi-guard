@@ -113,11 +113,17 @@ http://localhost:8080/login
 ### Database
 
 The application uses different database configurations depending on the active profile.
+The application is per default set to development profile.
 
 - **Development profile:** H2 in-memory database for fast testing and simplified setup.
 - **Production profile:** PostgreSQL configured through Docker Compose for persistent storage.
 
 The H2 database is created automatically at application startup and all stored data is removed when the application stops.
-  
+To open the H2 database:
+
+1. Start the application and go to: http://localhost:8080/h2-console
+2. Check that **JDBC URL** is: `jdbc:h2:mem:sgiguard`
+3. Leave the field for password empty and click **Connect**.
+
 
 
