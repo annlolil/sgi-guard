@@ -24,24 +24,17 @@ class ShiftRepositoryTest{
     private TestEntityManager testEntityManager;
 
     private Person person;
-    private Employment employment;
 
     @BeforeEach
     void setUp() {
         person = testEntityManager.persistFlushFind(Person.builder()
                 .personalNumber("2000-01-01-1212").firstName("John").lastName("Smith").build());
-
-        employment = testEntityManager.persistFlushFind(Employment.builder()
-                .workPlaceName("Hospital").validFrom(LocalDate.of(2024, 1, 1))
-                .originalWorkingHours(34.2).originalEmploymentRate(100.0)
-                .currentEmploymentRate(100.0).person(person).build());
     }
 
-    // Creates a shift to use in testing
-    private void createShift(LocalDateTime start, LocalDateTime end, Person p) {
+    // Create a shift
+    private void createShift(LocalDateTime start, LocalDateTime end, Person person) {
         testEntityManager.persist(Shift.builder()
-                .person(p).employment(employment)
-                .shiftStart(start).shiftEnd(end).build());
+                .shiftStart(start).shiftEnd(end).person(person).build());
     }
 
     @Test
