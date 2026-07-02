@@ -7,8 +7,8 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import se.lilja.sgiguard.entities.Person;
 import se.lilja.sgiguard.entities.Shift;
+import se.lilja.sgiguard.models.ShiftType;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -28,13 +28,21 @@ class ShiftRepositoryTest{
     @BeforeEach
     void setUp() {
         person = testEntityManager.persistFlushFind(Person.builder()
-                .personalNumber("2000-01-01-1212").firstName("John").lastName("Smith").build());
+                .personalNumber("2000-01-01-1212")
+                .firstName("John")
+                .lastName("Smith")
+                .password("password")
+                .build());
     }
 
     // Create a shift
-    private void createShift(LocalDateTime start, LocalDateTime end, Person person) {
+    private void createShift(LocalDateTime start, LocalDateTime end, Person person, ShiftType shiftType) {
         testEntityManager.persist(Shift.builder()
-                .shiftStart(start).shiftEnd(end).person(person).build());
+                .shiftStart(start)
+                .shiftEnd(end)
+                .person(person)
+                .type(shiftType)
+                .build());
     }
 
     @Test
@@ -43,7 +51,9 @@ class ShiftRepositoryTest{
         // Given
         createShift(
                 LocalDateTime.of(2024, 2, 29, 21, 0),
-                LocalDateTime.of(2024, 3, 1, 7, 0), person);
+                LocalDateTime.of(2024, 3, 1, 7, 0),
+                person,
+                ShiftType.BASELINE);
         testEntityManager.flush();
 
         // When
@@ -61,7 +71,9 @@ class ShiftRepositoryTest{
         // Given
         createShift(
                 LocalDateTime.of(2024, 1, 29, 23, 59),
-                LocalDateTime.of(2024, 2, 1, 7, 0), person);
+                LocalDateTime.of(2024, 2, 1, 7, 0),
+                person,
+                ShiftType.BASELINE);
         testEntityManager.flush();
 
         // When
@@ -81,7 +93,9 @@ class ShiftRepositoryTest{
         // Given
         createShift(
                 LocalDateTime.of(2024, 1, 29, 0, 0),
-                LocalDateTime.of(2024, 2, 1, 7, 0), person);
+                LocalDateTime.of(2024, 2, 1, 7, 0),
+                person,
+                ShiftType.BASELINE);
         testEntityManager.flush();
 
         // When
@@ -99,7 +113,9 @@ class ShiftRepositoryTest{
         // Given
         createShift(
                 LocalDateTime.of(2024,3, 1, 0, 0),
-                LocalDateTime.of(2024, 3, 1, 8, 0), person);
+                LocalDateTime.of(2024, 3, 1, 8, 0),
+                person,
+                ShiftType.BASELINE);
         testEntityManager.flush();
 
         // When
@@ -117,7 +133,9 @@ class ShiftRepositoryTest{
         // Given
         createShift(
                 LocalDateTime.of(2024,1, 29, 13, 0),
-                LocalDateTime.of(2024, 1, 29, 23, 59), person);
+                LocalDateTime.of(2024, 1, 29, 23, 59),
+                person,
+                ShiftType.BASELINE);
         testEntityManager.flush();
 
         // When
@@ -134,10 +152,18 @@ class ShiftRepositoryTest{
 
         // Given
         Person another = testEntityManager.persistFlushFind(Person.builder()
-                .personalNumber("1990-05-05-5555").firstName("Jane").lastName("Doe").build());
+                .personalNumber("1990-05-05-5555")
+                .firstName("Jane")
+                .lastName("Doe")
+                .password("password")
+                .build());
 
-        createShift(LocalDateTime.now(), LocalDateTime.now().plusHours(8), person);
-        createShift(LocalDateTime.now(), LocalDateTime.now().plusHours(8), another);
+        createShift(LocalDateTime.now(), LocalDateTime.now().plusHours(8),
+                person,
+                ShiftType.BASELINE);
+        createShift(LocalDateTime.now(), LocalDateTime.now().plusHours(8),
+                another,
+                ShiftType.BASELINE);
         testEntityManager.flush();
 
         // When

@@ -22,11 +22,12 @@ class PersonRepositoryTest {
 
     @BeforeEach
     void setUp() {
-        person = new Person();
-        person.setFirstName("John");
-        person.setLastName("Doe");
-        person.setPersonalNumber("200001011212");
-        testEntityManager.persistFlushFind(person);
+        person = testEntityManager.persistFlushFind(Person.builder()
+                .personalNumber("2000-01-01-1212")
+                .firstName("John")
+                .lastName("Smith")
+                .password("password")
+                .build());
     }
 
     @Test
