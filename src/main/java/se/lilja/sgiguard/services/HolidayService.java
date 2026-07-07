@@ -6,6 +6,8 @@ import de.focus_shift.jollyday.core.HolidayManager;
 import de.focus_shift.jollyday.core.ManagerParameters;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+
 @Service
 public class HolidayService {
 
@@ -14,5 +16,10 @@ public class HolidayService {
     public HolidayService() {
         this.holidayManager = HolidayManager.getInstance(
                 ManagerParameters.create(HolidayCalendar.SWEDEN));
+    }
+
+    // Check if a certain date is a swedish holiday
+    public boolean isHoliday(LocalDate date) {
+        return holidayManager.isHoliday(date);
     }
 }
