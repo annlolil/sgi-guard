@@ -1,7 +1,6 @@
 # SGI-Guard 🛡️
 
-**SGI-Guard** is a backend service developed as part of my graduation project (degree project). The purpose is to help parents who mainly work irregular hours to protect their **SGI** (*Sjukpenninggrundande inkomst* / Sickness benefit qualifying income) by analyzing workshifts and validating desired parental leave. The service is intended as a decision support tool and not as a 100% decision-making system. The implemented rules are based on my interpretation of regulations from the Swedish Social Insurance Agency. And the rules that the service is based upon are interpreted by myself.
-
+**SGI-Guard** is a backend service developed as part of my graduation project (degree project). The purpose is to help parents who mainly work irregular hours to protect their **SGI** (*Sjukpenninggrundande inkomst* / Sickness benefit qualifying income) by analyzing workshifts and validating desired parental leave. The service is intended as a decision support tool and not as a 100% decision-making system. The implemented rules are based on my interpretation of regulations from the Swedish Social Insurance Agency.
 ## About the Project
 This project focuses on automating calculations for SGI protection according to the Swedish Social Insurance Agency's regulations. It warns users if their planned working hours risk negatively affecting their SGI. 
 
